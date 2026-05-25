@@ -1,7 +1,8 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@/types'
 import styles from './Sidebar.module.css'
@@ -59,22 +60,48 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
+const ROLE_LABELS: Record<string, { en: string; fr: string }> = {
+  super_admin: { en: 'Super Admin', fr: 'Super Admin' },
+  tenant_admin: { en: 'Admin', fr: 'Administrateur' },
+  auditor: { en: 'Auditor', fr: 'Auditeur' },
+  property_manager: { en: 'Property Manager', fr: 'Directeur' },
+}
+
 interface SidebarProps {
   user: User
 }
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const [lang, setLang] = useState<'en' | 'fr'>(
+    user.default_language === 'en' ? 'en' : 'fr'
+  )
+  const [switching, setSwitching] = useState(false)
 
   const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role))
 
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    window.location.href = '/login'
+  }
+
+  async function handleLanguageSwitch(newLang: 'en' | 'fr') {
+    if (newLang === lang || switching) return
+    setSwitching(true)
+    setLang(newLang)
+    try {
+      await fetch('/api/user/language', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: newLang }),
+      })
+      window.location.reload()
+    } catch {
+      setLang(lang)
+    } finally {
+      setSwitching(false)
+    }
   }
 
   function isActive(href: string) {
@@ -101,7 +128,7 @@ export default function Sidebar({ user }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className={styles.nav} aria-label="Navigation principale">
+      <nav className={styles.nav} aria-label={lang === 'en' ? 'Main navigation' : 'Navigation principale'}>
         {visibleItems.map(item => (
           <Link
             key={item.href}
@@ -116,6 +143,27 @@ export default function Sidebar({ user }: SidebarProps) {
           </Link>
         ))}
       </nav>
+
+      {/* Language toggle */}
+      <div className={styles.langToggle}>
+        <button
+          onClick={() => handleLanguageSwitch('fr')}
+          className={`${styles.langBtn} ${lang === 'fr' ? styles.langBtnActive : ''}`}
+          disabled={switching}
+          aria-pressed={lang === 'fr'}
+        >
+          FR
+        </button>
+        <span className={styles.langDivider}>|</span>
+        <button
+          onClick={() => handleLanguageSwitch('en')}
+          className={`${styles.langBtn} ${lang === 'en' ? styles.langBtnActive : ''}`}
+          disabled={switching}
+          aria-pressed={lang === 'en'}
+        >
+          EN
+        </button>
+      </div>
 
       {/* Bottom — user info + logout */}
       <div className={styles.bottom}>
@@ -133,21 +181,14 @@ export default function Sidebar({ user }: SidebarProps) {
         <button
           onClick={handleLogout}
           className={styles.logoutBtn}
-          aria-label="Se déconnecter / Sign out"
-          title="Se déconnecter / Sign out"
+          aria-label={lang === 'en' ? 'Sign out' : 'Se déconnecter'}
+          title={lang === 'en' ? 'Sign out' : 'Se déconnecter'}
         >
           <IconLogout />
         </button>
       </div>
     </aside>
   )
-}
-
-const ROLE_LABELS: Record<string, { en: string; fr: string }> = {
-  super_admin: { en: 'Super Admin', fr: 'Super Admin' },
-  tenant_admin: { en: 'Admin', fr: 'Administrateur' },
-  auditor: { en: 'Auditor', fr: 'Auditeur' },
-  property_manager: { en: 'Property Manager', fr: 'Directeur' },
 }
 
 // ─── Icons ───────────────────────────────────
