@@ -18,8 +18,7 @@ export function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Called from Server Component — cookies can be read but not set
-            // Middleware handles session refresh
+            // Server Component — can't set cookies, middleware handles this
           }
         },
       },
