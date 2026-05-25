@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import styles from './login.module.css'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,8 +28,9 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
-    router.refresh()
+    // Hard redirect ensures the session cookie is fully committed
+    // before the next page attempts to read it server-side
+    window.location.href = '/dashboard'
   }
 
   return (
@@ -47,7 +46,6 @@ export default function LoginPage() {
         <div className={styles.brand}>
           <div className={styles.logoMark} aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Zahir eye/radiant point mark */}
               <circle cx="20" cy="20" r="3" fill="#C8A45A"/>
               <circle cx="20" cy="20" r="7" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.5" fill="none"/>
               <circle cx="20" cy="20" r="13" stroke="#C8A45A" strokeWidth="0.5" strokeOpacity="0.25" fill="none"/>
