@@ -3,12 +3,6 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import type { User } from '@/types'
 
-// Service role client — bypasses RLS, used only server-side
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 function decodeJwtPayload(token: string): { sub?: string } | null {
   try {
     const parts = token.split('.')
@@ -26,6 +20,12 @@ function decodeJwtPayload(token: string): { sub?: string } | null {
 }
 
 export async function requireUser(): Promise<User> {
+  // Create inside function — avoids build-time env var errors
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const cookieStore = cookies()
   const allCookies = cookieStore.getAll()
 
