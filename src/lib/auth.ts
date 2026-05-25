@@ -15,6 +15,19 @@ function decodeJwtPayload(token: string): { sub?: string } | null {
   }
 }
 
+function tryExtractToken(value: string): string | null {
+  // Direct JWT
+  if (value.split('.').length === 3) return value
+  // Try URL decode then JSON
+  const attempts = [value, (() => { try { return decodeURIComponent(value) } catch { return value } })()]
+  for (const v of attempts) {
+    try { const p = JSON.parse(v); if (p?.access_token) return p.access_token } catch { /* skip */ }
+    try { const p = JSON.parse(Buffer.from(v, 'base64').toString()); if (p?.access_token) return p.access_token } catch { /* skip */ }
+    try { const p = JSON.parse(Buffer.from(v, 'base64url').toString()); if (p?.access_token) return p.access_token } catch { /* skip */ }
+  }
+  return null
+}
+
 export async function requireUser(): Promise<User> {
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,97 +37,64 @@ export async function requireUser(): Promise<User> {
   const cookieStore = cookies()
   const allCookies = cookieStore.getAll()
 
-  // Log ALL cookie names and values (truncated) before any redirect
-  const cookieSummary = allCookies
-    .map(c => `${c.name}=${c.value.substring(0, 30)}`)
-    .join(' || ')
-  console.log('[auth] COOKIES:', cookieSummary || 'EMPTY')
+  // Log ALL cookies with full names (truncated values)
+  const allNames = allCookies.map(c => c.name).join(' | ')
+  console.log('[auth] cookie names:', allNames || 'NONE')
 
-  const PROJECT_REF = 'fnrafhbautactzhemmjb'
-  const BASE_NAME = `sb-${PROJECT_REF}-auth-token`
-
-  const authChunks = allCookies
-    .filter(c => c.name === BASE_NAME || c.name.startsWith(`${BASE_NAME}.`))
+  // Grab ANY sb- cookie — don't filter by exact project ref
+  const sbCookies = allCookies
+    .filter(c => c.name.startsWith('sb-'))
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  console.log('[auth] chunks:', authChunks.length, authChunks.map(c => `${c.name}(${c.value.length})`).join(' '))
+  console.log('[auth] sb cookies:', sbCookies.map(c => `${c.name}(${c.value.length})`).join(' | ') || 'NONE')
 
-  if (authChunks.length === 0) {
-    console.log('[auth] FAIL: no auth chunks')
+  if (sbCookies.length === 0) {
+    console.log('[auth] FAIL no sb- cookies')
     redirect('/login')
   }
 
-  const raw = authChunks.map(c => c.value).join('')
-  console.log('[auth] raw len:', raw.length, 'preview:', raw.substring(0, 50))
+  // Reassemble (handles chunked tokens)
+  // Group by base name (strip trailing .0 .1 etc)
+  const grouped: Record<string, string> = {}
+  for (const c of sbCookies) {
+    const base = c.name.replace(/\.\d+$/, '')
+    grouped[base] = (grouped[base] ?? '') + c.value
+  }
 
-  // Try to extract access token from various formats
+  console.log('[auth] grouped keys:', Object.keys(grouped).join(' | '))
+
   let accessToken: string | null = null
-  let parseMethod = 'none'
+  let foundKey = ''
 
-  // Format 1: raw is already a JWT
-  if (raw.split('.').length === 3) {
-    accessToken = raw
-    parseMethod = 'raw-jwt'
+  for (const [key, val] of Object.entries(grouped)) {
+    const token = tryExtractToken(val)
+    if (token) {
+      accessToken = token
+      foundKey = key
+      break
+    }
   }
 
-  // Format 2: JSON string
-  if (!accessToken) {
-    try {
-      const decoded = decodeURIComponent(raw)
-      const parsed = JSON.parse(decoded)
-      if (parsed.access_token) { accessToken = parsed.access_token; parseMethod = 'json-urldecoded' }
-    } catch { /* skip */ }
-  }
-
-  // Format 3: plain JSON (no URL encoding)
-  if (!accessToken) {
-    try {
-      const parsed = JSON.parse(raw)
-      if (parsed.access_token) { accessToken = parsed.access_token; parseMethod = 'json-plain' }
-    } catch { /* skip */ }
-  }
-
-  // Format 4: base64 encoded JSON
-  if (!accessToken) {
-    try {
-      const decoded = Buffer.from(raw, 'base64url').toString('utf-8')
-      const parsed = JSON.parse(decoded)
-      if (parsed.access_token) { accessToken = parsed.access_token; parseMethod = 'base64url' }
-    } catch { /* skip */ }
-  }
-
-  // Format 5: base64 (standard)
-  if (!accessToken) {
-    try {
-      const decoded = Buffer.from(raw, 'base64').toString('utf-8')
-      const parsed = JSON.parse(decoded)
-      if (parsed.access_token) { accessToken = parsed.access_token; parseMethod = 'base64' }
-    } catch { /* skip */ }
-  }
-
-  console.log('[auth] token method:', parseMethod, 'found:', !!accessToken)
+  console.log('[auth] token from:', foundKey || 'NONE', 'found:', !!accessToken)
 
   if (!accessToken) {
-    console.log('[auth] FAIL: could not parse token from raw value')
+    console.log('[auth] FAIL could not parse any token')
     redirect('/login')
   }
 
   const payload = decodeJwtPayload(accessToken!)
   const userId = payload?.sub
-  console.log('[auth] userId:', userId ?? 'NOT FOUND', 'payload keys:', payload ? Object.keys(payload).join(',') : 'null')
+  console.log('[auth] userId:', userId ?? 'NONE')
 
   if (!userId) {
-    console.log('[auth] FAIL: no sub in JWT payload')
+    console.log('[auth] FAIL no sub in payload')
     redirect('/login')
   }
 
   const { data: userProfile, error } = await supabaseAdmin
-    .from('users')
-    .select('*')
-    .eq('id', userId!)
-    .single()
+    .from('users').select('*').eq('id', userId!).single()
 
-  console.log('[auth] profile result:', userProfile?.email ?? 'NULL', 'error:', error?.message ?? 'none')
+  console.log('[auth] profile:', userProfile?.email ?? 'NULL', error?.message ?? '')
 
   if (!userProfile) redirect('/login?error=no_profile')
 
