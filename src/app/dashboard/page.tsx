@@ -208,7 +208,7 @@ export default async function DashboardPage() {
                       <div className={styles.propertyName}>{p.name}</div>
                       <div className={styles.propertyMeta}>
                         {p.city && <span>{p.city}</span>}
-                        <span>{t(T.category[p.category as keyof typeof T.category] ?? { en: p.category, fr: p.category })}</span>
+                        <span>{(T.category[p.category as keyof typeof T.category] ?? { en: p.category, fr: p.category })[lang]}</span>
                       </div>
                     </div>
                   </a>
