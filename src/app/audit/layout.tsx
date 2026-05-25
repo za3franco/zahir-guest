@@ -6,7 +6,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar user={user} />
-      <main style={{ flex: 1, marginLeft: 'var(--sidebar-width)', padding: '2.5rem', maxWidth: 1200 }}>
+      <main style={{
+        flex: 1,
+        marginLeft: 'var(--sidebar-width)',
+        padding: '2.5rem',
+        maxWidth: 1200,
+        animation: 'fadeUp 0.35s ease forwards'
+      }}>
         {children}
       </main>
     </div>
