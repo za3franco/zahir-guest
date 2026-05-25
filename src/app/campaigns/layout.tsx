@@ -1,22 +1,19 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/auth'
 import Sidebar from '@/components/layout/Sidebar'
-import type { User } from '@/types'
+import styles from './layout.module.css'
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) redirect('/login')
-
-  const { data: userProfile } = await supabase
-    .from('users').select('*').eq('id', authUser.id).single()
-  if (!userProfile) redirect('/login')
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const user = await requireUser()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar user={userProfile as User} />
-      <main style={{ flex: 1, marginLeft: 'var(--sidebar-width)', padding: '2.5rem', maxWidth: 1200 }}>
-        <div style={{ animation: 'fadeUp 0.35s ease forwards' }}>
+    <div className={styles.shell}>
+      <Sidebar user={user} />
+      <main className={styles.main}>
+        <div className={styles.content}>
           {children}
         </div>
       </main>
