@@ -25,20 +25,28 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refresh session — do not remove this
-  const { data: { user } } = await supabase.auth.getUser()
+  // IMPORTANT: do not remove — refreshes the session token
+  await supabase.auth.getUser()
 
-  // Public routes that don't require auth
-  const publicRoutes = ['/', '/login', '/auth/callback']
-  const isPublicRoute = publicRoutes.some(route =>
-    request.nextUrl.pathname === route ||
-    request.nextUrl.pathname.startsWith('/auth/')
-  )
+  // Only redirect unauthenticated users away from protected routes
+  // Let the server components handle auth checks for protected pages
+  const { pathname } = request.nextUrl
 
-  if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Always allow these routes through
+  const isPublic =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/favicon')
+
+  if (!isPublic) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
