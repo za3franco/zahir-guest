@@ -35,9 +35,9 @@ const T = {
     date: { en: 'Date', fr: 'Date' },
   },
   empty: {
-    noCampaigns: { en: 'No campaigns yet.', fr: 'Aucune campagne pour l'instant.' },
+    noCampaigns: { en: 'No campaigns yet.', fr: "Aucune campagne pour l'instant." },
     createCampaign: { en: '+ Create a campaign', fr: '+ Créer une campagne' },
-    noMissions: { en: 'No missions assigned yet.', fr: 'Aucune mission assignée pour l'instant.' },
+    noMissions: { en: 'No missions assigned yet.', fr: "Aucune mission assignée pour l'instant." },
   },
   audit: {
     before: { en: 'Before', fr: 'Avant le' },
