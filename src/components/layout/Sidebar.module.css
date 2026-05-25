@@ -165,7 +165,7 @@
   color: var(--color-terracotta);
   background: rgba(192, 80, 58, 0.1);
   border-color: rgba(192, 80, 58, 0.2);
-
+}
 /* Language toggle */
 .langToggle {
   display: flex;
