@@ -165,7 +165,7 @@
   color: var(--color-terracotta);
   background: rgba(192, 80, 58, 0.1);
   border-color: rgba(192, 80, 58, 0.2);
-}
+
 /* Language toggle */
 .langToggle {
   display: flex;
@@ -174,29 +174,30 @@
   gap: 4px;
   padding: 8px 16px;
   margin: 0 12px;
-  border-top: 1px solid var(--color-border-subtle, #253549);
+  border-top: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
 }
 
 .langBtn {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--color-muted-sand, #9B9488);
+  color: var(--color-sand);
   padding: 4px 6px;
   border-radius: 4px;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
 .langBtn:hover:not(:disabled) {
-  color: var(--color-ivory, #F4F1EC);
+  color: var(--color-ivory);
 }
 
 .langBtnActive {
-  color: var(--color-zahir-gold, #C8A45A) !important;
+  color: var(--color-gold) !important;
   background: rgba(200, 164, 90, 0.08);
 }
 
@@ -206,7 +207,7 @@
 }
 
 .langDivider {
-  color: var(--color-border-subtle, #253549);
+  color: var(--color-border-subtle);
   font-size: 11px;
   user-select: none;
 }
