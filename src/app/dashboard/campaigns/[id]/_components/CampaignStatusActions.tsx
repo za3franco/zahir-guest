@@ -11,15 +11,15 @@ const T = {
   notesPlaceholder: { en: 'Add internal notes about this campaign…', fr: 'Ajoutez des notes internes sur cette campagne…' },
   saveNotes: { en: 'Save notes', fr: 'Enregistrer les notes' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
-  confirmPublish: { en: 'Publish this report? The property manager will be notified.', fr: 'Publier ce rapport ? Le directeur d\'établissement sera notifié.' },
+  confirmPublish: { en: 'Publish this report? The property manager will be notified.', fr: "Publier ce rapport ? Le directeur d'établissement sera notifié." },
   confirmFinalize: { en: 'Finalize this campaign?', fr: 'Finaliser cette campagne ?' },
   statusInfo: {
-    assigned: { en: 'Waiting for the auditor to begin the audit.', fr: 'En attente que l\'auditeur commence l\'audit.' },
-    in_progress: { en: 'The auditor is currently conducting the audit.', fr: 'L\'auditeur conduit actuellement l\'audit.' },
-    submitted: { en: 'The audit has been submitted and is ready for your review.', fr: 'L\'audit a été soumis et est prêt pour votre révision.' },
+    assigned: { en: 'Waiting for the auditor to begin the audit.', fr: "En attente que l'auditeur commence l'audit." },
+    in_progress: { en: 'The auditor is currently conducting the audit.', fr: "L'auditeur conduit actuellement l'audit." },
+    submitted: { en: 'The audit has been submitted and is ready for your review.', fr: "L'audit a été soumis et est prêt pour votre révision." },
     under_review: { en: 'You are reviewing this audit. Finalize when ready.', fr: 'Vous révisez cet audit. Finalisez quand vous êtes prêt.' },
     finalized: { en: 'This campaign is finalized. Publish to share with the property manager.', fr: 'Cette campagne est finalisée. Publiez pour partager avec le directeur.' },
-    published: { en: 'This report has been published and shared with the property manager.', fr: 'Ce rapport a été publié et partagé avec le directeur d\'établissement.' },
+    published: { en: 'This report has been published and shared with the property manager.', fr: "Ce rapport a été publié et partagé avec le directeur d'établissement." },
   },
 }
 
@@ -43,7 +43,6 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
     if (newStatus === 'finalized') {
       if (!confirm(t(T.confirmFinalize))) return
     }
-
     setLoading(true)
     try {
       await fetch(`/api/campaigns/${campaignId}/status`, {
@@ -75,14 +74,12 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
 
   return (
     <div className={styles.panel}>
-      {/* Status info */}
       {statusInfo && (
         <div className={styles.statusInfo}>
           <p>{t(statusInfo)}</p>
         </div>
       )}
 
-      {/* Action buttons based on status */}
       <div className={styles.actions}>
         {status === 'submitted' && (
           <button
@@ -95,40 +92,26 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
         )}
 
         {status === 'under_review' && (
-          <>
-            <a
-              
-            <button
-              onClick={() => updateStatus('finalized')}
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {t(T.finalize)}
-            </button>
-          </>
+          <button
+            onClick={() => updateStatus('finalized')}
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {t(T.finalize)}
+          </button>
         )}
 
         {status === 'finalized' && (
-          <>
-            <a
-              
-            <button
-              onClick={() => updateStatus('published')}
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {t(T.publish)}
-            </button>
-          </>
-        )}
-
-        {status === 'published' && (
-          <a
-            
+          <button
+            onClick={() => updateStatus('published')}
+            className="btn btn-primary"
+            disabled={loading}
+          >
+            {t(T.publish)}
+          </button>
         )}
       </div>
 
-      {/* Admin notes */}
       {['submitted', 'under_review', 'finalized'].includes(status) && (
         <div className={styles.notesSection}>
           <label className={styles.notesLabel}>{t(T.adminNotes)}</label>
