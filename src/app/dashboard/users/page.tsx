@@ -101,19 +101,20 @@ export default async function UsersPage() {
                 </td>
                 <td>
                   {u.id !== user.id && (
-                    <form action={`/api/users/${u.id}`} method="POST">
-                      <input type="hidden" name="_method" value="DELETE" />
-                      <button
-                        type="submit"
-                        className="btn btn-ghost btn-sm"
-                        style={{ color: 'var(--color-terracotta)' }}
-                        onClick={e => {
-                          if (!confirm(lang === 'en' ? `Remove ${u.name}?` : `Supprimer ${u.name} ?`)) e.preventDefault()
-                        }}
-                      >
-                        {t(T.remove)}
-                      </button>
-                    </form>
+                    <form
+  action={`/api/users/${u.id}`}
+  method="POST"
+  onSubmit={`return confirm('${lang === 'en' ? `Remove ${u.name}?` : `Supprimer ${u.name} ?`}')`}
+>
+  <input type="hidden" name="_method" value="DELETE" />
+  <button
+    type="submit"
+    className="btn btn-ghost btn-sm"
+    style={{ color: 'var(--color-terracotta)' }}
+  >
+    {t(T.remove)}
+  </button>
+</form>
                   )}
                 </td>
               </tr>
