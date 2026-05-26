@@ -54,10 +54,10 @@ export async function POST(request: Request) {
   // 3. Generate a password reset link — this is the "set your password" link
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'recovery',
-    email,
-    options: { redirectTo: `${appUrl}/dashboard` },
-  })
+  type: 'invite',
+  email,
+  options: { redirectTo: `${appUrl}/auth/set-password` },
+})
 
   if (linkError || !linkData) {
     console.error('Link generation error:', linkError)
