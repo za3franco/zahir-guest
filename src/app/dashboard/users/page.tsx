@@ -4,10 +4,11 @@ import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import type { User } from '@/types'
 import styles from './users.module.css'
+import DeleteUserButton from './_components/DeleteUserButton'
 
 const T = {
   title: { en: 'Users', fr: 'Utilisateurs' },
-  subtitle: { en: 'Manage your team — auditors and property managers.', fr: 'Gérez votre équipe — auditeurs et directeurs d\'établissement.' },
+  subtitle: { en: 'Manage your team — auditors and property managers.', fr: "Gérez votre équipe — auditeurs et directeurs d'établissement." },
   inviteUser: { en: '+ Invite user', fr: '+ Inviter un utilisateur' },
   cols: {
     name: { en: 'Name', fr: 'Nom' },
@@ -28,8 +29,6 @@ const T = {
     fr: { en: 'French', fr: 'Français' },
     bilingual: { en: 'Bilingual', fr: 'Bilingue' },
   },
-  remove: { en: 'Remove', fr: 'Supprimer' },
-  empty: { en: 'No users yet.', fr: 'Aucun utilisateur pour l\'instant.' },
   you: { en: '(you)', fr: '(vous)' },
 }
 
@@ -90,7 +89,7 @@ export default async function UsersPage() {
                 <td className={styles.meta}>{u.email}</td>
                 <td>
                   <span className={`badge ${u.role === 'tenant_admin' ? 'badge-gold' : 'badge-sand'}`}>
-                    {t(T.roles[u.role] ?? { en: u.role, fr: u.role })}
+                    {t(T.roles[u.role as keyof typeof T.roles] ?? { en: u.role, fr: u.role })}
                   </span>
                 </td>
                 <td className={styles.meta}>
@@ -101,19 +100,7 @@ export default async function UsersPage() {
                 </td>
                 <td>
                   {u.id !== user.id && (
-                    <form action={`/api/users/${u.id}`} method="POST">
-  <input type="hidden" name="_method" value="DELETE" />
-  <button
-    type="submit"
-    className="btn btn-ghost btn-sm"
-    style={{ color: 'var(--color-terracotta)' }}
-    onClick={e => {
-      if (!confirm(lang === 'en' ? `Remove ${u.name}?` : `Supprimer ${u.name} ?`)) e.preventDefault()
-    }}
-  >
-    {t(T.remove)}
-  </button>
-</form>
+                    <DeleteUserButton userId={u.id} userName={u.name} lang={lang} />
                   )}
                 </td>
               </tr>
@@ -122,23 +109,5 @@ export default async function UsersPage() {
         </table>
       </div>
     </div>
-  )
-}
-'use client'
-function DeleteUserButton({ userId, userName, lang }: { userId: string; userName: string; lang: string }) {
-  return (
-    <form action={`/api/users/${userId}`} method="POST">
-      <input type="hidden" name="_method" value="DELETE" />
-      <button
-        type="submit"
-        className="btn btn-ghost btn-sm"
-        style={{ color: 'var(--color-terracotta)' }}
-        onClick={e => {
-          if (!confirm(lang === 'en' ? `Remove ${userName}?` : `Supprimer ${userName} ?`)) e.preventDefault()
-        }}
-      >
-        {lang === 'en' ? 'Remove' : 'Supprimer'}
-      </button>
-    </form>
   )
 }
