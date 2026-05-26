@@ -121,7 +121,7 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
       }
 
       const data = await res.json()
-      router.push(`/properties/${mode === 'create' ? data.id : property!.id}`)
+      router.push(`/dashboard/properties/${mode === 'create' ? data.id : property!.id}`)
     } catch {
       setError(t(T.errors.saveFailed))
       setSaving(false)
