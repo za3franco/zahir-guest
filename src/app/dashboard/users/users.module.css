@@ -1,0 +1,45 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-2);
+}
+
+.subtitle {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.userName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 500;
+  color: var(--color-ivory);
+}
+
+.youBadge {
+  font-size: 0.75rem;
+  color: var(--color-sand);
+  font-weight: 400;
+}
+
+.meta {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+}
