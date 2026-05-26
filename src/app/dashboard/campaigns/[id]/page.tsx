@@ -5,6 +5,7 @@ import { requireUser } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { STATUS_LABELS } from '@/types'
 import styles from './campaign.module.css'
+import CampaignStatusActions from './_components/CampaignStatusActions'
 
 const T = {
   back: { en: '← Campaigns', fr: '← Campagnes' },
