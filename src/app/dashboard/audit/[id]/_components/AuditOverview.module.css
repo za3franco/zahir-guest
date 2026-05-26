@@ -1,0 +1,210 @@
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-bottom: var(--space-12);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.auditLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+  font-weight: 600;
+}
+
+.propertyName {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0;
+}
+
+.propertyCity {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.campaignName {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.progressRingWrapper {
+  filter: drop-shadow(0 0 12px rgba(200, 164, 90, 0.15));
+}
+
+.progressDetail {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.domainList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.domain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.domainTitle {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.sectionBtn:hover {
+  border-color: var(--color-gold);
+  background: rgba(200, 164, 90, 0.04);
+}
+
+.sectionComplete {
+  border-color: rgba(74, 124, 107, 0.3) !important;
+  background: rgba(74, 124, 107, 0.05) !important;
+}
+
+.sectionStarted {
+  border-color: rgba(212, 136, 42, 0.3) !important;
+}
+
+.sectionLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.sectionIndicator {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionDotAmber {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-amber);
+}
+
+.sectionDotGray {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-border-subtle);
+}
+
+.sectionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionName {
+  color: var(--color-ivory);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.sectionCount {
+  color: var(--color-sand);
+  font-size: 0.75rem;
+}
+
+.sectionRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.emotionalDot {
+  color: var(--color-gold);
+  font-size: 0.875rem;
+}
+
+.sectionArrow {
+  color: var(--color-sand);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.submitSection {
+  padding-top: var(--space-4);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: var(--space-5);
+  background: var(--color-gold);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-deep-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  letter-spacing: 0.02em;
+}
+
+.submitBtn:hover {
+  opacity: 0.9;
+}
