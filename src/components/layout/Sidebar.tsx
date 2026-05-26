@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['super_admin', 'tenant_admin'],
   },
   {
-    href: '/dashboard/audit',
+    href: '/dashboard',
     labelEn: 'My Audits',
     labelFr: 'Mes Audits',
     icon: <IconAudit />,
