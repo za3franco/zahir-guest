@@ -80,7 +80,7 @@ export default async function PropertiesPage({
           <h1 className={styles.title}>{t(T.title)}</h1>
           <p className={styles.subtitle}>{t(T.subtitle)}</p>
         </div>
-        <a href="/properties/new" className="btn btn-primary">
+        <a href="/dashboard/properties/new" className="btn btn-primary">
           {t(T.addProperty)}
         </a>
       </div>
@@ -98,7 +98,7 @@ export default async function PropertiesPage({
           <p className={styles.emptyText}>{t(T.empty)}</p>
           <p className={styles.emptyHint}>{t(T.emptyHint)}</p>
           {!showArchived && (
-            <a href="/properties/new" className="btn btn-secondary">
+            <a href="/dashboard/properties/new" className="btn btn-secondary">
               {t(T.addProperty)}
             </a>
           )}
