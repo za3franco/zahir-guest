@@ -98,11 +98,7 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
         {status === 'under_review' && (
           <>
             <a
-              href={`/dashboard/campaigns/${campaignId}/review`}
-              className="btn btn-secondary"
-            >
-              {t(T.viewAudit)}
-            </a>
+              
             <button
               onClick={() => updateStatus('finalized')}
               className="btn btn-primary"
@@ -116,11 +112,7 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
         {status === 'finalized' && (
           <>
             <a
-              href={`/dashboard/campaigns/${campaignId}/review`}
-              className="btn btn-secondary"
-            >
-              {t(T.viewAudit)}
-            </a>
+              
             <button
               onClick={() => updateStatus('published')}
               className="btn btn-primary"
@@ -133,11 +125,7 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
 
         {status === 'published' && (
           <a
-            href={`/dashboard/campaigns/${campaignId}/review`}
-            className="btn btn-secondary"
-          >
-            {t(T.viewAudit)}
-          </a>
+            
         )}
       </div>
 
