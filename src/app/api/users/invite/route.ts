@@ -60,9 +60,10 @@ export async function POST(request: Request) {
 })
 
   if (linkError || !linkData) {
-    console.error('Link generation error:', linkError)
-    return NextResponse.json({ error: 'Failed to generate invite link' }, { status: 500 })
-  }
+  console.error('Link generation error:', JSON.stringify(linkError))
+  // User was created — still return success, admin can resend manually
+  return NextResponse.json({ ok: true, warning: 'User created but email failed' })
+}
 
   const inviteLink = linkData.properties?.action_link
 
