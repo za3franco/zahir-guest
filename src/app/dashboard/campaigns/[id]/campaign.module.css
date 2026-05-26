@@ -1,0 +1,142 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.backLink {
+  color: var(--color-sand);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--color-gold);
+}
+
+.topActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.campaignHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.campaignName {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-3);
+}
+
+.campaignMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.metaDot {
+  color: var(--color-border-subtle);
+}
+
+.metaText {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.card {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.detailList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.detailRow dt {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-sand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detailRow dd {
+  font-size: 0.9375rem;
+  color: var(--color-ivory);
+  margin: 0;
+}
+
+.detailSub {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+}
+
+.actionsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.notesCard {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.notesTitle {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-3);
+}
+
+.notesText {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+}
