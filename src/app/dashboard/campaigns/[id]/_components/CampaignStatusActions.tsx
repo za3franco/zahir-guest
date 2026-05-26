@@ -7,7 +7,6 @@ const T = {
   startReview: { en: 'Mark as under review', fr: 'Marquer en révision' },
   finalize: { en: 'Finalize campaign', fr: 'Finaliser la campagne' },
   publish: { en: 'Publish report', fr: 'Publier le rapport' },
-  viewAudit: { en: 'View audit responses', fr: 'Voir les réponses' },
   adminNotes: { en: 'Admin notes (optional)', fr: 'Notes administrateur (optionnel)' },
   notesPlaceholder: { en: 'Add internal notes about this campaign…', fr: 'Ajoutez des notes internes sur cette campagne…' },
   saveNotes: { en: 'Save notes', fr: 'Enregistrer les notes' },
