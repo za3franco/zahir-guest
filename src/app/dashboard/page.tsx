@@ -229,7 +229,7 @@ export default async function DashboardPage() {
           ) : (
             <div className={styles.auditCards}>
               {campaigns.map(c => (
-                <a key={c.id} href={`/audit/${c.id}`} className={styles.auditCard}>
+                <a key={c.id} href={`/dashboard/audit/${c.id}`} className={styles.auditCard}>
                   <div className={styles.auditCardHeader}>
                     <StatusBadge status={c.status} lang={lang} />
                     {c.visit_window_end && (
