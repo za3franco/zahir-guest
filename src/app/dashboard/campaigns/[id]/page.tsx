@@ -12,13 +12,11 @@ const T = {
   edit: { en: 'Edit', fr: 'Modifier' },
   sections: {
     details: { en: 'Campaign details', fr: 'Détails de la campagne' },
-    timeline: { en: 'Timeline', fr: 'Chronologie' },
   },
   fields: {
     property: { en: 'Property', fr: 'Établissement' },
     auditor: { en: 'Auditor', fr: 'Auditeur' },
     template: { en: 'Questionnaire', fr: 'Questionnaire' },
-    status: { en: 'Status', fr: 'Statut' },
     visitStart: { en: 'Visit from', fr: 'Visite du' },
     visitEnd: { en: 'Visit until', fr: 'Visite au' },
     created: { en: 'Created', fr: 'Créée le' },
@@ -28,14 +26,8 @@ const T = {
   },
   notAssigned: { en: 'Not assigned', fr: 'Non assigné' },
   noDate: { en: 'Not set', fr: 'Non définie' },
-  actions: {
-    startReview: { en: 'Start review', fr: 'Commencer la révision' },
-    finalize: { en: 'Finalize', fr: 'Finaliser' },
-    publish: { en: 'Publish report', fr: 'Publier le rapport' },
-    viewAudit: { en: 'View audit responses', fr: 'Voir les réponses' },
-  },
   statusFlow: {
-    assigned: { en: 'Waiting for auditor to begin', fr: 'En attente de l\'auditeur' },
+    assigned: { en: 'Waiting for auditor to begin', fr: "En attente de l'auditeur" },
     in_progress: { en: 'Audit in progress', fr: 'Audit en cours' },
     submitted: { en: 'Submitted — ready for review', fr: 'Soumis — prêt pour révision' },
     under_review: { en: 'Under review by admin', fr: 'En cours de révision' },
@@ -43,6 +35,9 @@ const T = {
     published: { en: 'Published', fr: 'Publié' },
   },
 }
+
+// Edit is only allowed before audit starts
+const EDITABLE_STATUSES = ['assigned']
 
 export default async function CampaignDetailPage({
   params,
@@ -86,17 +81,23 @@ export default async function CampaignDetailPage({
     ? new Date(d).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
     : t(T.noDate)
 
+  const canEdit = EDITABLE_STATUSES.includes(campaign.status)
+
   return (
     <div className={styles.page}>
+      {/* Top nav */}
       <div className={styles.topNav}>
         <a href="/dashboard/campaigns" className={styles.backLink}>{t(T.back)}</a>
-        <div className={styles.topActions}>
-          <a href={`/dashboard/campaigns/${campaign.id}/edit`} className="btn btn-ghost btn-sm">
-            {t(T.edit)}
-          </a>
-        </div>
+        {canEdit && (
+          <div className={styles.topActions}>
+            <a href={`/dashboard/campaigns/${campaign.id}/edit`} className="btn btn-ghost btn-sm">
+              {t(T.edit)}
+            </a>
+          </div>
+        )}
       </div>
 
+      {/* Campaign header */}
       <div className={styles.campaignHeader}>
         <div>
           <h1 className={styles.campaignName}>{campaign.name}</h1>
@@ -158,6 +159,12 @@ export default async function CampaignDetailPage({
                 <dd>{formatDate(campaign.published_at)}</dd>
               </div>
             )}
+            {campaign.admin_notes && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.adminNotes)}</dt>
+                <dd style={{ whiteSpace: 'pre-wrap' }}>{campaign.admin_notes}</dd>
+              </div>
+            )}
           </dl>
         </div>
 
@@ -169,13 +176,6 @@ export default async function CampaignDetailPage({
             auditorId={(campaign.auditor as any)?.id ?? null}
             lang={lang}
           />
-
-          {campaign.admin_notes && (
-            <div className={styles.notesCard}>
-              <h3 className={styles.notesTitle}>{t(T.fields.adminNotes)}</h3>
-              <p className={styles.notesText}>{campaign.admin_notes}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
