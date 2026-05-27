@@ -6,10 +6,11 @@ import styles from './ReviewInterface.module.css'
 import ScoreDashboard from './ScoreDashboard'
 import ResponsesView from './ResponsesView'
 import ExecutiveSummaryEditor from './ExecutiveSummaryEditor'
+import GenerateReportButton from './GenerateReportButton'
 
 const T = {
   back: { en: '← Campaign', fr: '← Campagne' },
-  title: { en: 'Audit Review', fr: 'Révision de l\'audit' },
+  title: { en: 'Audit Review', fr: "Révision de l'audit" },
   tabs: {
     scores: { en: 'Scores', fr: 'Scores' },
     responses: { en: 'Responses', fr: 'Réponses' },
@@ -60,14 +61,19 @@ export default function ReviewInterface({
 
   return (
     <div className={styles.page}>
-      {/* Top nav */}
       <div className={styles.topNav}>
         <a href={`/dashboard/campaigns/${campaign.id}`} className={styles.backLink}>
           {t(T.back)}
         </a>
+        {report && (
+          <GenerateReportButton
+            reportId={report.id}
+            existingPdfUrl={report.pdf_url}
+            lang={lang}
+          />
+        )}
       </div>
 
-      {/* Header */}
       <div className={styles.header}>
         <div>
           <p className={styles.headerLabel}>{t(T.title)}</p>
@@ -83,7 +89,6 @@ export default function ReviewInterface({
         )}
       </div>
 
-      {/* Meta */}
       <div className={styles.metaRow}>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>{t(T.meta.property)}</span>
@@ -103,7 +108,6 @@ export default function ReviewInterface({
         </div>
       </div>
 
-      {/* Tabs */}
       <div className={styles.tabs}>
         {(['scores', 'responses', 'summary'] as const).map(tab => (
           <button
@@ -116,7 +120,6 @@ export default function ReviewInterface({
         ))}
       </div>
 
-      {/* Tab content */}
       <div className={styles.tabContent}>
         {activeTab === 'scores' && (
           scores
