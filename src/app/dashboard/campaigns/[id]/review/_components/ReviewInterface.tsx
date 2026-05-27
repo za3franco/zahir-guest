@@ -61,6 +61,7 @@ export default function ReviewInterface({
 
   return (
     <div className={styles.page}>
+      {/* Top nav — back link left, generate button right */}
       <div className={styles.topNav}>
         <a href={`/dashboard/campaigns/${campaign.id}`} className={styles.backLink}>
           {t(T.back)}
@@ -68,12 +69,13 @@ export default function ReviewInterface({
         {report && (
           <GenerateReportButton
             reportId={report.id}
-            existingPdfUrl={report.pdf_url}
+            hasHtml={!!report.report_html}
             lang={lang}
           />
         )}
       </div>
 
+      {/* Header */}
       <div className={styles.header}>
         <div>
           <p className={styles.headerLabel}>{t(T.title)}</p>
@@ -89,6 +91,7 @@ export default function ReviewInterface({
         )}
       </div>
 
+      {/* Meta */}
       <div className={styles.metaRow}>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>{t(T.meta.property)}</span>
@@ -108,6 +111,7 @@ export default function ReviewInterface({
         </div>
       </div>
 
+      {/* Tabs */}
       <div className={styles.tabs}>
         {(['scores', 'responses', 'summary'] as const).map(tab => (
           <button
@@ -120,6 +124,7 @@ export default function ReviewInterface({
         ))}
       </div>
 
+      {/* Tab content */}
       <div className={styles.tabContent}>
         {activeTab === 'scores' && (
           scores
