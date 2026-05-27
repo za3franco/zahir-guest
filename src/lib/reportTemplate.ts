@@ -498,9 +498,9 @@ ${(scores.domains ?? []).map((domain: any) => {
 <!-- ══ APPENDIX ══ -->
 <div class="page">
   ${pageHeader(propertyName, auditDateEn)}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:4px;">Appendix · Annexe</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#1a1a2e;margin-bottom:4px;line-height:1.1;">Full Scorecard</div>
-  <div style="width:36px;height:2px;background:#C8A45A;margin:10px 0 20px;"></div>
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:22pt;font-weight:400;color:#1a1a2e;margin-bottom:2px;line-height:1.1;">Full Scorecard</div>
+  <div style="width:36px;height:2px;background:#C8A45A;margin:8px 0 14px;"></div>
 
   ${(scores.domains ?? []).map((domain: any) => `
   <div class="appendix-group">
