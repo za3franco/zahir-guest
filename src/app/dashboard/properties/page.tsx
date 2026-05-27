@@ -88,7 +88,7 @@ export default async function PropertiesPage({
       {showArchived && (
         <div className={styles.archivedBanner}>
           <span>{t(T.showingArchived)}</span>
-          <a href="/properties" className={styles.archivedBack}>{t(T.backToActive)}</a>
+          <a href="/dashboard/properties" className={styles.archivedBack}>{t(T.backToActive)}</a>
         </div>
       )}
 
@@ -120,7 +120,7 @@ export default async function PropertiesPage({
               {properties.map(p => (
                 <tr key={p.id}>
                   <td>
-                    <a href={`/properties/${p.id}`} className={styles.propertyName}>
+                    <a href={`/dashboard/properties/${p.id}`} className={styles.propertyName}>
                       <span className={styles.propertyIcon}>{PROPERTY_TYPE_ICONS[p.type] ?? '🏨'}</span>
                       {p.name}
                     </a>
@@ -146,7 +146,7 @@ export default async function PropertiesPage({
                   </td>
                   <td>
                     <div className={styles.actions}>
-                      <a href={`/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
+                      <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
                         {t(T.edit)}
                       </a>
                       <form action={`/api/properties/${p.id}/archive`} method="POST" style={{ display: 'inline' }}>
@@ -166,7 +166,7 @@ export default async function PropertiesPage({
 
       {!showArchived && (
         <div className={styles.archivedLink}>
-          <a href="/properties?archived=1" className={styles.archivedLinkText}>
+          <a href="/dashboard/properties?archived=1" className={styles.archivedLinkText}>
             {t(T.archived)}
           </a>
         </div>
