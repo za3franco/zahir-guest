@@ -7,10 +7,8 @@ const T = {
   generate: { en: 'Generate report', fr: 'Générer le rapport' },
   generating: { en: 'Generating…', fr: 'Génération en cours…' },
   regenerate: { en: 'Regenerate', fr: 'Régénérer' },
-  viewAndPrint: { en: 'View & save PDF', fr: 'Voir & sauvegarder PDF' },
-  generated: { en: 'Report ready', fr: 'Rapport prêt' },
-  error: { en: 'Generation failed. Try again.', fr: 'Échec de la génération. Réessayez.' },
-  hint: { en: 'Opens in new tab — use browser Print → Save as PDF', fr: 'S\'ouvre dans un nouvel onglet — Imprimer → Enregistrer en PDF' },
+  viewAndPrint: { en: 'View & save PDF ↗', fr: 'Voir & PDF ↗' },
+  error: { en: 'Generation failed. Try again.', fr: 'Échec. Réessayez.' },
 }
 
 interface Props {
@@ -60,21 +58,16 @@ export default function GenerateReportButton({ reportId, hasHtml, lang }: Props)
         </button>
 
         {ready && (
-          <a
+          
             href={`/dashboard/reports/${reportId}/view`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary btn-sm"
           >
-            {t(T.viewAndPrint)} ↗
+            {t(T.viewAndPrint)}
           </a>
         )}
       </div>
-
-      {ready && !error && (
-        <p className={styles.hint}>{t(T.hint)}</p>
-      )}
-
       {error && <p className={styles.error}>{error}</p>}
     </div>
   )
