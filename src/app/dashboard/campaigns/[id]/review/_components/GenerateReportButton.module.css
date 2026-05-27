@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.generateBtn {
+  flex-shrink: 0;
+}
+
+.downloadBtn {
+  flex-shrink: 0;
+}
+
+.success {
+  color: var(--color-sage);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.error {
+  color: var(--color-terracotta);
+  font-size: 0.875rem;
+  margin: 0;
+}
