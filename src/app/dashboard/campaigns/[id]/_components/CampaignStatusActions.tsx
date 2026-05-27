@@ -14,14 +14,31 @@ const T = {
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   confirmPublish: { en: 'Publish this report? The property manager will be notified.', fr: "Publier ce rapport ? Le directeur d'établissement sera notifié." },
   confirmFinalize: { en: 'Finalize this campaign?', fr: 'Finaliser cette campagne ?' },
+  revertSection: { en: 'Move back to…', fr: 'Revenir à…' },
+  revert: {
+    submitted: { en: '← Back to submitted', fr: '← Retour à soumis' },
+    under_review: { en: '← Back to under review', fr: '← Retour en révision' },
+    finalized: { en: '← Back to finalized', fr: '← Retour à finalisé' },
+    in_progress: { en: '← Back to in progress', fr: '← Retour en cours' },
+    assigned: { en: '← Back to assigned', fr: '← Retour à assigné' },
+  },
   statusInfo: {
     assigned: { en: 'Waiting for the auditor to begin the audit.', fr: "En attente que l'auditeur commence l'audit." },
     in_progress: { en: 'The auditor is currently conducting the audit.', fr: "L'auditeur conduit actuellement l'audit." },
     submitted: { en: 'The audit has been submitted and is ready for your review.', fr: "L'audit a été soumis et est prêt pour votre révision." },
     under_review: { en: 'You are reviewing this audit. Finalize when ready.', fr: 'Vous révisez cet audit. Finalisez quand vous êtes prêt.' },
-    finalized: { en: 'This campaign is finalized. Publish to share with the property manager.', fr: 'Cette campagne est finalisée. Publiez pour partager avec le directeur.' },
-    published: { en: 'This report has been published and shared with the property manager.', fr: "Ce rapport a été publié et partagé avec le directeur d'établissement." },
+    finalized: { en: 'Finalized. Publish to share with the property manager.', fr: 'Finalisé. Publiez pour partager avec le directeur.' },
+    published: { en: 'Published and shared with the property manager.', fr: "Publié et partagé avec le directeur d'établissement." },
   },
+}
+
+// Which status each current status can revert to
+const BACKWARD: Record<string, string> = {
+  in_progress: 'assigned',
+  submitted: 'in_progress',
+  under_review: 'submitted',
+  finalized: 'under_review',
+  published: 'finalized',
 }
 
 interface Props {
@@ -72,15 +89,19 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
   }
 
   const statusInfo = T.statusInfo[status as keyof typeof T.statusInfo]
+  const revertTo = BACKWARD[status]
+  const revertLabel = revertTo ? T.revert[revertTo as keyof typeof T.revert] : null
 
   return (
     <div className={styles.panel}>
+      {/* Status info */}
       {statusInfo && (
         <div className={styles.statusInfo}>
           <p>{t(statusInfo)}</p>
         </div>
       )}
 
+      {/* Forward action buttons */}
       <div className={styles.actions}>
         {status === 'submitted' && (
           <button
@@ -94,10 +115,7 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
 
         {status === 'under_review' && (
           <>
-            <a
-              href={`/dashboard/campaigns/${campaignId}/review`}
-              className="btn btn-secondary"
-            >
+            <a href={`/dashboard/campaigns/${campaignId}/review`} className="btn btn-secondary">
               {t(T.viewAudit)}
             </a>
             <button
@@ -112,10 +130,7 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
 
         {status === 'finalized' && (
           <>
-            <a
-              href={`/dashboard/campaigns/${campaignId}/review`}
-              className="btn btn-secondary"
-            >
+            <a href={`/dashboard/campaigns/${campaignId}/review`} className="btn btn-secondary">
               {t(T.viewAudit)}
             </a>
             <button
@@ -129,15 +144,13 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
         )}
 
         {status === 'published' && (
-          <a
-            href={`/dashboard/campaigns/${campaignId}/review`}
-            className="btn btn-secondary"
-          >
+          <a href={`/dashboard/campaigns/${campaignId}/review`} className="btn btn-secondary">
             {t(T.viewAudit)}
           </a>
         )}
       </div>
 
+      {/* Admin notes */}
       {['submitted', 'under_review', 'finalized'].includes(status) && (
         <div className={styles.notesSection}>
           <label className={styles.notesLabel}>{t(T.adminNotes)}</label>
@@ -154,6 +167,19 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
             disabled={savingNotes || !notes.trim()}
           >
             {savingNotes ? t(T.saving) : t(T.saveNotes)}
+          </button>
+        </div>
+      )}
+
+      {/* Backward transition — admin escape hatch */}
+      {revertTo && revertLabel && (
+        <div className={styles.revertSection}>
+          <button
+            onClick={() => updateStatus(revertTo)}
+            className={styles.revertBtn}
+            disabled={loading}
+          >
+            {t(revertLabel)}
           </button>
         </div>
       )}
