@@ -4,27 +4,26 @@ import { useState } from 'react'
 import styles from './GenerateReportButton.module.css'
 
 const T = {
-  generate: { en: 'Generate report & PDF', fr: 'Générer le rapport & PDF' },
+  generate: { en: 'Generate report', fr: 'Générer le rapport' },
   generating: { en: 'Generating…', fr: 'Génération en cours…' },
-  regenerate: { en: 'Regenerate report', fr: 'Régénérer le rapport' },
-  downloadPdf: { en: 'Download PDF', fr: 'Télécharger le PDF' },
-  generated: { en: 'Report generated', fr: 'Rapport généré' },
+  regenerate: { en: 'Regenerate', fr: 'Régénérer' },
+  viewAndPrint: { en: 'View & save PDF', fr: 'Voir & sauvegarder PDF' },
+  generated: { en: 'Report ready', fr: 'Rapport prêt' },
   error: { en: 'Generation failed. Try again.', fr: 'Échec de la génération. Réessayez.' },
-  pdfFailed: { en: 'HTML saved but PDF generation failed. Try regenerating.', fr: 'HTML enregistré mais la génération PDF a échoué. Régénérez.' },
+  hint: { en: 'Opens in new tab — use browser Print → Save as PDF', fr: 'S\'ouvre dans un nouvel onglet — Imprimer → Enregistrer en PDF' },
 }
 
 interface Props {
   reportId: string
-  existingPdfUrl?: string | null
+  hasHtml: boolean
   lang: string
 }
 
-export default function GenerateReportButton({ reportId, existingPdfUrl, lang }: Props) {
+export default function GenerateReportButton({ reportId, hasHtml, lang }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [loading, setLoading] = useState(false)
-  const [pdfUrl, setPdfUrl] = useState<string | null>(existingPdfUrl ?? null)
+  const [ready, setReady] = useState(hasHtml)
   const [error, setError] = useState<string | null>(null)
-  const [generated, setGenerated] = useState(false)
 
   async function handleGenerate() {
     setLoading(true)
@@ -35,20 +34,13 @@ export default function GenerateReportButton({ reportId, existingPdfUrl, lang }:
         method: 'POST',
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
+        const data = await res.json()
         setError(data.error ?? t(T.error))
         return
       }
 
-      if (data.pdf_url) {
-        setPdfUrl(data.pdf_url)
-      } else {
-        setError(t(T.pdfFailed))
-      }
-
-      setGenerated(true)
+      setReady(true)
     } catch {
       setError(t(T.error))
     } finally {
@@ -61,35 +53,29 @@ export default function GenerateReportButton({ reportId, existingPdfUrl, lang }:
       <div className={styles.buttons}>
         <button
           onClick={handleGenerate}
-          className={`btn btn-primary ${styles.generateBtn}`}
+          className="btn btn-ghost btn-sm"
           disabled={loading}
         >
-          {loading
-            ? t(T.generating)
-            : pdfUrl
-            ? t(T.regenerate)
-            : t(T.generate)}
+          {loading ? t(T.generating) : ready ? t(T.regenerate) : t(T.generate)}
         </button>
 
-        {pdfUrl && (
+        {ready && (
           <a
-            href={pdfUrl}
+            href={`/dashboard/reports/${reportId}/view`}
             target="_blank"
             rel="noopener noreferrer"
-            className={`btn btn-secondary ${styles.downloadBtn}`}
+            className="btn btn-primary btn-sm"
           >
-            ↓ {t(T.downloadPdf)}
+            {t(T.viewAndPrint)} ↗
           </a>
         )}
       </div>
 
-      {generated && !error && (
-        <p className={styles.success}>✓ {t(T.generated)}</p>
+      {ready && !error && (
+        <p className={styles.hint}>{t(T.hint)}</p>
       )}
 
-      {error && (
-        <p className={styles.error}>{error}</p>
-      )}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   )
 }
