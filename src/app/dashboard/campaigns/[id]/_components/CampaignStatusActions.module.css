@@ -66,3 +66,29 @@
   outline: none;
   border-color: var(--color-gold);
 }
+
+.revertSection {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: var(--space-2);
+}
+
+.revertBtn {
+  background: none;
+  border: none;
+  color: var(--color-sand);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.revertBtn:hover:not(:disabled) {
+  color: var(--color-ivory);
+}
+
+.revertBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
