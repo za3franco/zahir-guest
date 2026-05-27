@@ -58,7 +58,7 @@ export default function GenerateReportButton({ reportId, hasHtml, lang }: Props)
         </button>
 
         {ready && (
-          
+          <a
             href={`/dashboard/reports/${reportId}/view`}
             target="_blank"
             rel="noopener noreferrer"
