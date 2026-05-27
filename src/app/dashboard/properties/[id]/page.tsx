@@ -103,9 +103,9 @@ export default async function PropertyDetailPage({
   return (
     <div className={styles.page}>
       <div className={styles.topNav}>
-        <a href="/properties" className={styles.backLink}>{t(T.backToProperties)}</a>
+        <a href="/dashboard/properties" className={styles.backLink}>{t(T.backToProperties)}</a>
         <div className={styles.topActions}>
-          <a href={`/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
+          <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
             {t(T.edit)}
           </a>
           <form action={`/api/properties/${p.id}/archive`} method="POST" style={{ display: 'inline' }}>
@@ -196,7 +196,7 @@ export default async function PropertyDetailPage({
         <div className={styles.campaignsSection}>
           <div className={styles.campaignsSectionHeader}>
             <h2 className={styles.cardTitle}>{t(T.sections.campaigns)}</h2>
-            <a href={`/campaigns/new?property_id=${p.id}`} className="btn btn-primary btn-sm">
+            <a href={`/dashboard/campaigns/new?property_id=${p.id}`} className="btn btn-primary btn-sm">
               {t(T.createCampaign)}
             </a>
           </div>
