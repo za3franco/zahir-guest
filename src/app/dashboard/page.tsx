@@ -173,7 +173,7 @@ export default async function DashboardPage() {
                     {campaigns.map(c => (
                       <tr key={c.id}>
                         <td>
-                          <a href={`/campaigns/${c.id}`} className={styles.tableLink}>{c.name}</a>
+                          <a href={`/dashboard/campaigns/${c.id}`} className={styles.tableLink}>{c.name}</a>
                         </td>
                         <td className={styles.tableSecondary}>
                           {(c.property as any)?.name ?? '—'}
@@ -202,7 +202,7 @@ export default async function DashboardPage() {
               </div>
               <div className={styles.propertiesGrid}>
                 {properties.map(p => (
-                  <a key={p.id} href={`/properties/${p.id}`} className={styles.propertyCard}>
+                  <a key={p.id} href={`/dashboard/properties/${p.id}`} className={styles.propertyCard}>
                     <div className={styles.propertyIcon}>{PROPERTY_TYPE_ICONS[p.type] ?? '🏨'}</div>
                     <div>
                       <div className={styles.propertyName}>{p.name}</div>
