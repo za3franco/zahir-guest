@@ -1,7 +1,6 @@
 /**
- * ZAHIR GUEST — HTML REPORT TEMPLATE
- * Generates a full bilingual branded report from scored data
- * Print-optimised: clean page breaks, no orphans, proper A4 layout
+ * ZAHIR GUEST — HTML REPORT TEMPLATE v2
+ * Print-optimised: fixed page breaks, appendix header, domain continuations
  */
 
 const CLASSIFICATION_LABELS: Record<string, { en: string; fr: string }> = {
@@ -47,7 +46,7 @@ function circleProgress(percent: number | null, size: number, strokeWidth: numbe
   const displayValue = percent !== null ? `${percent}%` : 'N/A'
   const fontSize = size > 100 ? '22px' : size > 60 ? '14px' : '11px'
 
-  return `<div style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;">
+  return `<div style="position:relative;width:${size}px;height:${size}px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e8e4de" stroke-width="${strokeWidth}"/>
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"
@@ -89,6 +88,15 @@ export function generateReportHtml(data: ReportData): string {
   const avgEmotional = scores.average_emotional_rating
   const emotionalLabel = avgEmotional ? EMOTIONAL_LABELS[Math.round(avgEmotional)] : null
 
+  // Page header used on every content page - inline styles to survive print rendering
+  const pageHeader = (rightText: string) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8e4de;padding-bottom:10px;margin-bottom:24px;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:10pt;color:#9B9488;letter-spacing:0.06em;">Zahir Guest</span>
+      <div style="font-size:8pt;color:#9B9488;text-align:right;line-height:1.5;">${rightText}</div>
+    </div>`
+
+  const headerRight = `${propertyName}<br>${auditDateEn}`
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -98,10 +106,8 @@ export function generateReportHtml(data: ReportData): string {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-  /* ── RESET ── */
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* ── VARIABLES ── */
   :root {
     --deep-ink: #0D1B2A;
     --gold: #C8A45A;
@@ -111,23 +117,19 @@ export function generateReportHtml(data: ReportData): string {
     --amber: #D4882A;
     --terracotta: #C0503A;
     --border-light: #e8e4de;
-    --border-dark: #253549;
-    --text-primary: #1a1a2e;
-    --text-secondary: #5a5a6a;
   }
 
-  /* ── BASE ── */
   html, body {
     font-family: 'DM Sans', -apple-system, Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.6;
-    color: var(--text-primary);
+    color: #1a1a2e;
     background: #ffffff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  /* ── SCREEN: show print button ── */
+  /* ── SCREEN ── */
   @media screen {
     .print-fab {
       position: fixed;
@@ -147,28 +149,21 @@ export function generateReportHtml(data: ReportData): string {
       letter-spacing: 0.02em;
     }
     .print-fab:hover { opacity: 0.9; }
-
     body { background: #f5f2ed; }
-
     .cover { margin: 0 auto; max-width: 794px; }
     .page { margin: 16px auto; max-width: 794px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
   }
 
   /* ── PRINT ── */
   @media print {
-    @page {
-      size: A4;
-      margin: 0;
-    }
+    @page { size: A4; margin: 0; }
     @page :first { margin: 0; }
 
-    html, body {
-      width: 210mm;
-      height: 297mm;
-    }
+    html, body { width: 210mm; }
 
     .print-fab { display: none !important; }
 
+    /* Each .page is exactly one printed page */
     .cover {
       width: 210mm;
       height: 297mm;
@@ -178,42 +173,46 @@ export function generateReportHtml(data: ReportData): string {
 
     .page {
       width: 210mm;
-      min-height: 297mm;
       page-break-after: always;
-      page-break-inside: avoid;
+      page-break-inside: auto;
       box-shadow: none !important;
       margin: 0 !important;
     }
 
     .page:last-child { page-break-after: avoid; }
 
-    .domain-page { page-break-before: always; }
+    /* Domain section pages - always start on new page */
+    .domain-section-page { page-break-before: always; }
 
+    /* Keep section blocks together where possible */
     .section-block {
       page-break-inside: avoid;
       break-inside: avoid;
     }
 
+    /* Below items stay together */
     .below-item {
       page-break-inside: avoid;
       break-inside: avoid;
     }
 
-    .appendix-section {
+    /* Appendix table rows stay together */
+    .appendix-table tbody tr {
       page-break-inside: avoid;
       break-inside: avoid;
     }
 
-    .appendix-table tr {
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    /* Prevent orphaned headings */
-    h1, h2, h3, .section-row-name, .appendix-domain {
+    /* Keep section headings with their content */
+    .section-name-heading {
       page-break-after: avoid;
       break-after: avoid;
     }
+
+    /* Appendix domain groups */
+    .appendix-group { page-break-inside: avoid; break-inside: avoid; }
+
+    /* Prevent widows/orphans */
+    p { orphans: 3; widows: 3; }
   }
 
   /* ── COVER ── */
@@ -227,33 +226,20 @@ export function generateReportHtml(data: ReportData): string {
     overflow: hidden;
   }
 
-  .cover-decoration-1 {
+  .cover-deco {
     position: absolute;
-    top: -180px; right: -180px;
-    width: 520px; height: 520px;
     border-radius: 50%;
-    border: 1px solid rgba(200,164,90,0.07);
     pointer-events: none;
   }
 
-  .cover-decoration-2 {
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 320px; height: 320px;
-    border-radius: 50%;
-    border: 1px solid rgba(200,164,90,0.12);
-    pointer-events: none;
+  /* ── PAGE ── */
+  .page {
+    background: #ffffff;
+    padding: 40px 52px 48px;
+    position: relative;
   }
 
-  .cover-decoration-3 {
-    position: absolute;
-    bottom: 60px; left: -120px;
-    width: 360px; height: 360px;
-    border-radius: 50%;
-    border: 1px solid rgba(200,164,90,0.05);
-    pointer-events: none;
-  }
-
+  /* ── COVER STYLES ── */
   .cover-brand {
     display: flex;
     align-items: center;
@@ -262,8 +248,6 @@ export function generateReportHtml(data: ReportData): string {
     z-index: 1;
   }
 
-  .cover-brand-text { display: flex; flex-direction: column; gap: 2px; }
-
   .cover-brand-name {
     font-family: 'Cormorant Garamond', serif;
     font-size: 17pt;
@@ -271,6 +255,7 @@ export function generateReportHtml(data: ReportData): string {
     color: var(--ivory);
     letter-spacing: 0.06em;
     line-height: 1;
+    display: block;
   }
 
   .cover-brand-tenant {
@@ -278,6 +263,8 @@ export function generateReportHtml(data: ReportData): string {
     color: var(--sand);
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    display: block;
+    margin-top: 2px;
   }
 
   .cover-main {
@@ -342,6 +329,7 @@ export function generateReportHtml(data: ReportData): string {
     letter-spacing: 0.1em;
     color: var(--sand);
     margin-bottom: 8px;
+    display: block;
   }
 
   .cover-score-stats {
@@ -354,6 +342,7 @@ export function generateReportHtml(data: ReportData): string {
     font-size: 10pt;
     color: var(--gold);
     margin-top: 8px;
+    display: block;
   }
 
   .cover-footer {
@@ -372,39 +361,6 @@ export function generateReportHtml(data: ReportData): string {
     line-height: 1.9;
   }
 
-  .cover-footer-col strong { color: var(--ivory); }
-  .cover-footer-col .accent { color: var(--gold); }
-
-  /* ── PAGE LAYOUT ── */
-  .page {
-    background: #ffffff;
-    padding: 44px 52px 52px;
-    position: relative;
-  }
-
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 12px;
-    margin-bottom: 28px;
-  }
-
-  .page-header-brand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 10pt;
-    color: var(--sand);
-    letter-spacing: 0.06em;
-  }
-
-  .page-header-right {
-    font-size: 8pt;
-    color: var(--sand);
-    text-align: right;
-    line-height: 1.5;
-  }
-
   /* ── SECTION HEADINGS ── */
   .section-kicker {
     font-size: 7.5pt;
@@ -419,7 +375,7 @@ export function generateReportHtml(data: ReportData): string {
     font-family: 'Cormorant Garamond', serif;
     font-size: 24pt;
     font-weight: 400;
-    color: var(--text-primary);
+    color: #1a1a2e;
     margin-bottom: 4px;
     line-height: 1.1;
   }
@@ -435,7 +391,7 @@ export function generateReportHtml(data: ReportData): string {
   .summary-body {
     font-size: 10.5pt;
     line-height: 1.95;
-    color: var(--text-primary);
+    color: #1a1a2e;
     white-space: pre-wrap;
   }
 
@@ -444,7 +400,7 @@ export function generateReportHtml(data: ReportData): string {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .domain-score-card {
@@ -458,66 +414,42 @@ export function generateReportHtml(data: ReportData): string {
   .domain-score-card-name {
     font-family: 'Cormorant Garamond', serif;
     font-size: 11pt;
-    color: var(--text-primary);
+    color: #1a1a2e;
     margin-top: 10px;
     margin-bottom: 3px;
     line-height: 1.2;
   }
 
-  .domain-score-card-sub {
-    font-size: 7.5pt;
-    color: var(--sand);
-  }
+  .domain-score-card-sub { font-size: 7.5pt; color: var(--sand); }
 
   /* ── CLASSIFICATION TABLE ── */
-  .classification-section-title {
+  .class-section-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 14pt;
-    color: var(--text-primary);
-    margin-bottom: 14px;
-    padding-top: 8px;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    padding-top: 6px;
     border-top: 1px solid var(--border-light);
   }
 
   .class-table { width: 100%; border-collapse: collapse; }
-
-  .class-table td { padding: 7px 0; vertical-align: middle; }
-
+  .class-table td { padding: 6px 0; vertical-align: middle; }
   .class-label-cell { width: 180px; }
-
-  .class-label-en { font-size: 8.5pt; color: var(--text-primary); display: block; }
+  .class-label-en { font-size: 8.5pt; color: #1a1a2e; display: block; }
   .class-label-fr { font-size: 7.5pt; color: var(--sand); display: block; }
-
   .class-bar-cell { padding: 0 14px !important; }
-
-  .class-bar-bg {
-    background: #f0ede8;
-    border-radius: 3px;
-    height: 7px;
-    overflow: hidden;
-  }
-
+  .class-bar-bg { background: #f0ede8; border-radius: 3px; height: 7px; overflow: hidden; }
   .class-bar-fill { height: 100%; border-radius: 3px; }
+  .class-pct { font-size: 8.5pt; font-weight: 600; width: 44px; text-align: right; }
+  .class-count { font-size: 7.5pt; color: var(--sand); width: 52px; text-align: right; }
 
-  .class-pct {
-    font-size: 8.5pt;
-    font-weight: 600;
-    width: 44px;
-    text-align: right;
-  }
-
-  .class-count {
-    font-size: 7.5pt;
-    color: var(--sand);
-    width: 52px;
-    text-align: right;
-  }
-
-  /* ── DOMAIN PAGE HEADER ── */
+  /* ── DOMAIN HEADER BAR ── */
   .domain-header-bar {
     background: var(--deep-ink);
-    margin: -44px -52px 28px;
-    padding: 36px 52px 32px;
+    margin: -40px -52px 24px;
+    padding: 32px 52px 28px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .domain-header-kicker {
@@ -526,26 +458,26 @@ export function generateReportHtml(data: ReportData): string {
     letter-spacing: 0.14em;
     color: var(--gold);
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .domain-header-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 26pt;
+    font-size: 24pt;
     font-weight: 300;
     color: var(--ivory);
     line-height: 1.1;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .domain-header-score {
-    font-size: 13pt;
+    font-size: 12pt;
     font-weight: 600;
   }
 
-  /* ── SECTION ROWS ── */
+  /* ── SECTION ROWS (domain pages) ── */
   .section-block {
-    padding: 14px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #f2efe9;
   }
 
@@ -556,56 +488,34 @@ export function generateReportHtml(data: ReportData): string {
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
-  .section-name {
+  .section-name-heading {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 12.5pt;
-    color: var(--text-primary);
+    font-size: 12pt;
+    color: #1a1a2e;
     line-height: 1.2;
   }
 
-  .section-name-fr {
-    font-size: 9pt;
-    color: var(--sand);
-    display: block;
-    margin-top: 1px;
-  }
+  .section-name-fr { font-size: 8.5pt; color: var(--sand); display: block; margin-top: 1px; }
+  .section-stats-row { font-size: 7.5pt; color: var(--sand); margin-top: 2px; }
 
-  .section-stats-row {
-    font-size: 7.5pt;
-    color: var(--sand);
-    margin-top: 3px;
-  }
-
-  .section-score-col {
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .section-score-pct {
-    font-size: 15pt;
-    font-weight: 700;
-    line-height: 1;
-    display: block;
-  }
-
-  .section-emotional {
-    font-size: 7.5pt;
-    color: var(--sand);
-    margin-top: 3px;
-  }
+  .section-score-col { text-align: right; flex-shrink: 0; }
+  .section-score-pct { font-size: 15pt; font-weight: 700; line-height: 1; display: block; }
+  .section-emotional { font-size: 7.5pt; color: var(--sand); margin-top: 3px; }
 
   /* ── BELOW STANDARDS ── */
-  .below-list { margin-top: 10px; }
+  .below-list { margin-top: 8px; }
 
   .below-item {
-    padding: 10px 14px;
+    padding: 9px 13px;
     border-left: 3px solid var(--amber);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     background: #fdf9f4;
-    border-radius: 0 5px 5px 0;
+    border-radius: 0 4px 4px 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .below-item-critical {
@@ -618,54 +528,38 @@ export function generateReportHtml(data: ReportData): string {
     color: var(--gold);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     font-weight: 600;
   }
 
-  .below-classification-critical {
-    color: var(--terracotta) !important;
-  }
-
-  .below-q-en {
-    font-size: 8.5pt;
-    color: var(--text-primary);
-    line-height: 1.45;
-    margin-bottom: 2px;
-  }
-
-  .below-q-fr {
-    font-size: 7.5pt;
-    color: var(--sand);
-    line-height: 1.4;
-    margin-bottom: 3px;
-  }
-
-  .below-note {
-    font-size: 7.5pt;
-    color: var(--text-secondary);
-    font-style: italic;
-  }
+  .below-classification-critical { color: var(--terracotta) !important; }
+  .below-q-en { font-size: 8.5pt; color: #1a1a2e; line-height: 1.45; margin-bottom: 2px; }
+  .below-q-fr { font-size: 7.5pt; color: var(--sand); line-height: 1.4; margin-bottom: 2px; }
+  .below-note { font-size: 7.5pt; color: #5a5a6a; font-style: italic; }
 
   /* ── APPENDIX ── */
+  .appendix-group { margin-bottom: 20px; }
+
   .appendix-domain {
     font-family: 'Cormorant Garamond', serif;
     font-size: 13pt;
-    color: var(--text-primary);
+    color: #1a1a2e;
     margin-bottom: 6px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--border-light);
-    margin-top: 16px;
+    page-break-after: avoid;
+    break-after: avoid;
   }
 
-  .appendix-domain:first-child { margin-top: 0; }
-
   .appendix-section-name {
-    font-size: 8.5pt;
+    font-size: 8pt;
     font-weight: 600;
-    color: var(--text-primary);
-    margin: 10px 0 5px;
+    color: #1a1a2e;
+    margin: 10px 0 4px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    page-break-after: avoid;
+    break-after: avoid;
   }
 
   .appendix-table {
@@ -685,13 +579,15 @@ export function generateReportHtml(data: ReportData): string {
     letter-spacing: 0.04em;
     font-size: 6.5pt;
     border-bottom: 1px solid var(--border-light);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .appendix-table td {
     padding: 5px 7px;
     border-bottom: 1px solid #f5f2ed;
     vertical-align: top;
-    color: var(--text-primary);
+    color: #1a1a2e;
     line-height: 1.4;
   }
 
@@ -706,16 +602,13 @@ export function generateReportHtml(data: ReportData): string {
 </head>
 <body>
 
-<!-- Print button (screen only) -->
-<button class="print-fab" onclick="window.print()">
-  ↓ Save as PDF
-</button>
+<button class="print-fab" onclick="window.print()">↓ Save as PDF</button>
 
 <!-- ══ COVER ══════════════════════════════════════════════ -->
 <div class="cover">
-  <div class="cover-decoration-1"></div>
-  <div class="cover-decoration-2"></div>
-  <div class="cover-decoration-3"></div>
+  <div class="cover-deco" style="top:-180px;right:-180px;width:520px;height:520px;border:1px solid rgba(200,164,90,0.07);"></div>
+  <div class="cover-deco" style="top:-80px;right:-80px;width:320px;height:320px;border:1px solid rgba(200,164,90,0.12);"></div>
+  <div class="cover-deco" style="bottom:60px;left:-120px;width:360px;height:360px;border:1px solid rgba(200,164,90,0.05);"></div>
 
   <div class="cover-brand">
     <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
@@ -727,9 +620,9 @@ export function generateReportHtml(data: ReportData): string {
       <line x1="4" y1="20" x2="10" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
       <line x1="30" y1="20" x2="36" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
     </svg>
-    <div class="cover-brand-text">
-      <div class="cover-brand-name">Zahir Guest</div>
-      <div class="cover-brand-tenant">${tenantName}</div>
+    <div>
+      <span class="cover-brand-name">Zahir Guest</span>
+      <span class="cover-brand-tenant">${tenantName}</span>
     </div>
   </div>
 
@@ -742,50 +635,42 @@ export function generateReportHtml(data: ReportData): string {
     <div class="cover-score-block">
       ${circleProgress(overallPercent, 110, 7)}
       <div class="cover-score-info">
-        <div class="cover-score-label">Overall Score · Score Global</div>
+        <span class="cover-score-label">Overall Score · Score Global</span>
         <div class="cover-score-stats">
           ${scores.total_meet} meet · ${scores.total_below} below · ${scores.total_na} N/A<br>
           ${scores.total_standards} standards evaluated
         </div>
-        ${avgEmotional && emotionalLabel ? `
-        <div class="cover-score-emotional">★ ${avgEmotional} — ${emotionalLabel.en} / ${emotionalLabel.fr}</div>` : ''}
+        ${avgEmotional && emotionalLabel ? `<span class="cover-score-emotional">★ ${avgEmotional} — ${emotionalLabel.en} / ${emotionalLabel.fr}</span>` : ''}
       </div>
     </div>
   </div>
 
   <div class="cover-footer">
     <div class="cover-footer-col">
-      <strong>${propertyName}</strong><br>
+      <strong style="color:#F4F1EC;">${propertyName}</strong><br>
       ${templateName}<br>
       ${auditorName ? `Auditor · Auditeur: ${auditorName}` : ''}
     </div>
     <div class="cover-footer-col" style="text-align:right;">
-      ${auditDate}<br>
-      ${auditDateEn}<br>
-      <span class="accent">zahirguest.com</span>
+      ${auditDate}<br>${auditDateEn}<br>
+      <span style="color:#C8A45A;">zahirguest.com</span>
     </div>
   </div>
 </div>
 
 ${executiveSummary ? `
-<!-- ══ EXECUTIVE SUMMARY ══════════════════════════════════ -->
+<!-- ══ EXECUTIVE SUMMARY ══ -->
 <div class="page">
-  <div class="page-header">
-    <span class="page-header-brand">Zahir Guest</span>
-    <div class="page-header-right">${propertyName}<br>${auditDateEn}</div>
-  </div>
+  ${pageHeader(headerRight)}
   <div class="section-kicker">Executive Summary · Synthèse Exécutive</div>
   <div class="section-title">Overview</div>
   <div class="section-rule"></div>
   <div class="summary-body">${executiveSummary.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 </div>` : ''}
 
-<!-- ══ SCORE DASHBOARD ════════════════════════════════════ -->
+<!-- ══ SCORE DASHBOARD ══ -->
 <div class="page">
-  <div class="page-header">
-    <span class="page-header-brand">Zahir Guest</span>
-    <div class="page-header-right">${propertyName}<br>${auditDateEn}</div>
-  </div>
+  ${pageHeader(headerRight)}
   <div class="section-kicker">Score Dashboard · Tableau de Bord</div>
   <div class="section-title">Results at a Glance</div>
   <div class="section-rule"></div>
@@ -793,13 +678,13 @@ ${executiveSummary ? `
   <div class="domain-score-grid">
     ${(scores.domains ?? []).map((domain: any) => `
     <div class="domain-score-card">
-      ${circleProgress(domain.score_percent, 72, 5)}
+      ${circleProgress(domain.score_percent, 68, 5)}
       <div class="domain-score-card-name">${domain.name_en}<br><span style="font-size:8pt;color:#9B9488;">${domain.name_fr}</span></div>
       <div class="domain-score-card-sub">${domain.sections?.length ?? 0} sections</div>
     </div>`).join('')}
   </div>
 
-  <div class="classification-section-title">Performance by Classification · Par Classification</div>
+  <div class="class-section-title">Performance by Classification · Par Classification</div>
   <table class="class-table">
     ${Object.entries(scores.classification_breakdown ?? {}).map(([key, value]: [string, any]) => {
       if (!value || value.total === 0) return ''
@@ -812,9 +697,7 @@ ${executiveSummary ? `
           <span class="class-label-fr">${label?.fr ?? key}</span>
         </td>
         <td class="class-bar-cell">
-          <div class="class-bar-bg">
-            <div class="class-bar-fill" style="width:${pct ?? 0}%;background:${color};"></div>
-          </div>
+          <div class="class-bar-bg"><div class="class-bar-fill" style="width:${pct ?? 0}%;background:${color};"></div></div>
         </td>
         <td class="class-pct" style="color:${color};">${pct !== null ? `${pct}%` : 'N/A'}</td>
         <td class="class-count">${value.meet ?? 0}/${value.scored ?? 0}</td>
@@ -823,74 +706,81 @@ ${executiveSummary ? `
   </table>
 </div>
 
-<!-- ══ DOMAIN SECTIONS ════════════════════════════════════ -->
-${(scores.domains ?? []).map((domain: any) => `
-<div class="page domain-page">
-  <div class="page-header" style="margin-top:0;">
-    <span class="page-header-brand">Zahir Guest</span>
-    <div class="page-header-right">${propertyName}<br>${auditDateEn}</div>
-  </div>
+<!-- ══ DOMAIN SECTIONS ══
+     Each domain gets its own page. Sections within overflow naturally.
+     The domain header bar repeats via CSS running elements isn't available
+     in Chrome print, so we put the header inside each domain page.
+     If a domain has many sections it will overflow across pages naturally —
+     the header only appears once at the top of the domain's first page.
+══ -->
+${(scores.domains ?? []).map((domain: any) => {
+  const domainNameEn = domain.name_en
+  const domainNameFr = domain.name_fr
+  const domainScore = domain.score_percent
+
+  return `
+<div class="page domain-section-page">
   <div class="domain-header-bar">
     <div class="domain-header-kicker">Domain · Domaine</div>
-    <div class="domain-header-name">${domain.name_en} / ${domain.name_fr}</div>
-    <div class="domain-header-score" style="color:${scoreColor(domain.score_percent)};">
-      ${domain.score_percent !== null ? `${domain.score_percent}%` : 'N/A'} — ${scoreLabel(domain.score_percent, 'en')} / ${scoreLabel(domain.score_percent, 'fr')}
+    <div class="domain-header-name">${domainNameEn} / ${domainNameFr}</div>
+    <div class="domain-header-score" style="color:${scoreColor(domainScore)};">
+      ${domainScore !== null ? `${domainScore}%` : 'N/A'} — ${scoreLabel(domainScore, 'en')} / ${scoreLabel(domainScore, 'fr')}
     </div>
   </div>
 
   ${(domain.sections ?? []).map((section: any) => {
     const belowStandards = (section.standards ?? []).filter((s: any) => s.response === 'below')
     const emotLabel = section.emotional_rating ? EMOTIONAL_LABELS[section.emotional_rating] : null
+    const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    const sFr = (section.name_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+
     return `
   <div class="section-block">
     <div class="section-meta-row">
       <div>
-        <div class="section-name">
-          ${section.name_en}
-          <span class="section-name-fr">${section.name_fr}</span>
-        </div>
-        <div class="section-stats-row">
-          ${section.meet ?? 0} meet · ${section.below ?? 0} below · ${section.na ?? 0} N/A · ${section.scored ?? 0} scored
-        </div>
+        <div class="section-name-heading">${sEn}<span class="section-name-fr">${sFr}</span></div>
+        <div class="section-stats-row">${section.meet ?? 0} meet · ${section.below ?? 0} below · ${section.na ?? 0} N/A · ${section.scored ?? 0} scored</div>
       </div>
       <div class="section-score-col">
-        <span class="section-score-pct" style="color:${scoreColor(section.score_percent)};">
-          ${section.score_percent !== null ? `${section.score_percent}%` : 'N/A'}
-        </span>
+        <span class="section-score-pct" style="color:${scoreColor(section.score_percent)};">${section.score_percent !== null ? `${section.score_percent}%` : 'N/A'}</span>
         ${emotLabel ? `<div class="section-emotional">★ ${section.emotional_rating} ${emotLabel.en} / ${emotLabel.fr}</div>` : ''}
       </div>
     </div>
     ${belowStandards.length > 0 ? `
     <div class="below-list">
-      ${belowStandards.map((std: any) => `
+      ${belowStandards.map((std: any) => {
+        const qEn = (std.question_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const qFr = (std.question_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const note = std.auditor_note ? std.auditor_note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''
+        return `
       <div class="below-item ${std.is_critical ? 'below-item-critical' : ''}">
-        <div class="below-classification ${std.is_critical ? 'below-classification-critical' : ''}">
-          ${std.is_critical ? '⚑ CRITICAL · CRITIQUE — ' : ''}${std.performance_classification}
-        </div>
-        <div class="below-q-en">${(std.question_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-        <div class="below-q-fr">${(std.question_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-        ${std.auditor_note ? `<div class="below-note">"${std.auditor_note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}"</div>` : ''}
-      </div>`).join('')}
+        <div class="below-classification ${std.is_critical ? 'below-classification-critical' : ''}">${std.is_critical ? '⚑ CRITICAL · CRITIQUE — ' : ''}${std.performance_classification ?? ''}</div>
+        <div class="below-q-en">${qEn}</div>
+        <div class="below-q-fr">${qFr}</div>
+        ${note ? `<div class="below-note">"${note}"</div>` : ''}
+      </div>`
+      }).join('')}
     </div>` : ''}
   </div>`
   }).join('')}
-</div>`).join('')}
+</div>`
+}).join('')}
 
-<!-- ══ APPENDIX ════════════════════════════════════════════ -->
+<!-- ══ APPENDIX ══ -->
 <div class="page">
-  <div class="page-header">
-    <span class="page-header-brand">Zahir Guest</span>
-    <div class="page-header-right">${propertyName}<br>${auditDateEn}</div>
-  </div>
+  ${pageHeader(headerRight)}
   <div class="section-kicker">Appendix · Annexe</div>
   <div class="section-title">Full Scorecard</div>
   <div class="section-rule"></div>
 
   ${(scores.domains ?? []).map((domain: any) => `
-  <div class="appendix-section">
-    <div class="appendix-domain">${domain.name_en} / ${domain.name_fr}</div>
-    ${(domain.sections ?? []).map((section: any) => `
-    <div class="appendix-section-name">${section.name_en} / ${section.name_fr}</div>
+  <div class="appendix-group">
+    <div class="appendix-domain">${(domain.name_en ?? '').replace(/&/g,'&amp;')} / ${(domain.name_fr ?? '').replace(/&/g,'&amp;')}</div>
+    ${(domain.sections ?? []).map((section: any) => {
+      const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      const sFr = (section.name_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      return `
+    <div class="appendix-section-name">${sEn} / ${sFr}</div>
     <table class="appendix-table">
       <thead>
         <tr>
@@ -915,7 +805,8 @@ ${(scores.domains ?? []).map((domain: any) => `
           </tr>`
         }).join('')}
       </tbody>
-    </table>`).join('')}
+    </table>`
+    }).join('')}
   </div>`).join('')}
 </div>
 
