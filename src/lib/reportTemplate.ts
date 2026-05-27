@@ -495,19 +495,15 @@ ${(scores.domains ?? []).map((domain: any) => {
 </div>`
 }).join('')}
 
-<!-- ══ APPENDIX TITLE PAGE ══ -->
-<div class="page" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:200px;">
-  ${pageHeader(propertyName, auditDateEn)}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:4px;">Appendix · Annexe</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:32pt;font-weight:300;color:#1a1a2e;line-height:1.1;margin-bottom:8px;">Full Scorecard</div>
-  <div style="width:36px;height:2px;background:#C8A45A;"></div>
-  <div style="margin-top:24px;font-size:9pt;color:#9B9488;">${scores.total_standards} standards · ${scores.domains?.length ?? 0} domains · ${(scores.domains ?? []).reduce((acc: number, d: any) => acc + (d.sections?.length ?? 0), 0)} sections</div>
-</div>
-
 <!-- ══ APPENDIX DOMAIN PAGES ══ -->
-${(scores.domains ?? []).map((domain: any) => `
+${(scores.domains ?? []).map((domain: any, domainIndex: number) => `
 <div class="page domain-page">
   ${pageHeader(propertyName, auditDateEn)}
+  ${domainIndex === 0 ? `
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:20pt;font-weight:300;color:#1a1a2e;line-height:1.1;margin-bottom:6px;">Full Scorecard</div>
+  <div style="width:36px;height:2px;background:#C8A45A;margin-bottom:16px;"></div>
+  ` : ''}
   <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · ${domain.name_en}</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#1a1a2e;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #C8A45A;">${domain.name_en} / ${domain.name_fr}</div>
 
