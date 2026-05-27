@@ -495,51 +495,56 @@ ${(scores.domains ?? []).map((domain: any) => {
 </div>`
 }).join('')}
 
-<!-- ══ APPENDIX ══ -->
-<div class="page">
+<!-- ══ APPENDIX TITLE PAGE ══ -->
+<div class="page" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-height:200px;">
   ${pageHeader(propertyName, auditDateEn)}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:22pt;font-weight:400;color:#1a1a2e;margin-bottom:2px;line-height:1.1;">Full Scorecard</div>
-  <div style="width:36px;height:2px;background:#C8A45A;margin:8px 0 14px;"></div>
-
-  ${(scores.domains ?? []).map((domain: any) => `
-  <div class="appendix-group">
-    <div class="appendix-domain-header">${(domain.name_en ?? '').replace(/&/g,'&amp;')} / ${(domain.name_fr ?? '').replace(/&/g,'&amp;')}</div>
-    ${(domain.sections ?? []).map((section: any) => {
-      const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      const sFr = (section.name_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      return `
-    <div class="appendix-section-header">${sEn} / ${sFr}</div>
-    <table class="appendix-table">
-      <thead>
-        <tr>
-          <th style="width:58%;">Standard (EN / FR)</th>
-          <th style="width:13%;">Classification</th>
-          <th style="width:9%;">Result</th>
-          <th style="width:20%;">Auditor note</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${(section.standards ?? []).map((std: any) => {
-          const rClass = std.response === 'meet' ? 'r-meet' : std.response === 'below' ? 'r-below' : std.response === 'na' ? 'r-na' : 'r-none'
-          const rLabel = std.response === 'meet' ? 'MEET' : std.response === 'below' ? 'BELOW' : std.response === 'na' ? 'N/A' : '—'
-          const qEn = (std.question_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-          const qFr = (std.question_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-          const note = (std.auditor_note ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-          const rowBg = std.response === 'below' ? 'background:#fffaf5;' : std.response === 'meet' ? 'background:#f9fcfa;' : ''
-          return `<tr style="${rowBg}">
-            <td>${qEn}<br><span style="color:#9B9488;font-size:7pt;">${qFr}</span></td>
-            <td style="color:#9B9488;font-size:7pt;">${std.performance_classification ?? ''}</td>
-            <td class="${rClass}">${rLabel}</td>
-            <td style="color:#9B9488;font-style:italic;">${note}</td>
-          </tr>`
-        }).join('')}
-      </tbody>
-    </table>`
-    }).join('')}
-  </div>`).join('')}
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:4px;">Appendix · Annexe</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:32pt;font-weight:300;color:#1a1a2e;line-height:1.1;margin-bottom:8px;">Full Scorecard</div>
+  <div style="width:36px;height:2px;background:#C8A45A;"></div>
+  <div style="margin-top:24px;font-size:9pt;color:#9B9488;">${scores.total_standards} standards · ${scores.domains?.length ?? 0} domains · ${(scores.domains ?? []).reduce((acc: number, d: any) => acc + (d.sections?.length ?? 0), 0)} sections</div>
 </div>
 
+<!-- ══ APPENDIX DOMAIN PAGES ══ -->
+${(scores.domains ?? []).map((domain: any) => `
+<div class="page domain-page">
+  ${pageHeader(propertyName, auditDateEn)}
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · ${domain.name_en}</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#1a1a2e;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #C8A45A;">${domain.name_en} / ${domain.name_fr}</div>
+
+  ${(domain.sections ?? []).map((section: any) => {
+    const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    const sFr = (section.name_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    return `
+  <div class="appendix-section-header">${sEn} / ${sFr}</div>
+  <table class="appendix-table">
+    <thead>
+      <tr>
+        <th style="width:58%;">Standard (EN / FR)</th>
+        <th style="width:13%;">Classification</th>
+        <th style="width:9%;">Result</th>
+        <th style="width:20%;">Auditor note</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${(section.standards ?? []).map((std: any) => {
+        const rClass = std.response === 'meet' ? 'r-meet' : std.response === 'below' ? 'r-below' : std.response === 'na' ? 'r-na' : 'r-none'
+        const rLabel = std.response === 'meet' ? 'MEET' : std.response === 'below' ? 'BELOW' : std.response === 'na' ? 'N/A' : '—'
+        const qEn = (std.question_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const qFr = (std.question_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const note = (std.auditor_note ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const rowBg = std.response === 'below' ? 'background:#fffaf5;' : std.response === 'meet' ? 'background:#f9fcfa;' : ''
+        return `<tr style="${rowBg}">
+          <td>${qEn}<br><span style="color:#9B9488;font-size:7pt;">${qFr}</span></td>
+          <td style="color:#9B9488;font-size:7pt;">${std.performance_classification ?? ''}</td>
+          <td class="${rClass}">${rLabel}</td>
+          <td style="color:#9B9488;font-style:italic;">${note}</td>
+        </tr>`
+      }).join('')}
+    </tbody>
+  </table>`
+  }).join('')}
+</div>`).join('')}
+
 </body>
-</html>`
+</html>
 }
