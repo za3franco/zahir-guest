@@ -7,8 +7,9 @@ const T = {
   startReview: { en: 'Mark as under review', fr: 'Marquer en révision' },
   finalize: { en: 'Finalize campaign', fr: 'Finaliser la campagne' },
   publish: { en: 'Publish report', fr: 'Publier le rapport' },
+  viewAudit: { en: 'View audit responses', fr: 'Voir les réponses' },
   adminNotes: { en: 'Admin notes (optional)', fr: 'Notes administrateur (optionnel)' },
-  notesPlaceholder: { en: 'Add internal notes about this campaign…', fr: 'Ajoutez des notes internes sur cette campagne…' },
+  notesPlaceholder: { en: 'Add internal notes about this campaign…', fr: "Ajoutez des notes internes sur cette campagne…" },
   saveNotes: { en: 'Save notes', fr: 'Enregistrer les notes' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   confirmPublish: { en: 'Publish this report? The property manager will be notified.', fr: "Publier ce rapport ? Le directeur d'établissement sera notifié." },
@@ -92,23 +93,48 @@ export default function CampaignStatusActions({ campaignId, status, auditorId, l
         )}
 
         {status === 'under_review' && (
-          <button
-            onClick={() => updateStatus('finalized')}
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {t(T.finalize)}
-          </button>
+          <>
+            <a
+              href={`/dashboard/campaigns/${campaignId}/review`}
+              className="btn btn-secondary"
+            >
+              {t(T.viewAudit)}
+            </a>
+            <button
+              onClick={() => updateStatus('finalized')}
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {t(T.finalize)}
+            </button>
+          </>
         )}
 
         {status === 'finalized' && (
-          <button
-            onClick={() => updateStatus('published')}
-            className="btn btn-primary"
-            disabled={loading}
+          <>
+            <a
+              href={`/dashboard/campaigns/${campaignId}/review`}
+              className="btn btn-secondary"
+            >
+              {t(T.viewAudit)}
+            </a>
+            <button
+              onClick={() => updateStatus('published')}
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {t(T.publish)}
+            </button>
+          </>
+        )}
+
+        {status === 'published' && (
+          <a
+            href={`/dashboard/campaigns/${campaignId}/review`}
+            className="btn btn-secondary"
           >
-            {t(T.publish)}
-          </button>
+            {t(T.viewAudit)}
+          </a>
         )}
       </div>
 
