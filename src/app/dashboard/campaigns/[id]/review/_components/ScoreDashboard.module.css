@@ -1,0 +1,239 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-top: var(--space-6);
+}
+
+.overallCard {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.overallLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.overallLabel {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-2);
+}
+
+.overallStats {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+  margin: 0 0 var(--space-1);
+}
+
+.overallEmotional {
+  color: var(--color-gold);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.sectionTitleAlert {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-terracotta);
+  margin: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid rgba(192, 80, 58, 0.3);
+}
+
+.domainGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.domainCard {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.domainTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.domainInfo {
+  flex: 1;
+}
+
+.domainName {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-1);
+}
+
+.domainSections {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+}
+
+.sectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sectionName {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+  flex: 1;
+}
+
+.sectionRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.emotionalStar {
+  color: var(--color-gold);
+  font-size: 0.75rem;
+}
+
+.sectionScore {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+.classificationList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.classificationRow {
+  display: grid;
+  grid-template-columns: 200px 1fr 56px 60px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.classificationName {
+  color: var(--color-ivory);
+  font-size: 0.875rem;
+}
+
+.classificationBarWrapper {
+  height: 8px;
+  background: var(--color-border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.classificationBar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.classificationPercent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.classificationCount {
+  color: var(--color-sand);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.criticalList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.criticalItem {
+  background: rgba(192, 80, 58, 0.06);
+  border: 1px solid rgba(192, 80, 58, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.criticalHeader {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.criticalDomain {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-terracotta);
+  font-weight: 600;
+}
+
+.criticalSection {
+  font-size: 0.6875rem;
+  color: var(--color-sand);
+}
+
+.criticalQuestion {
+  color: var(--color-ivory);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.criticalNote {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0;
+}

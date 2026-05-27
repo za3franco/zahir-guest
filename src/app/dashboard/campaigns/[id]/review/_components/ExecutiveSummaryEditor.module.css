@@ -1,0 +1,124 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--space-6);
+  padding-top: var(--space-6);
+  align-items: start;
+}
+
+.editorSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0 0 var(--space-1);
+}
+
+.subtitle {
+  color: var(--color-sand);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.editor {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  padding: var(--space-5);
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 320px;
+}
+
+.editor::placeholder {
+  color: var(--color-sand);
+  opacity: 0.5;
+}
+
+.editor:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.editorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.charCount {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+}
+
+.saveBtn {
+  background: var(--color-gold);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-deep-ink);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: var(--space-3) var(--space-6);
+  transition: opacity var(--transition-fast);
+}
+
+.saveBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tipsSection {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: sticky;
+  top: var(--space-4);
+}
+
+.tipsTitle {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-4);
+}
+
+.tipsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-left: var(--space-4);
+  margin: 0;
+}
+
+.tipItem {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}

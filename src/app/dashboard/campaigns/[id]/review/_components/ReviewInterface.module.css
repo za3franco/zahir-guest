@@ -1,0 +1,137 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.topNav {
+  display: flex;
+  align-items: center;
+}
+
+.backLink {
+  color: var(--color-sand);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--color-gold);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.headerLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-1);
+}
+
+.campaignName {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin: 0;
+}
+
+.overallScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
+  flex-shrink: 0;
+}
+
+.overallScoreValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-gold);
+  line-height: 1;
+}
+
+.overallScoreLabel {
+  font-size: 0.75rem;
+  color: var(--color-sand);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: var(--space-1);
+}
+
+.metaRow {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metaLabel {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-sand);
+  font-weight: 600;
+}
+
+.metaValue {
+  font-size: 0.9375rem;
+  color: var(--color-ivory);
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-sand);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  padding: var(--space-3) var(--space-5);
+  transition: all var(--transition-fast);
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--color-ivory);
+}
+
+.tabActive {
+  color: var(--color-gold) !important;
+  border-bottom-color: var(--color-gold) !important;
+}
+
+.tabContent {
+  min-height: 400px;
+}
+
+.noData {
+  color: var(--color-sand);
+  padding: var(--space-8);
+  text-align: center;
+}
