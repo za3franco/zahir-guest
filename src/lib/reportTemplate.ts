@@ -546,5 +546,5 @@ ${(scores.domains ?? []).map((domain: any) => `
 </div>`).join('')}
 
 </body>
-</html>
+</html>`
 }
