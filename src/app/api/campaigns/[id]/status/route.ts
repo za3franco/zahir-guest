@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { sendReportPublishedEmail } from '@/lib/emailNotifications'
 
-// Forward transitions (auditor/admin)
 const FORWARD_TRANSITIONS: Record<string, string[]> = {
   assigned: ['in_progress'],
   in_progress: ['submitted'],
@@ -11,7 +11,6 @@ const FORWARD_TRANSITIONS: Record<string, string[]> = {
   finalized: ['published'],
 }
 
-// Backward transitions (admin only)
 const BACKWARD_TRANSITIONS: Record<string, string[]> = {
   in_progress: ['assigned'],
   submitted: ['in_progress'],
@@ -33,10 +32,9 @@ export async function POST(
 
   const { status: newStatus } = await request.json()
 
-  // Get current campaign
   const { data: campaign } = await supabaseAdmin
     .from('campaigns')
-    .select('status, tenant_id')
+    .select('status, tenant_id, name, property_id')
     .eq('id', params.id)
     .single()
 
@@ -52,7 +50,6 @@ export async function POST(
   const backwardAllowed = BACKWARD_TRANSITIONS[campaign.status] ?? []
   const isBackward = backwardAllowed.includes(newStatus)
 
-  // Backward transitions require admin
   if (isBackward && user.role !== 'tenant_admin' && user.role !== 'super_admin') {
     return NextResponse.json({ error: 'Only admins can reverse campaign status' }, { status: 403 })
   }
@@ -65,15 +62,11 @@ export async function POST(
   }
 
   const updateData: Record<string, any> = { status: newStatus }
-
-  // Set timestamps on forward transitions
   if (newStatus === 'published') updateData.published_at = new Date().toISOString()
   if (newStatus === 'submitted') updateData.submitted_at = new Date().toISOString()
-
-  // Clear timestamps on backward transitions
   if (isBackward) {
     if (campaign.status === 'published') updateData.published_at = null
-    if (campaign.status === 'submitted' || campaign.status === 'under_review') updateData.submitted_at = null
+    if (['submitted', 'under_review'].includes(campaign.status)) updateData.submitted_at = null
   }
 
   const { error } = await supabaseAdmin
@@ -83,6 +76,48 @@ export async function POST(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Send report published email to property manager
+  if (newStatus === 'published') {
+    try {
+      const { data: property } = await supabaseAdmin
+        .from('properties')
+        .select('name, city, property_manager_user_id')
+        .eq('id', campaign.property_id)
+        .single()
+
+      if (property?.property_manager_user_id) {
+        const { data: pm } = await supabaseAdmin
+          .from('users')
+          .select('name, email, default_language')
+          .eq('id', property.property_manager_user_id)
+          .single()
+
+        const { data: report } = await supabaseAdmin
+          .from('audit_reports')
+          .select('id, report_json')
+          .eq('campaign_id', params.id)
+          .single()
+
+        if (pm && report) {
+          const overallScore = (report.report_json as any)?.overall_percent ?? null
+
+          await sendReportPublishedEmail({
+            pmName: pm.name,
+            pmEmail: pm.email,
+            propertyName: property.name,
+            propertyCity: property.city ?? null,
+            campaignName: campaign.name,
+            overallScore,
+            reportId: report.id,
+            lang: pm.default_language === 'en' ? 'en' : 'fr',
+          })
+        }
+      }
+    } catch (emailErr) {
+      console.error('Publish notification error:', emailErr)
+    }
   }
 
   return NextResponse.json({ ok: true })
