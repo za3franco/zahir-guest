@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
 
 export async function POST(request: Request) {
   const user = await requireUser()
@@ -30,6 +31,33 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Send auditor assignment email if auditor was assigned
+  if (body.auditor_user_id) {
+    try {
+      const [{ data: auditor }, { data: property }] = await Promise.all([
+        supabaseAdmin.from('users').select('name, email, default_language').eq('id', body.auditor_user_id).single(),
+        supabaseAdmin.from('properties').select('name, city').eq('id', body.property_id).single(),
+      ])
+
+      if (auditor && property) {
+        await sendAuditorAssignedEmail({
+          auditorName: auditor.name,
+          auditorEmail: auditor.email,
+          campaignName: body.name,
+          propertyName: property.name,
+          propertyCity: property.city ?? null,
+          visitWindowStart: body.visit_window_start ?? null,
+          visitWindowEnd: body.visit_window_end ?? null,
+          assignedByName: user.name,
+          lang: auditor.default_language === 'en' ? 'en' : 'fr',
+        })
+      }
+    } catch (emailErr) {
+      console.error('Assignment email error:', emailErr)
+      // Don't fail campaign creation if email fails
+    }
   }
 
   return NextResponse.json({ id: data.id })
