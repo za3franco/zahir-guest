@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { calculateScores } from '@/lib/scoring'
+import { sendAuditSubmittedEmail } from '@/lib/emailNotifications'
 
 export async function POST(
   request: Request,
@@ -33,7 +34,7 @@ export async function POST(
     return NextResponse.json({ error: 'Campaign cannot be submitted in its current status' }, { status: 400 })
   }
 
-  // ── Load full questionnaire structure ──────────────────────────────
+  // Load questionnaire structure
   const { data: domains } = await supabaseAdmin
     .from('template_domains')
     .select('*')
@@ -52,7 +53,6 @@ export async function POST(
     .in('section_id', (sections ?? []).map((s: any) => s.id))
     .order('display_order')
 
-  // ── Load responses and emotional ratings ───────────────────────────
   const { data: responses } = await supabaseAdmin
     .from('audit_responses')
     .select('standard_id, response, auditor_note')
@@ -63,7 +63,7 @@ export async function POST(
     .select('section_id, rating')
     .eq('campaign_id', params.id)
 
-  // ── Run scoring engine ─────────────────────────────────────────────
+  // Run scoring engine
   const scores = calculateScores(
     domains ?? [],
     sections ?? [],
@@ -79,7 +79,7 @@ export async function POST(
     }))
   )
 
-  // ── Update campaign status ─────────────────────────────────────────
+  // Update campaign status
   const { error: campaignError } = await supabaseAdmin
     .from('campaigns')
     .update({
@@ -92,8 +92,7 @@ export async function POST(
     return NextResponse.json({ error: campaignError.message }, { status: 500 })
   }
 
-  // ── Store report with scores ───────────────────────────────────────
-  // Check if a report already exists for this campaign
+  // Store report with scores
   const { data: existingReport } = await supabaseAdmin
     .from('audit_reports')
     .select('id')
@@ -101,16 +100,11 @@ export async function POST(
     .single()
 
   if (existingReport) {
-    // Update existing report
     await supabaseAdmin
       .from('audit_reports')
-      .update({
-        report_json: scores,
-        generated_at: new Date().toISOString(),
-      })
+      .update({ report_json: scores, generated_at: new Date().toISOString() })
       .eq('id', existingReport.id)
   } else {
-    // Create new report
     await supabaseAdmin
       .from('audit_reports')
       .insert({
@@ -120,6 +114,38 @@ export async function POST(
         language: 'bilingual',
         generated_at: new Date().toISOString(),
       })
+  }
+
+  // Send notification to all tenant admins
+  try {
+    const { data: campaignDetail } = await supabaseAdmin
+      .from('campaigns')
+      .select('name, property:properties(name, city)')
+      .eq('id', params.id)
+      .single()
+
+    const { data: admins } = await supabaseAdmin
+      .from('users')
+      .select('name, email, default_language')
+      .eq('tenant_id', campaign.tenant_id)
+      .eq('role', 'tenant_admin')
+
+    if (admins && campaignDetail) {
+      await Promise.all(admins.map(admin =>
+        sendAuditSubmittedEmail({
+          adminName: admin.name,
+          adminEmail: admin.email,
+          auditorName: user.name,
+          campaignName: campaignDetail.name,
+          propertyName: (campaignDetail.property as any)?.name ?? '',
+          propertyCity: (campaignDetail.property as any)?.city ?? null,
+          campaignId: params.id,
+          lang: admin.default_language === 'en' ? 'en' : 'fr',
+        })
+      ))
+    }
+  } catch (emailErr) {
+    console.error('Submit notification error:', emailErr)
   }
 
   return NextResponse.json({
