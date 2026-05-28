@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@/types'
 import styles from './Sidebar.module.css'
@@ -77,8 +77,24 @@ export default function Sidebar({ user }: SidebarProps) {
     user.default_language === 'en' ? 'en' : 'fr'
   )
   const [switching, setSwitching] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role))
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  // Prevent body scroll when sidebar open on mobile
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
 
   async function handleLogout() {
     const supabase = createClient()
@@ -109,8 +125,8 @@ export default function Sidebar({ user }: SidebarProps) {
     return pathname.startsWith(href)
   }
 
-  return (
-    <aside className={styles.sidebar}>
+  const sidebarContent = (
+    <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarMobileOpen : ''}`}>
       {/* Brand */}
       <div className={styles.brand}>
         <div className={styles.logoMark} aria-hidden="true">
@@ -125,13 +141,24 @@ export default function Sidebar({ user }: SidebarProps) {
           </svg>
         </div>
         <span className={styles.wordmark}>Zahir Guest</span>
+        {/* Close button on mobile */}
+        <button
+          className={styles.mobileCloseBtn}
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
       {/* Nav */}
       <nav className={styles.nav} aria-label={lang === 'en' ? 'Main navigation' : 'Navigation principale'}>
         {visibleItems.map(item => (
           <Link
-            key={item.href}
+            key={`${item.href}-${item.labelEn}`}
             href={item.href}
             className={`${styles.navItem} ${isActive(item.href) ? styles.navItemActive : ''}`}
             aria-current={isActive(item.href) ? 'page' : undefined}
@@ -189,6 +216,35 @@ export default function Sidebar({ user }: SidebarProps) {
       </div>
     </aside>
   )
+
+  return (
+    <>
+      {/* Mobile hamburger button — only visible on small screens */}
+      <button
+        className={styles.hamburger}
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open menu"
+        aria-expanded={mobileOpen}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      {/* Overlay — closes sidebar when tapping outside on mobile */}
+      {mobileOpen && (
+        <div
+          className={styles.overlay}
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {sidebarContent}
+    </>
+  )
 }
 
 // ─── Icons ───────────────────────────────────
@@ -210,7 +266,6 @@ function IconCampaigns() {
       <polyline points="14,2 14,8 20,8"/>
       <line x1="16" y1="13" x2="8" y2="13"/>
       <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10,9 9,9 8,9"/>
     </svg>
   )
 }
