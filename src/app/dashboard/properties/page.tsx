@@ -2,51 +2,25 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
-import type { Property } from '@/types'
 import styles from './properties.module.css'
 
 const T = {
   title: { en: 'Properties', fr: 'Établissements' },
-  subtitle: { en: 'Manage your hotel properties and establishments.', fr: 'Gérez vos hôtels et établissements.' },
-  addProperty: { en: '+ Add property', fr: '+ Ajouter un établissement' },
-  empty: { en: 'No properties yet.', fr: "Aucun établissement pour l'instant." },
-  emptyHint: { en: 'Add your first property to start creating audit campaigns.', fr: 'Ajoutez votre premier établissement pour commencer à créer des campagnes.' },
-  archived: { en: 'Show archived', fr: 'Voir les archivés' },
+  new: { en: 'New property', fr: 'Nouvel établissement' },
+  archived: { en: 'View archived', fr: 'Voir les archivés' },
+  backToActive: { en: '← Active properties', fr: '← Établissements actifs' },
+  archivedTitle: { en: 'Archived properties', fr: 'Établissements archivés' },
+  empty: { en: 'No properties yet.', fr: 'Aucun établissement.' },
+  emptyArchived: { en: 'No archived properties.', fr: 'Aucun établissement archivé.' },
   cols: {
     name: { en: 'Property', fr: 'Établissement' },
-    category: { en: 'Category', fr: 'Catégorie' },
-    type: { en: 'Type', fr: 'Type' },
     city: { en: 'City', fr: 'Ville' },
-    contact: { en: 'Contact', fr: 'Contact' },
+    category: { en: 'Category', fr: 'Catégorie' },
     actions: { en: 'Actions', fr: 'Actions' },
   },
   edit: { en: 'Edit', fr: 'Modifier' },
   archive: { en: 'Archive', fr: 'Archiver' },
-  unarchive: { en: 'Restore', fr: 'Restaurer' },
-  showingArchived: { en: 'Showing archived properties', fr: 'Affichage des établissements archivés' },
-  backToActive: { en: '← Active properties', fr: '← Établissements actifs' },
-}
-
-const CATEGORY_LABELS: Record<string, { en: string; fr: string }> = {
-  '5_star': { en: '5 Stars', fr: '5 Étoiles' },
-  '4_star': { en: '4 Stars', fr: '4 Étoiles' },
-  '3_star': { en: '3 Stars', fr: '3 Étoiles' },
-  '2_star': { en: '2 Stars', fr: '2 Étoiles' },
-  '1_star': { en: '1 Star', fr: '1 Étoile' },
-  unrated: { en: 'Unrated', fr: 'Non classé' },
-}
-
-const TYPE_LABELS: Record<string, { en: string; fr: string }> = {
-  hotel: { en: 'Hotel', fr: 'Hôtel' },
-  riad: { en: 'Riad', fr: 'Riad' },
-  resort: { en: 'Resort', fr: 'Resort' },
-  guesthouse: { en: 'Guesthouse', fr: "Maison d'hôtes" },
-  apartment: { en: 'Apartment', fr: 'Appartement' },
-  other: { en: 'Other', fr: 'Autre' },
-}
-
-const PROPERTY_TYPE_ICONS: Record<string, string> = {
-  hotel: '🏨', riad: '🏯', resort: '🌴', guesthouse: '🏠', apartment: '🏢', other: '🏛️',
+  restore: { en: 'Restore', fr: 'Restaurer' },
 }
 
 export default async function PropertiesPage({
@@ -64,113 +38,107 @@ export default async function PropertiesPage({
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data } = await supabaseAdmin
+  const { data: properties } = await supabaseAdmin
     .from('properties')
-    .select('*')
+    .select('id, name, city, country, category, type')
     .eq('tenant_id', user.tenant_id)
     .eq('is_archived', showArchived)
     .order('name')
 
-  const properties: Property[] = (data ?? []) as Property[]
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{t(T.title)}</h1>
-          <p className={styles.subtitle}>{t(T.subtitle)}</p>
-        </div>
-        <a href="/dashboard/properties/new" className="btn btn-primary">
-          {t(T.addProperty)}
-        </a>
-      </div>
-
-      {showArchived && (
-        <div className={styles.archivedBanner}>
-          <span>{t(T.showingArchived)}</span>
-          <a href="/dashboard/properties" className={styles.archivedBack}>{t(T.backToActive)}</a>
-        </div>
-      )}
-
-      {properties.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>🏨</div>
-          <p className={styles.emptyText}>{t(T.empty)}</p>
-          <p className={styles.emptyHint}>{t(T.emptyHint)}</p>
-          {!showArchived && (
-            <a href="/dashboard/properties/new" className="btn btn-secondary">
-              {t(T.addProperty)}
+        <h1 className={styles.title}>
+          {showArchived ? t(T.archivedTitle) : t(T.title)}
+        </h1>
+        <div className={styles.headerActions}>
+          {showArchived ? (
+            <a href="/dashboard/properties" className="btn btn-ghost btn-sm">
+              {t(T.backToActive)}
             </a>
+          ) : (
+            <>
+              <a href="/dashboard/properties?archived=1" className="btn btn-ghost btn-sm">
+                {t(T.archived)}
+              </a>
+              <a href="/dashboard/properties/new" className="btn btn-primary btn-sm">
+                + {t(T.new)}
+              </a>
+            </>
           )}
         </div>
-      ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>{t(T.cols.name)}</th>
-                <th>{t(T.cols.category)}</th>
-                <th>{t(T.cols.type)}</th>
-                <th>{t(T.cols.city)}</th>
-                <th>{t(T.cols.contact)}</th>
-                <th>{t(T.cols.actions)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {properties.map(p => (
-                <tr key={p.id}>
-                  <td>
-                    <a href={`/dashboard/properties/${p.id}`} className={styles.propertyName}>
-                      <span className={styles.propertyIcon}>{PROPERTY_TYPE_ICONS[p.type] ?? '🏨'}</span>
-                      {p.name}
-                    </a>
-                  </td>
-                  <td>
-                    <span className="badge badge-gold">
-                      {t(CATEGORY_LABELS[p.category] ?? { en: p.category, fr: p.category })}
-                    </span>
-                  </td>
-                  <td className={styles.meta}>
-                    {t(TYPE_LABELS[p.type] ?? { en: p.type, fr: p.type })}
-                  </td>
-                  <td className={styles.meta}>{p.city ?? '—'}</td>
-                  <td className={styles.meta}>
-                    {p.contact_name
-                      ? (
-                        <span>
-                          {p.contact_name}
-                          {p.contact_email && <><br /><span className={styles.email}>{p.contact_email}</span></>}
-                        </span>
-                      )
-                      : '—'}
-                  </td>
-                  <td>
-                    <div className={styles.actions}>
-                      <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
-                        {t(T.edit)}
-                      </a>
-                      <form action={`/api/properties/${p.id}/archive`} method="POST" style={{ display: 'inline' }}>
-                        <input type="hidden" name="archived" value={showArchived ? '0' : '1'} />
-                        <button type="submit" className="btn btn-ghost btn-sm">
-                          {showArchived ? t(T.unarchive) : t(T.archive)}
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      </div>
 
-      {!showArchived && (
-        <div className={styles.archivedLink}>
-          <a href="/dashboard/properties?archived=1" className={styles.archivedLinkText}>
-            {t(T.archived)}
-          </a>
-        </div>
-      )}
+      {/* Desktop table */}
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>{t(T.cols.name)}</th>
+              <th>{t(T.cols.city)}</th>
+              <th>{t(T.cols.category)}</th>
+              <th>{t(T.cols.actions)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!properties?.length ? (
+              <tr>
+                <td colSpan={4} className={styles.empty}>
+                  {showArchived ? t(T.emptyArchived) : t(T.empty)}
+                </td>
+              </tr>
+            ) : properties.map((p: any) => (
+              <tr key={p.id}>
+                <td>
+                  <a href={`/dashboard/properties/${p.id}`} className={styles.tableLink}>
+                    {p.name}
+                  </a>
+                </td>
+                <td className={styles.muted}>{[p.city, p.country].filter(Boolean).join(', ') || '—'}</td>
+                <td className={styles.muted}>{p.category || '—'}</td>
+                <td>
+                  <div className={styles.rowActions}>
+                    <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
+                      {t(T.edit)}
+                    </a>
+                    <form action={`/api/properties/${p.id}/archive`} method="POST">
+                      <button type="submit" className="btn btn-ghost btn-sm">
+                        {showArchived ? t(T.restore) : t(T.archive)}
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className={styles.mobileCards}>
+        {!properties?.length ? (
+          <p className={styles.empty}>{showArchived ? t(T.emptyArchived) : t(T.empty)}</p>
+        ) : properties.map((p: any) => (
+          <div key={p.id} className={styles.mobileCard}>
+            <a href={`/dashboard/properties/${p.id}`} className={styles.mobileCardLink}>
+              <div className={styles.mobileCardName}>{p.name}</div>
+              <div className={styles.mobileCardMeta}>
+                {[p.city, p.country, p.category].filter(Boolean).join(' · ') || '—'}
+              </div>
+            </a>
+            <div className={styles.mobileCardActions}>
+              <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
+                {t(T.edit)}
+              </a>
+              <form action={`/api/properties/${p.id}/archive`} method="POST">
+                <button type="submit" className="btn btn-ghost btn-sm">
+                  {showArchived ? t(T.restore) : t(T.archive)}
+                </button>
+              </form>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
