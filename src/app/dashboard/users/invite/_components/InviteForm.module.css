@@ -167,3 +167,21 @@
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
+/* Mobile form fixes */
+@media (max-width: 768px) {
+  .form {
+    padding: var(--space-4);
+  }
+
+  .formGroup {
+    width: 100%;
+  }
+
+  .formGroup select,
+  .formGroup input[type="email"],
+  .formGroup input[type="text"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
