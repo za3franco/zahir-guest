@@ -91,11 +91,9 @@ export default async function UsersPage() {
                   <td>
                     {!isYou && (
                       <DeleteUserButton
-                        userId={u.id}
-                        userName={u.name}
-                        confirmMessage={t(T.confirmRemove)}
-                        label={t(T.remove)}
-                      />
+  userId={u.id}
+  userName={u.name}
+/>
                     )}
                   </td>
                 </tr>
