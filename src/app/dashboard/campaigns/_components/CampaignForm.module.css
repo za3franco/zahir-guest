@@ -127,3 +127,31 @@
   gap: var(--space-4);
   color: var(--color-sand);
 }
+/* Mobile form fixes */
+@media (max-width: 768px) {
+  .form {
+    padding: var(--space-4);
+  }
+
+  .formGroup {
+    width: 100%;
+  }
+
+  .formGroup select,
+  .formGroup input[type="date"],
+  .formGroup input[type="text"],
+  .formGroup textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dateRow {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .dateRow > * {
+    width: 100%;
+  }
+}
