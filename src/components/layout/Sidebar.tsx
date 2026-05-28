@@ -78,6 +78,7 @@ export default function Sidebar({ user }: SidebarProps) {
   // Close sidebar on route change
   useEffect(() => {
     setMobileOpen(false)
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [pathname])
 
   // Prevent body scroll when sidebar open on mobile
