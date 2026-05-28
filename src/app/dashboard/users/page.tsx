@@ -87,9 +87,10 @@ export default async function UsersPage() {
                   <td>
                     {!isYou && (
                       <DeleteUserButton
-  userId={u.id}
-  userName={u.name}
-/>
+                        userId={u.id}
+                        userName={u.name}
+                        lang={lang}
+                      />
                     )}
                   </td>
                 </tr>
@@ -124,9 +125,10 @@ export default async function UsersPage() {
                 </span>
                 {!isYou && (
                   <DeleteUserButton
-  userId={u.id}
-  userName={u.name}
-/>
+                        userId={u.id}
+                        userName={u.name}
+                        lang={lang}
+                      />
                 )}
               </div>
             </div>
