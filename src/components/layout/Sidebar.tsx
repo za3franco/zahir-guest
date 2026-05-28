@@ -44,13 +44,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: <IconProperties />,
     roles: ['super_admin', 'tenant_admin'],
   },
-  {
-    href: '/dashboard/reports',
-    labelEn: 'Reports',
-    labelFr: 'Rapports',
-    icon: <IconReports />,
-    roles: ['super_admin', 'tenant_admin', 'property_manager'],
-  },
+  // Reports link added in ZG-2 when client portal is built
   {
     href: '/dashboard/users',
     labelEn: 'Users',
