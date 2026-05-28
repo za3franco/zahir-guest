@@ -1,28 +1,22 @@
 .shell {
   display: flex;
   min-height: 100vh;
+  background: var(--color-deep-ink);
 }
 
 .main {
   flex: 1;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
-  background: var(--color-deep-ink);
   display: flex;
   flex-direction: column;
 }
 
 .content {
   flex: 1;
-  padding: var(--space-8) var(--space-10);
-  max-width: 1200px;
+  padding: var(--space-8) var(--space-8);
+  max-width: 1280px;
   width: 100%;
-  animation: fadeUp 0.35s ease forwards;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
@@ -31,6 +25,7 @@
   }
 
   .content {
-    padding: var(--space-4);
+    /* Top padding accounts for the fixed hamburger button (40px button + 16px top + 16px gap) */
+    padding: 72px var(--space-4) var(--space-8);
   }
 }
