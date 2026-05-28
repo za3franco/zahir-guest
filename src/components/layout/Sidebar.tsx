@@ -75,10 +75,12 @@ export default function Sidebar({ user }: SidebarProps) {
 
   const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role))
 
-  // Close sidebar on route change
+  // Close sidebar and scroll to top on route change
   useEffect(() => {
     setMobileOpen(false)
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0)
+    }
   }, [pathname])
 
   // Prevent body scroll when sidebar open on mobile
