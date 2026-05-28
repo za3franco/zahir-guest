@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
 
 export async function PATCH(
   request: Request,
@@ -15,7 +16,14 @@ export async function PATCH(
 
   const body = await request.json()
 
-  // Campaign fields
+  // Get current campaign to detect auditor change
+  const { data: currentCampaign } = await supabaseAdmin
+    .from('campaigns')
+    .select('auditor_user_id, name, property_id, visit_window_start, visit_window_end')
+    .eq('id', params.id)
+    .eq('tenant_id', user.tenant_id)
+    .single()
+
   const campaignUpdate: Record<string, any> = {}
   if (body.name !== undefined) campaignUpdate.name = body.name
   if (body.property_id !== undefined) campaignUpdate.property_id = body.property_id
@@ -37,7 +45,7 @@ export async function PATCH(
     }
   }
 
-  // Executive summary goes to audit_reports table
+  // Executive summary goes to audit_reports
   if (body.executive_summary !== undefined) {
     const { data: existingReport } = await supabaseAdmin
       .from('audit_reports')
@@ -50,6 +58,41 @@ export async function PATCH(
         .from('audit_reports')
         .update({ executive_summary: body.executive_summary })
         .eq('id', existingReport.id)
+    }
+  }
+
+  // Send assignment email if auditor changed or newly assigned
+  const newAuditorId = body.auditor_user_id
+  const oldAuditorId = currentCampaign?.auditor_user_id
+  const auditorChanged = newAuditorId && newAuditorId !== oldAuditorId
+
+  if (auditorChanged && currentCampaign) {
+    try {
+      const campaignName = body.name ?? currentCampaign.name
+      const propertyId = body.property_id ?? currentCampaign.property_id
+      const visitStart = body.visit_window_start ?? currentCampaign.visit_window_start
+      const visitEnd = body.visit_window_end ?? currentCampaign.visit_window_end
+
+      const [{ data: auditor }, { data: property }] = await Promise.all([
+        supabaseAdmin.from('users').select('name, email, default_language').eq('id', newAuditorId).single(),
+        supabaseAdmin.from('properties').select('name, city').eq('id', propertyId).single(),
+      ])
+
+      if (auditor && property) {
+        await sendAuditorAssignedEmail({
+          auditorName: auditor.name,
+          auditorEmail: auditor.email,
+          campaignName,
+          propertyName: property.name,
+          propertyCity: property.city ?? null,
+          visitWindowStart: visitStart ?? null,
+          visitWindowEnd: visitEnd ?? null,
+          assignedByName: user.name,
+          lang: auditor.default_language === 'en' ? 'en' : 'fr',
+        })
+      }
+    } catch (emailErr) {
+      console.error('Assignment email error:', emailErr)
     }
   }
 
