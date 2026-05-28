@@ -35,5 +35,5 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.redirect(new URL('/properties', request.url))
+  return NextResponse.redirect(new URL('/dashboard/properties', request.url))
 }
