@@ -24,11 +24,7 @@ const T = {
   },
   empty: { en: 'No users yet.', fr: 'Aucun utilisateur.' },
   you: { en: '(you)', fr: '(vous)' },
-  remove: { en: 'Remove', fr: 'Supprimer' },
-  confirmRemove: {
-    en: 'Remove this user? They will lose access immediately.',
-    fr: 'Supprimer cet utilisateur ? Il perdra l\'accès immédiatement.',
-  },
+  
 }
 
 export default async function UsersPage() {
@@ -128,11 +124,9 @@ export default async function UsersPage() {
                 </span>
                 {!isYou && (
                   <DeleteUserButton
-                    userId={u.id}
-                    userName={u.name}
-                    confirmMessage={t(T.confirmRemove)}
-                    label={t(T.remove)}
-                  />
+  userId={u.id}
+  userName={u.name}
+/>
                 )}
               </div>
             </div>
