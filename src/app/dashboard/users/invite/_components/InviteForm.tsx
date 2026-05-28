@@ -130,6 +130,14 @@ export default function InviteForm({ user }: InviteFormProps) {
 
   return (
     <div className={styles.page}>
+      <style>{`
+        @media (max-width: 768px) {
+          input, select, textarea {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+        }
+      `}</style>
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{t(T.title)}</h1>
