@@ -538,3 +538,32 @@ tbody tr:hover {
 @media (min-width: 769px) {
   .hide-desktop { display: none !important; }
 }
+/* ── Mobile form fix — prevent input overflow ── */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix date input row wrapping */
+  [class*="dateRow"],
+  [class*="date-row"],
+  [class*="twoCol"],
+  [class*="two-col"],
+  [class*="grid"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Fix any form field groups */
+  [class*="formGroup"],
+  [class*="form-group"],
+  [class*="field"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
