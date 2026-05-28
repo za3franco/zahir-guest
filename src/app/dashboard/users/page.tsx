@@ -2,34 +2,33 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
-import type { User } from '@/types'
 import styles from './users.module.css'
 import DeleteUserButton from './_components/DeleteUserButton'
 
+const ROLE_LABELS: Record<string, { en: string; fr: string }> = {
+  super_admin: { en: 'Super Admin', fr: 'Super Admin' },
+  tenant_admin: { en: 'Admin', fr: 'Administrateur' },
+  auditor: { en: 'Auditor', fr: 'Auditeur' },
+  property_manager: { en: 'Property Manager', fr: 'Directeur' },
+}
+
 const T = {
   title: { en: 'Users', fr: 'Utilisateurs' },
-  subtitle: { en: 'Manage your team — auditors and property managers.', fr: "Gérez votre équipe — auditeurs et directeurs d'établissement." },
-  inviteUser: { en: '+ Invite user', fr: '+ Inviter un utilisateur' },
+  invite: { en: 'Invite user', fr: 'Inviter un utilisateur' },
   cols: {
     name: { en: 'Name', fr: 'Nom' },
     email: { en: 'Email', fr: 'Email' },
     role: { en: 'Role', fr: 'Rôle' },
-    language: { en: 'Language', fr: 'Langue' },
-    joined: { en: 'Joined', fr: 'Inscrit le' },
+    joined: { en: 'Joined', fr: 'Inscrit' },
     actions: { en: 'Actions', fr: 'Actions' },
   },
-  roles: {
-    super_admin: { en: 'Super Admin', fr: 'Super Admin' },
-    tenant_admin: { en: 'Admin', fr: 'Administrateur' },
-    auditor: { en: 'Auditor', fr: 'Auditeur' },
-    property_manager: { en: 'Property Manager', fr: 'Directeur' },
-  },
-  languages: {
-    en: { en: 'English', fr: 'Anglais' },
-    fr: { en: 'French', fr: 'Français' },
-    bilingual: { en: 'Bilingual', fr: 'Bilingue' },
-  },
+  empty: { en: 'No users yet.', fr: 'Aucun utilisateur.' },
   you: { en: '(you)', fr: '(vous)' },
+  remove: { en: 'Remove', fr: 'Supprimer' },
+  confirmRemove: {
+    en: 'Remove this user? They will lose access immediately.',
+    fr: 'Supprimer cet utilisateur ? Il perdra l\'accès immédiatement.',
+  },
 }
 
 export default async function UsersPage() {
@@ -43,70 +42,104 @@ export default async function UsersPage() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data } = await supabaseAdmin
+  const { data: users } = await supabaseAdmin
     .from('users')
-    .select('*')
+    .select('id, name, email, role, created_at')
     .eq('tenant_id', user.tenant_id)
-    .order('created_at', { ascending: true })
-
-  const users: User[] = (data ?? []) as User[]
+    .order('created_at', { ascending: false })
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{t(T.title)}</h1>
-          <p className={styles.subtitle}>{t(T.subtitle)}</p>
-        </div>
-        <a href="/dashboard/users/invite" className="btn btn-primary">
-          {t(T.inviteUser)}
+        <h1 className={styles.title}>{t(T.title)}</h1>
+        <a href="/dashboard/users/invite" className="btn btn-primary btn-sm">
+          + {t(T.invite)}
         </a>
       </div>
 
-      <div className="table-wrapper">
-        <table>
+      {/* Desktop table */}
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
           <thead>
             <tr>
               <th>{t(T.cols.name)}</th>
               <th>{t(T.cols.email)}</th>
               <th>{t(T.cols.role)}</th>
-              <th>{t(T.cols.language)}</th>
               <th>{t(T.cols.joined)}</th>
               <th>{t(T.cols.actions)}</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>
-                  <span className={styles.userName}>
-                    {u.name}
-                    {u.id === user.id && (
-                      <span className={styles.youBadge}>{t(T.you)}</span>
+            {!users?.length ? (
+              <tr><td colSpan={5} className={styles.empty}>{t(T.empty)}</td></tr>
+            ) : users.map((u: any) => {
+              const isYou = u.id === user.id
+              const roleLabel = ROLE_LABELS[u.role]?.[lang] ?? u.role
+              return (
+                <tr key={u.id}>
+                  <td>
+                    <span className={styles.userName}>{u.name}</span>
+                    {isYou && <span className={styles.youBadge}>{t(T.you)}</span>}
+                  </td>
+                  <td className={styles.muted}>{u.email}</td>
+                  <td>
+                    <span className={styles.rolePill}>{roleLabel}</span>
+                  </td>
+                  <td className={styles.muted}>
+                    {new Date(u.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td>
+                    {!isYou && (
+                      <DeleteUserButton
+                        userId={u.id}
+                        userName={u.name}
+                        confirmMessage={t(T.confirmRemove)}
+                        label={t(T.remove)}
+                      />
                     )}
-                  </span>
-                </td>
-                <td className={styles.meta}>{u.email}</td>
-                <td>
-                  <span className={`badge ${u.role === 'tenant_admin' ? 'badge-gold' : 'badge-sand'}`}>
-                    {t(T.roles[u.role as keyof typeof T.roles] ?? { en: u.role, fr: u.role })}
-                  </span>
-                </td>
-                <td className={styles.meta}>
-                  {t(T.languages[u.default_language as keyof typeof T.languages] ?? { en: u.default_language, fr: u.default_language })}
-                </td>
-                <td className={styles.meta}>
-                  {new Date(u.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
-                </td>
-                <td>
-                  {u.id !== user.id && (
-                    <DeleteUserButton userId={u.id} userName={u.name} lang={lang} />
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className={styles.mobileCards}>
+        {!users?.length ? (
+          <p className={styles.empty}>{t(T.empty)}</p>
+        ) : users.map((u: any) => {
+          const isYou = u.id === user.id
+          const roleLabel = ROLE_LABELS[u.role]?.[lang] ?? u.role
+          return (
+            <div key={u.id} className={styles.mobileCard}>
+              <div className={styles.mobileCardTop}>
+                <div>
+                  <div className={styles.mobileCardName}>
+                    {u.name}
+                    {isYou && <span className={styles.youBadge}>{t(T.you)}</span>}
+                  </div>
+                  <div className={styles.mobileCardEmail}>{u.email}</div>
+                </div>
+                <span className={styles.rolePill}>{roleLabel}</span>
+              </div>
+              <div className={styles.mobileCardFooter}>
+                <span className={styles.mobileCardDate}>
+                  {new Date(u.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                {!isYou && (
+                  <DeleteUserButton
+                    userId={u.id}
+                    userName={u.name}
+                    confirmMessage={t(T.confirmRemove)}
+                    label={t(T.remove)}
+                  />
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
