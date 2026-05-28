@@ -138,6 +138,14 @@ export default function CampaignForm({
 
   return (
     <div className={styles.page}>
+      <style>{`
+        @media (max-width: 768px) {
+          input, select, textarea {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+        }
+      `}</style>
       <div className={styles.header}>
         <h1 className={styles.title}>{t(mode === 'create' ? T.createTitle : T.editTitle)}</h1>
         <p className={styles.subtitle}>{t(mode === 'create' ? T.createSubtitle : T.editSubtitle)}</p>
