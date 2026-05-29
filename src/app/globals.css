@@ -4,7 +4,6 @@
 
 /* ── DESIGN TOKENS ── */
 :root {
-  /* Colors */
   --color-deep-ink: #0D1B2A;
   --color-midnight-navy: #162236;
   --color-slate-navy: #1E2F45;
@@ -17,12 +16,8 @@
   --color-terracotta: #C0503A;
   --color-border: #253549;
   --color-border-subtle: #253549;
-
-  /* Typography */
   --font-display: 'Cormorant Garamond', serif;
   --font-body: 'DM Sans', -apple-system, Arial, sans-serif;
-
-  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -34,17 +29,11 @@
   --space-12: 48px;
   --space-16: 64px;
   --space-20: 80px;
-
-  /* Radii */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
   --radius-full: 999px;
-
-  /* Transitions */
   --transition-fast: 150ms ease;
-
-  /* Layout — THE KEY FIX */
   --sidebar-width: 260px;
 }
 
@@ -55,7 +44,14 @@
   padding: 0;
 }
 
-html, body {
+html {
+  height: 100%;
+  /* Prevent Safari bounce/overscroll causing layout issues */
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
   height: 100%;
   font-family: var(--font-body);
   font-size: 16px;
@@ -63,20 +59,32 @@ html, body {
   color: var(--color-ivory);
   background: var(--color-deep-ink);
   -webkit-font-smoothing: antialiased;
-  /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
+  /* Safari: prevent horizontal scroll */
+  width: 100%;
+  position: relative;
 }
 
-/* ── LINKS ── */
-a {
-  color: inherit;
-  text-decoration: none;
-}
+a { color: inherit; text-decoration: none; }
 
-/* ── FORM ELEMENTS ── */
 button, input, select, textarea {
   font-family: inherit;
   font-size: inherit;
+}
+
+/* Safari: prevent input zoom on focus (font-size must be >= 16px) */
+input, select, textarea {
+  font-size: 16px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+/* Override -webkit-appearance for selects to allow custom styling */
+select {
+  -webkit-appearance: none;
 }
 
 /* ── BUTTONS ── */
@@ -95,6 +103,7 @@ button, input, select, textarea {
   border: 1px solid transparent;
   text-decoration: none;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
@@ -103,9 +112,7 @@ button, input, select, textarea {
   border-color: var(--color-gold);
 }
 
-.btn-primary:hover {
-  opacity: 0.9;
-}
+.btn-primary:hover { opacity: 0.9; }
 
 .btn-secondary {
   background: rgba(200, 164, 90, 0.1);
@@ -113,9 +120,7 @@ button, input, select, textarea {
   border-color: rgba(200, 164, 90, 0.3);
 }
 
-.btn-secondary:hover {
-  background: rgba(200, 164, 90, 0.15);
-}
+.btn-secondary:hover { background: rgba(200, 164, 90, 0.15); }
 
 .btn-ghost {
   background: transparent;
@@ -128,62 +133,9 @@ button, input, select, textarea {
   border-color: var(--color-ivory);
 }
 
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 0.8125rem;
-}
-
-.btn-lg {
-  padding: 14px 28px;
-  font-size: 1rem;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.w-full {
-  width: 100%;
-}
-
-/* ── FORM INPUTS (global) ── */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--color-sand);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.form-input {
-  background: var(--color-midnight-navy);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--color-ivory);
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  padding: 10px 16px;
-  transition: border-color var(--transition-fast);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-input::placeholder {
-  color: var(--color-sand);
-  opacity: 0.5;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-gold);
-}
+.btn-sm { padding: 6px 14px; font-size: 0.8125rem; }
+.btn-lg { padding: 14px 28px; font-size: 1rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── BADGES ── */
 .badge {
@@ -221,7 +173,7 @@ button, input, select, textarea {
   border: 1px solid rgba(212, 136, 42, 0.3);
 }
 
-/* ── TABLE ── */
+/* ── TABLES ── */
 .table-wrapper {
   background: var(--color-slate-navy);
   border: 1px solid var(--color-border-subtle);
@@ -229,11 +181,7 @@ button, input, select, textarea {
   overflow: hidden;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 
 th {
   padding: 10px 20px;
@@ -255,21 +203,16 @@ td {
   color: var(--color-ivory);
 }
 
-tr:last-child td {
-  border-bottom: none;
-}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
-tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-/* ── MOBILE: prevent horizontal overflow on all screens ── */
+/* ── MOBILE ── */
 @media (max-width: 768px) {
-  /* Inputs always stay within container */
+  /* Safari: prevent inputs from zooming when focused */
   input, select, textarea {
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    min-width: 0;
+    font-size: 16px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
