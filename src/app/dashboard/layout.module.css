@@ -1,39 +1,39 @@
 .shell {
   display: flex;
   min-height: 100vh;
-  background: var(--color-deep-ink);
+  min-height: -webkit-fill-available;
+  background: #0D1B2A;
 }
 
 .main {
   flex: 1;
-  /* Use the CSS variable defined in globals.css — now properly set to 260px */
-  margin-left: var(--sidebar-width, 260px);
+  margin-left: 260px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* Prevent content from ever going under the sidebar */
   min-width: 0;
+  max-width: calc(100vw - 260px);
   overflow-x: hidden;
 }
 
 .content {
   flex: 1;
   padding: 40px 40px 48px;
-  max-width: 1280px;
   width: 100%;
+  max-width: 1280px;
   box-sizing: border-box;
 }
 
-/* ── MOBILE ── */
 @media (max-width: 768px) {
   .main {
-    /* No sidebar on mobile — it slides in as overlay */
     margin-left: 0;
+    max-width: 100vw;
   }
 
   .content {
-    /* Top padding = hamburger button height (40px) + top offset (16px) + gap (16px) */
     padding: 72px 16px 48px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
-
