@@ -7,7 +7,7 @@ import styles from './EditUserForm.module.css'
 
 const T = {
   title: { en: 'Edit User', fr: "Modifier l'utilisateur" },
-  subtitle: { en: 'Update this user's details.', fr: "Mettez à jour les informations de cet utilisateur." },
+  subtitle: { en: "Update this user's details.", fr: "Mettez à jour les informations de cet utilisateur." },
   fields: {
     name: { en: 'Full name', fr: 'Nom complet' },
     email: { en: 'Email', fr: 'Email' },
