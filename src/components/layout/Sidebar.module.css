@@ -239,8 +239,8 @@
 .hamburger {
   display: none;
   position: fixed;
-  top: 16px;
-  left: 16px;
+  top: 12px;
+  left: 12px;
   z-index: 200;
   width: 40px;
   height: 40px;
@@ -252,6 +252,8 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  /* Safari: prevent tap highlight */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Mobile overlay ── */
