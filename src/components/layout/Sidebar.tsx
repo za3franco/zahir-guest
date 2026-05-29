@@ -75,12 +75,10 @@ export default function Sidebar({ user }: SidebarProps) {
 
   const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role))
 
-  // Close sidebar on route change — scroll handled by ScrollToTop component
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
 
-  // Prevent body scroll when sidebar open on mobile
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden'
@@ -135,7 +133,6 @@ export default function Sidebar({ user }: SidebarProps) {
           </svg>
         </div>
         <span className={styles.wordmark}>Zahir Guest</span>
-        {/* Close button on mobile */}
         <button
           className={styles.mobileCloseBtn}
           onClick={() => setMobileOpen(false)}
@@ -186,9 +183,10 @@ export default function Sidebar({ user }: SidebarProps) {
         </button>
       </div>
 
-      {/* Bottom — user info + logout */}
+      {/* Bottom — user info + profile link + logout */}
       <div className={styles.bottom}>
-        <div className={styles.userInfo}>
+        {/* Avatar links to profile page */}
+        <Link href="/dashboard/profile" className={styles.userInfo} title={lang === 'en' ? 'My profile' : 'Mon profil'}>
           <div className={styles.userAvatar}>
             {user.name.charAt(0).toUpperCase()}
           </div>
@@ -198,7 +196,7 @@ export default function Sidebar({ user }: SidebarProps) {
               {ROLE_LABELS[user.role]?.[lang] ?? user.role}
             </span>
           </div>
-        </div>
+        </Link>
         <button
           onClick={handleLogout}
           className={styles.logoutBtn}
@@ -213,7 +211,6 @@ export default function Sidebar({ user }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile hamburger button — only visible on small screens */}
       <button
         className={styles.hamburger}
         onClick={() => setMobileOpen(true)}
@@ -227,7 +224,6 @@ export default function Sidebar({ user }: SidebarProps) {
         </svg>
       </button>
 
-      {/* Overlay — closes sidebar when tapping outside on mobile */}
       {mobileOpen && (
         <div
           className={styles.overlay}
@@ -278,16 +274,6 @@ function IconProperties() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
       <polyline points="9,22 9,12 15,12 15,22"/>
-    </svg>
-  )
-}
-
-function IconReports() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/>
-      <line x1="12" y1="20" x2="12" y2="4"/>
-      <line x1="6" y1="20" x2="6" y2="14"/>
     </svg>
   )
 }

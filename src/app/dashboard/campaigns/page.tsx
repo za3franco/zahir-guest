@@ -8,6 +8,7 @@ import styles from './campaigns.module.css'
 const T = {
   title: { en: 'Campaigns', fr: 'Campagnes' },
   new: { en: 'New campaign', fr: 'Nouvelle campagne' },
+  searchPlaceholder: { en: 'Search by name or property…', fr: 'Rechercher par nom ou établissement…' },
   cols: {
     campaign: { en: 'Campaign', fr: 'Campagne' },
     property: { en: 'Property', fr: 'Établissement' },
@@ -15,7 +16,7 @@ const T = {
     status: { en: 'Status', fr: 'Statut' },
     date: { en: 'Date', fr: 'Date' },
   },
-  empty: { en: 'No campaigns yet.', fr: 'Aucune campagne.' },
+  empty: { en: 'No campaigns found.', fr: 'Aucune campagne trouvée.' },
   filters: {
     all: { en: 'All', fr: 'Toutes' },
     assigned: { en: 'Assigned', fr: 'Assignées' },
@@ -30,12 +31,13 @@ const T = {
 export default async function CampaignsPage({
   searchParams,
 }: {
-  searchParams: { status?: string }
+  searchParams: { status?: string; q?: string }
 }) {
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const activeStatus = searchParams.status ?? 'all'
+  const searchQuery = searchParams.q?.toLowerCase().trim() ?? ''
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
 
   const supabaseAdmin = createClient(
@@ -57,7 +59,16 @@ export default async function CampaignsPage({
     query = query.eq('status', activeStatus)
   }
 
-  const { data: campaigns } = await query
+  const { data: allCampaigns } = await query
+
+  // Client-side search filter (post-fetch)
+  const campaigns = searchQuery
+    ? (allCampaigns ?? []).filter((c: any) =>
+        c.name.toLowerCase().includes(searchQuery) ||
+        (c.property?.name ?? '').toLowerCase().includes(searchQuery) ||
+        (c.property?.city ?? '').toLowerCase().includes(searchQuery)
+      )
+    : (allCampaigns ?? [])
 
   const filterTabs = [
     { key: 'all', label: t(T.filters.all) },
@@ -69,6 +80,11 @@ export default async function CampaignsPage({
     { key: 'published', label: t(T.filters.published) },
   ]
 
+  function filterHref(key: string) {
+    const base = key === 'all' ? '/dashboard/campaigns' : `/dashboard/campaigns?status=${key}`
+    return searchQuery ? `${base}${key === 'all' ? '?' : '&'}q=${encodeURIComponent(searchQuery)}` : base
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -78,12 +94,25 @@ export default async function CampaignsPage({
         </a>
       </div>
 
+      {/* Search */}
+      <form method="GET" action="/dashboard/campaigns" className={styles.searchForm}>
+        {activeStatus !== 'all' && <input type="hidden" name="status" value={activeStatus} />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={searchParams.q ?? ''}
+          placeholder={t(T.searchPlaceholder)}
+          className={styles.searchInput}
+          autoComplete="off"
+        />
+      </form>
+
       {/* Filter tabs */}
       <div className={styles.filters}>
         {filterTabs.map(tab => (
           <a
             key={tab.key}
-            href={tab.key === 'all' ? '/dashboard/campaigns' : `/dashboard/campaigns?status=${tab.key}`}
+            href={filterHref(tab.key)}
             className={`${styles.filterTab} ${activeStatus === tab.key ? styles.filterTabActive : ''}`}
           >
             {tab.label}

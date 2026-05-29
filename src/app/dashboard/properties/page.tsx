@@ -10,8 +10,9 @@ const T = {
   archived: { en: 'View archived', fr: 'Voir les archivés' },
   backToActive: { en: '← Active properties', fr: '← Établissements actifs' },
   archivedTitle: { en: 'Archived properties', fr: 'Établissements archivés' },
-  empty: { en: 'No properties yet.', fr: 'Aucun établissement.' },
+  empty: { en: 'No properties found.', fr: 'Aucun établissement trouvé.' },
   emptyArchived: { en: 'No archived properties.', fr: 'Aucun établissement archivé.' },
+  searchPlaceholder: { en: 'Search by name or city…', fr: 'Rechercher par nom ou ville…' },
   cols: {
     name: { en: 'Property', fr: 'Établissement' },
     city: { en: 'City', fr: 'Ville' },
@@ -26,24 +27,37 @@ const T = {
 export default async function PropertiesPage({
   searchParams,
 }: {
-  searchParams: { archived?: string }
+  searchParams: { archived?: string; q?: string }
 }) {
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const showArchived = searchParams.archived === '1'
+  const searchQuery = searchParams.q?.toLowerCase().trim() ?? ''
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: properties } = await supabaseAdmin
+  const { data: allProperties } = await supabaseAdmin
     .from('properties')
     .select('id, name, city, country, category, type')
     .eq('tenant_id', user.tenant_id)
     .eq('is_archived', showArchived)
     .order('name')
+
+  const properties = searchQuery
+    ? (allProperties ?? []).filter(
+        (p: any) =>
+          p.name.toLowerCase().includes(searchQuery) ||
+          (p.city ?? '').toLowerCase().includes(searchQuery)
+      )
+    : (allProperties ?? [])
+
+  const archivedHref = showArchived
+    ? '/dashboard/properties'
+    : `/dashboard/properties?archived=1${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`
 
   return (
     <div className={styles.page}>
@@ -58,7 +72,7 @@ export default async function PropertiesPage({
             </a>
           ) : (
             <>
-              <a href="/dashboard/properties?archived=1" className="btn btn-ghost btn-sm">
+              <a href={archivedHref} className="btn btn-ghost btn-sm">
                 {t(T.archived)}
               </a>
               <a href="/dashboard/properties/new" className="btn btn-primary btn-sm">
@@ -68,6 +82,19 @@ export default async function PropertiesPage({
           )}
         </div>
       </div>
+
+      {/* Search */}
+      <form method="GET" action="/dashboard/properties" className={styles.searchForm}>
+        {showArchived && <input type="hidden" name="archived" value="1" />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={searchParams.q ?? ''}
+          placeholder={t(T.searchPlaceholder)}
+          className={styles.searchInput}
+          autoComplete="off"
+        />
+      </form>
 
       {/* Desktop table */}
       <div className={styles.tableWrap}>
@@ -102,6 +129,7 @@ export default async function PropertiesPage({
                       {t(T.edit)}
                     </a>
                     <form action={`/api/properties/${p.id}/archive`} method="POST">
+                      <input type="hidden" name="archived" value={showArchived ? '0' : '1'} />
                       <button type="submit" className="btn btn-ghost btn-sm">
                         {showArchived ? t(T.restore) : t(T.archive)}
                       </button>
@@ -131,6 +159,7 @@ export default async function PropertiesPage({
                 {t(T.edit)}
               </a>
               <form action={`/api/properties/${p.id}/archive`} method="POST">
+                <input type="hidden" name="archived" value={showArchived ? '0' : '1'} />
                 <button type="submit" className="btn btn-ghost btn-sm">
                   {showArchived ? t(T.restore) : t(T.archive)}
                 </button>

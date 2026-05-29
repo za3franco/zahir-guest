@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { STATUS_LABELS } from '@/types'
 import styles from './campaign.module.css'
 import CampaignStatusActions from './_components/CampaignStatusActions'
+import DeleteCampaignButton from './_components/DeleteCampaignButton'
 
 const T = {
   back: { en: '← Campaigns', fr: '← Campagnes' },
@@ -36,7 +37,6 @@ const T = {
   },
 }
 
-// Edit is only allowed before audit starts
 const EDITABLE_STATUSES = ['assigned']
 
 export default async function CampaignDetailPage({
@@ -48,6 +48,7 @@ export default async function CampaignDetailPage({
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
+  const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,14 +70,6 @@ export default async function CampaignDetailPage({
   if (!campaign) notFound()
 
   const s = STATUS_LABELS[campaign.status as keyof typeof STATUS_LABELS]
-  const colorClass = {
-    '#9B9488': 'badge-sand',
-    '#C8A45A': 'badge-gold',
-    '#E8C87A': 'badge-gold',
-    '#D4882A': 'badge-amber',
-    '#4A7C6B': 'badge-sage',
-  }[s?.color ?? ''] ?? 'badge-sand'
-
   const formatDate = (d: string | null) => d
     ? new Date(d).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
     : t(T.noDate)
@@ -88,13 +81,20 @@ export default async function CampaignDetailPage({
       {/* Top nav */}
       <div className={styles.topNav}>
         <a href="/dashboard/campaigns" className={styles.backLink}>{t(T.back)}</a>
-        {canEdit && (
-          <div className={styles.topActions}>
+        <div className={styles.topActions}>
+          {canEdit && (
             <a href={`/dashboard/campaigns/${campaign.id}/edit`} className="btn btn-ghost btn-sm">
               {t(T.edit)}
             </a>
-          </div>
-        )}
+          )}
+          {isAdmin && (
+            <DeleteCampaignButton
+              campaignId={campaign.id}
+              status={campaign.status}
+              lang={lang}
+            />
+          )}
+        </div>
       </div>
 
       {/* Campaign header */}
@@ -102,7 +102,7 @@ export default async function CampaignDetailPage({
         <div>
           <h1 className={styles.campaignName}>{campaign.name}</h1>
           <div className={styles.campaignMeta}>
-            <span className={`badge ${colorClass}`}>
+            <span className="badge badge-sand">
               {lang === 'en' ? s?.en : s?.fr}
             </span>
             <span className={styles.metaDot}>·</span>

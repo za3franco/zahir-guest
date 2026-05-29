@@ -15,6 +15,7 @@ const ROLE_LABELS: Record<string, { en: string; fr: string }> = {
 const T = {
   title: { en: 'Users', fr: 'Utilisateurs' },
   invite: { en: 'Invite user', fr: 'Inviter un utilisateur' },
+  searchPlaceholder: { en: 'Search by name or email…', fr: 'Rechercher par nom ou email…' },
   cols: {
     name: { en: 'Name', fr: 'Nom' },
     email: { en: 'Email', fr: 'Email' },
@@ -22,27 +23,41 @@ const T = {
     joined: { en: 'Joined', fr: 'Inscrit' },
     actions: { en: 'Actions', fr: 'Actions' },
   },
-  empty: { en: 'No users yet.', fr: 'Aucun utilisateur.' },
+  empty: { en: 'No users found.', fr: 'Aucun utilisateur trouvé.' },
   you: { en: '(you)', fr: '(vous)' },
-  
+  edit: { en: 'Edit', fr: 'Modifier' },
 }
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: { q?: string }
+}) {
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
+  const searchQuery = searchParams.q?.toLowerCase().trim() ?? ''
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: users } = await supabaseAdmin
+  const { data: allUsers } = await supabaseAdmin
     .from('users')
     .select('id, name, email, role, created_at')
     .eq('tenant_id', user.tenant_id)
     .order('created_at', { ascending: false })
+
+  // Filter client-side after fetch (user list is small)
+  const users = searchQuery
+    ? (allUsers ?? []).filter(
+        (u: any) =>
+          u.name.toLowerCase().includes(searchQuery) ||
+          u.email.toLowerCase().includes(searchQuery)
+      )
+    : (allUsers ?? [])
 
   return (
     <div className={styles.page}>
@@ -52,6 +67,18 @@ export default async function UsersPage() {
           + {t(T.invite)}
         </a>
       </div>
+
+      {/* Search */}
+      <form method="GET" action="/dashboard/users" className={styles.searchForm}>
+        <input
+          type="search"
+          name="q"
+          defaultValue={searchParams.q ?? ''}
+          placeholder={t(T.searchPlaceholder)}
+          className={styles.searchInput}
+          autoComplete="off"
+        />
+      </form>
 
       {/* Desktop table */}
       <div className={styles.tableWrap}>
@@ -85,13 +112,20 @@ export default async function UsersPage() {
                     {new Date(u.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td>
-                    {!isYou && (
-                      <DeleteUserButton
-                        userId={u.id}
-                        userName={u.name}
-                        lang={lang}
-                      />
-                    )}
+                    <div className={styles.rowActions}>
+                      {!isYou && (
+                        <a href={`/dashboard/users/${u.id}/edit`} className="btn btn-ghost btn-sm">
+                          {t(T.edit)}
+                        </a>
+                      )}
+                      {!isYou && (
+                        <DeleteUserButton
+                          userId={u.id}
+                          userName={u.name}
+                          lang={lang}
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
@@ -123,13 +157,20 @@ export default async function UsersPage() {
                 <span className={styles.mobileCardDate}>
                   {new Date(u.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
-                {!isYou && (
-                  <DeleteUserButton
-                        userId={u.id}
-                        userName={u.name}
-                        lang={lang}
-                      />
-                )}
+                <div className={styles.rowActions}>
+                  {!isYou && (
+                    <a href={`/dashboard/users/${u.id}/edit`} className="btn btn-ghost btn-sm">
+                      {t(T.edit)}
+                    </a>
+                  )}
+                  {!isYou && (
+                    <DeleteUserButton
+                      userId={u.id}
+                      userName={u.name}
+                      lang={lang}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )

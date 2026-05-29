@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
   gap: var(--space-4);
 }
 
@@ -14,6 +14,25 @@
   font-weight: 300;
   color: var(--color-ivory);
 }
+
+/* Search */
+.searchForm { margin-bottom: var(--space-4); }
+
+.searchInput {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+.searchInput::placeholder { color: var(--color-sand); opacity: 0.6; }
+.searchInput:focus { outline: none; border-color: var(--color-gold); }
 
 .filters {
   display: flex;
@@ -87,7 +106,7 @@
   text-align: center;
 }
 
-/* Mobile cards — hidden on desktop */
+/* Mobile cards */
 .mobileCards { display: none; }
 
 .mobileCard {
@@ -132,4 +151,5 @@
   .title { font-size: 1.625rem; }
   .filters { gap: var(--space-1); }
   .filterTab { padding: 5px 10px; font-size: 0.75rem; }
+  .searchInput { max-width: 100%; }
 }
