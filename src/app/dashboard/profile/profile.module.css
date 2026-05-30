@@ -156,3 +156,13 @@
     padding: var(--space-4);
   }
 }
+
+.backLink {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+  color: var(--color-sand);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.backLink:hover { color: var(--color-gold); }

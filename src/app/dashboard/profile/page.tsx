@@ -12,14 +12,12 @@ const T = {
   sections: {
     identity: { en: 'Identity', fr: 'Identité' },
     password: { en: 'Change Password', fr: 'Changer le mot de passe' },
-    preferences: { en: 'Preferences', fr: 'Préférences' },
   },
   fields: {
     name: { en: 'Full name', fr: 'Nom complet' },
     email: { en: 'Email', fr: 'Email' },
     role: { en: 'Role', fr: 'Rôle' },
     language: { en: 'Interface language', fr: "Langue de l'interface" },
-    currentPassword: { en: 'Current password', fr: 'Mot de passe actuel' },
     newPassword: { en: 'New password', fr: 'Nouveau mot de passe' },
     confirmPassword: { en: 'Confirm new password', fr: 'Confirmer le nouveau mot de passe' },
   },
@@ -27,6 +25,7 @@ const T = {
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   updatePassword: { en: 'Update password', fr: 'Mettre à jour' },
   updating: { en: 'Updating…', fr: 'Mise à jour…' },
+  back: { en: '← Back to dashboard', fr: '← Retour au tableau de bord' },
   successProfile: { en: 'Profile updated.', fr: 'Profil mis à jour.' },
   successPassword: { en: 'Password updated successfully.', fr: 'Mot de passe mis à jour.' },
   errors: {
@@ -55,14 +54,12 @@ export default function ProfilePage() {
   const [lang, setLang] = useState<'en' | 'fr'>('fr')
   const [loading, setLoading] = useState(true)
 
-  // Profile form
   const [name, setName] = useState('')
   const [language, setLanguage] = useState('fr')
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSuccess, setProfileSuccess] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
 
-  // Password form
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
@@ -103,7 +100,6 @@ export default function ProfilePage() {
       } else {
         setProfileSuccess(true)
         setTimeout(() => setProfileSuccess(false), 3000)
-        // If language changed, reload page to apply
         if (language !== user?.default_language) {
           setTimeout(() => window.location.reload(), 500)
         }
@@ -120,14 +116,8 @@ export default function ProfilePage() {
     setPasswordError(null)
     setPasswordSuccess(false)
 
-    if (newPassword.length < 8) {
-      setPasswordError(t(T.errors.passwordShort))
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError(t(T.errors.passwordMismatch))
-      return
-    }
+    if (newPassword.length < 8) { setPasswordError(t(T.errors.passwordShort)); return }
+    if (newPassword !== confirmPassword) { setPasswordError(t(T.errors.passwordMismatch)); return }
 
     setSavingPassword(true)
     try {
@@ -149,19 +139,16 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <p style={{ color: 'var(--color-sand)' }}>Loading…</p>
-      </div>
-    )
+    return <div className={styles.page}><p style={{ color: 'var(--color-sand)' }}>Loading…</p></div>
   }
-
   if (!user) return null
 
   const roleLabel = T.roleLabels[user.role as keyof typeof T.roleLabels]?.[lang] ?? user.role
 
   return (
     <div className={styles.page}>
+      <a href="/dashboard" className={styles.backLink}>{t(T.back)}</a>
+
       <div className={styles.header}>
         <h1 className={styles.title}>{t(T.title)}</h1>
         <p className={styles.subtitle}>{t(T.subtitle)}</p>
@@ -175,21 +162,13 @@ export default function ProfilePage() {
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label className={styles.label}>{t(T.fields.name)}</label>
-              <input
-                className={styles.input}
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-              />
+              <input className={styles.input} type="text" value={name} onChange={e => setName(e.target.value)} required />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>{t(T.fields.email)}</label>
               <div className={styles.readOnly}>{user.email}</div>
               <p className={styles.hint}>
-                {lang === 'en'
-                  ? 'Contact your admin to change your email.'
-                  : 'Contactez votre administrateur pour changer votre email.'}
+                {lang === 'en' ? 'Contact your admin to change your email.' : 'Contactez votre administrateur pour changer votre email.'}
               </p>
             </div>
           </div>
@@ -201,25 +180,18 @@ export default function ProfilePage() {
             </div>
             <div className={styles.field}>
               <label className={styles.label}>{t(T.fields.language)}</label>
-              <select
-                className={styles.select}
-                value={language}
-                onChange={e => setLanguage(e.target.value)}
-              >
+              <select className={styles.select} value={language} onChange={e => setLanguage(e.target.value)}>
                 <option value="fr">Français</option>
                 <option value="en">English</option>
               </select>
             </div>
           </div>
 
-          {profileSuccess && (
-            <div className={styles.successBanner}>{t(T.successProfile)}</div>
-          )}
-          {profileError && (
-            <div className={styles.errorBanner}>{profileError}</div>
-          )}
+          {profileSuccess && <div className={styles.successBanner}>{t(T.successProfile)}</div>}
+          {profileError && <div className={styles.errorBanner}>{profileError}</div>}
 
           <div className={styles.formActions}>
+            <a href="/dashboard" className="btn btn-ghost">{lang === 'en' ? 'Cancel' : 'Annuler'}</a>
             <button type="submit" className="btn btn-primary" disabled={savingProfile}>
               {savingProfile ? t(T.saving) : t(T.save)}
             </button>
@@ -233,35 +205,16 @@ export default function ProfilePage() {
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label className={styles.label}>{t(T.fields.newPassword)}</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                minLength={8}
-                required
-              />
+              <input className={styles.input} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters" minLength={8} required />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>{t(T.fields.confirmPassword)}</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder={lang === 'en' ? 'Repeat new password' : 'Répéter le nouveau mot de passe'}
-                required
-              />
+              <input className={styles.input} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder={lang === 'en' ? 'Repeat new password' : 'Répéter le nouveau mot de passe'} required />
             </div>
           </div>
 
-          {passwordSuccess && (
-            <div className={styles.successBanner}>{t(T.successPassword)}</div>
-          )}
-          {passwordError && (
-            <div className={styles.errorBanner}>{passwordError}</div>
-          )}
+          {passwordSuccess && <div className={styles.successBanner}>{t(T.successPassword)}</div>}
+          {passwordError && <div className={styles.errorBanner}>{passwordError}</div>}
 
           <div className={styles.formActions}>
             <button type="submit" className="btn btn-primary" disabled={savingPassword}>

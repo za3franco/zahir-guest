@@ -18,8 +18,13 @@
 
 .headerActions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
-/* Search */
-.searchForm { margin-bottom: var(--space-5); }
+/* Search row */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
 
 .searchInput {
   background: var(--color-slate-navy);
@@ -36,6 +41,48 @@
 }
 .searchInput::placeholder { color: var(--color-sand); opacity: 0.6; }
 .searchInput:focus { outline: none; border-color: var(--color-gold); }
+
+.clearBtn {
+  background: rgba(155, 148, 136, 0.1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-sand);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  padding: var(--space-2) var(--space-3);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.clearBtn:hover { color: var(--color-ivory); border-color: var(--color-ivory); }
+
+/* Category filter tabs */
+.filters {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-sand);
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.filterTab:hover { color: var(--color-ivory); border-color: var(--color-gold); }
+.filterTabActive {
+  color: var(--color-gold) !important;
+  background: rgba(200,164,90,0.1) !important;
+  border-color: rgba(200,164,90,0.3) !important;
+}
 
 /* Desktop table */
 .tableWrap {
@@ -73,7 +120,6 @@
 .tableLink { color: var(--color-gold); text-decoration: none; font-weight: 500; }
 .tableLink:hover { text-decoration: underline; }
 .muted { color: var(--color-sand) !important; }
-
 .rowActions { display: flex; gap: var(--space-2); }
 
 .empty {
@@ -94,19 +140,8 @@
   overflow: hidden;
 }
 
-.mobileCardLink {
-  display: block;
-  padding: var(--space-4);
-  text-decoration: none;
-}
-
-.mobileCardName {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-gold);
-  margin-bottom: 4px;
-}
-
+.mobileCardLink { display: block; padding: var(--space-4); text-decoration: none; }
+.mobileCardName { font-size: 0.9375rem; font-weight: 500; color: var(--color-gold); margin-bottom: 4px; }
 .mobileCardMeta { font-size: 0.8125rem; color: var(--color-sand); }
 
 .mobileCardActions {
@@ -122,4 +157,6 @@
   .mobileCards { display: block; }
   .title { font-size: 1.625rem; }
   .searchInput { max-width: 100%; }
+  .filters { gap: var(--space-1); }
+  .filterTab { padding: 5px 10px; font-size: 0.75rem; }
 }
