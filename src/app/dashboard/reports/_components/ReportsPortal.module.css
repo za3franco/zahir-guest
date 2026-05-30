@@ -1,0 +1,211 @@
+.page {
+  max-width: 1100px;
+}
+
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+}
+
+.subtitle {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+}
+
+/* Property selector tabs */
+.propertySelector {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.propertyTab {
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-sand);
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.propertyTab:hover { color: var(--color-ivory); border-color: var(--color-gold); }
+.propertyTabActive {
+  color: var(--color-gold) !important;
+  background: rgba(200, 164, 90, 0.1) !important;
+  border-color: rgba(200, 164, 90, 0.3) !important;
+}
+
+.propertyTabCity {
+  color: var(--color-sand);
+  font-size: 0.8125rem;
+}
+
+/* Property header */
+.propertyHeader {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.propertyName {
+  font-family: var(--font-display);
+  font-size: 1.625rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+}
+
+.propertyMeta {
+  font-size: 0.9375rem;
+  color: var(--color-sand);
+}
+
+/* Visit filter */
+.visitFilterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.visitFilterLabel {
+  font-size: 0.8125rem;
+  color: var(--color-sand);
+  margin-right: var(--space-1);
+}
+
+.visitFilterBtn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-sand);
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+}
+.visitFilterBtn:hover { color: var(--color-ivory); border-color: var(--color-gold); }
+.visitFilterBtnActive {
+  color: var(--color-gold) !important;
+  border-color: rgba(200, 164, 90, 0.4) !important;
+  background: rgba(200, 164, 90, 0.08) !important;
+}
+
+/* Cards */
+.chartCard {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  margin: 0 0 var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* Report list */
+.reportList {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+
+.reportCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.reportCard:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.reportCard:first-child {
+  padding-top: 0;
+}
+
+.reportCardLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.reportCardName {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-ivory);
+  margin-bottom: var(--space-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reportCardMeta {
+  font-size: 0.8125rem;
+  color: var(--color-sand);
+}
+
+.reportCardRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.scoreBadge {
+  font-size: 1.125rem;
+  font-weight: 700;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 4px 12px;
+  min-width: 60px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  background: var(--color-slate-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-10);
+  text-align: center;
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 768px) {
+  .title { font-size: 1.625rem; }
+  .chartCard { padding: var(--space-4); }
+  .reportList { padding: var(--space-4); }
+  .reportCard { flex-direction: column; align-items: flex-start; }
+  .reportCardRight { width: 100%; justify-content: space-between; }
+  .visitFilterRow { gap: var(--space-1); }
+  .visitFilterBtn { padding: 4px 10px; font-size: 0.75rem; }
+}
