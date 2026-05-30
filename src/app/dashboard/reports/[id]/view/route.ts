@@ -25,10 +25,10 @@ export async function GET(
     return new NextResponse('Report not found', { status: 404 })
   }
 
-  // Verify tenant access via campaign
+  // Verify access based on role
   const { data: campaign } = await supabaseAdmin
     .from('campaigns')
-    .select('tenant_id')
+    .select('tenant_id, property_id, status')
     .eq('id', report.campaign_id)
     .single()
 
@@ -36,7 +36,39 @@ export async function GET(
     return new NextResponse('Unauthorized', { status: 403 })
   }
 
-  return new NextResponse(report.report_html, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
+  // Admins can access any report in their tenant
+  if (user.role === 'tenant_admin' || user.role === 'super_admin') {
+    return new NextResponse(report.report_html, {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }
+
+  // Property managers and department managers can only see published reports
+  // for properties they are assigned to
+  if (user.role === 'property_manager' || user.role === 'department_manager') {
+    if (campaign.status !== 'published') {
+      return new NextResponse('Report not available', { status: 403 })
+    }
+
+    const roleColumn = user.role === 'department_manager'
+      ? 'department_manager_user_id'
+      : 'property_manager_user_id'
+
+    const { data: property } = await supabaseAdmin
+      .from('properties')
+      .select('id')
+      .eq('id', campaign.property_id)
+      .eq(roleColumn, user.id)
+      .single()
+
+    if (!property) {
+      return new NextResponse('Unauthorized', { status: 403 })
+    }
+
+    return new NextResponse(report.report_html, {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }
+
+  return new NextResponse('Unauthorized', { status: 403 })
 }
