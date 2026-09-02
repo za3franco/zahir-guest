@@ -56,8 +56,8 @@ export default function GenerateReportButton({ reportId, hasHtml, lang, isAdmin 
           </button>
         )}
 
-        {/* View & PDF — visible to everyone once report HTML exists */}
-        {ready && (
+        {/* View & PDF — always visible once report exists (admin: after generate; PM: always) */}
+        {(ready || !isAdmin) && (
           <a
             href={`/dashboard/reports/${reportId}/view`}
             target="_blank"
