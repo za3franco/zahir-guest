@@ -122,3 +122,23 @@
   font-size: 0.8125rem;
   line-height: 1.6;
 }
+
+/* Read-only mode for PM */
+.readOnlyText {
+  color: var(--color-ivory);
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  padding: var(--space-5);
+  background: var(--color-midnight-navy);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  min-height: 200px;
+}
+
+.emptyText {
+  color: var(--color-sand);
+  font-size: 0.9375rem;
+  font-style: italic;
+  padding: var(--space-5);
+}

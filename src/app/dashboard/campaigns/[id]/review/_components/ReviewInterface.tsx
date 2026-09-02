@@ -9,7 +9,7 @@ import ExecutiveSummaryEditor from './ExecutiveSummaryEditor'
 import GenerateReportButton from './GenerateReportButton'
 
 const T = {
-  back: { en: '← Campaign', fr: '← Campagne' },
+  back: { en: '← Reports', fr: '← Rapports' },
   title: { en: 'Audit Review', fr: "Révision de l'audit" },
   tabs: {
     scores: { en: 'Scores', fr: 'Scores' },
@@ -20,6 +20,7 @@ const T = {
     property: { en: 'Property', fr: 'Établissement' },
     auditor: { en: 'Auditor', fr: 'Auditeur' },
     submitted: { en: 'Submitted', fr: 'Soumis le' },
+    published: { en: 'Published', fr: 'Publié le' },
     template: { en: 'Template', fr: 'Modèle' },
   },
   noReport: { en: 'No scores available yet.', fr: 'Aucun score disponible.' },
@@ -36,34 +37,34 @@ interface Props {
 }
 
 export default function ReviewInterface({
-  campaign,
-  report,
-  domains,
-  sections,
-  standards,
-  responses,
-  user,
+  campaign, report, domains, sections, standards, responses, user,
 }: Props) {
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const [activeTab, setActiveTab] = useState<'scores' | 'responses' | 'summary'>('scores')
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
 
+  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
+
   const scores = report?.report_json ?? null
   const propertyName = campaign.property?.name ?? '—'
   const auditorName = campaign.auditor?.name ?? '—'
   const templateName = campaign.template?.name ?? '—'
+
   const submittedAt = campaign.submitted_at
-    ? new Date(campaign.submitted_at).toLocaleDateString(dateLocale, {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
-    : '—'
+    ? new Date(campaign.submitted_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
+    : null
+
+  const publishedAt = campaign.published_at
+    ? new Date(campaign.published_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className={styles.page}>
-      {/* Top nav — back link left, generate button right */}
+      {/* Top nav */}
       <div className={styles.topNav}>
-        <a href={`/dashboard/campaigns/${campaign.id}`} className={styles.backLink}>
+        <a href="/dashboard/campaigns" className={styles.backLink}>
           {t(T.back)}
         </a>
         {report && (
@@ -71,6 +72,7 @@ export default function ReviewInterface({
             reportId={report.id}
             hasHtml={!!report.report_html}
             lang={lang}
+            isAdmin={isAdmin}
           />
         )}
       </div>
@@ -97,18 +99,30 @@ export default function ReviewInterface({
           <span className={styles.metaLabel}>{t(T.meta.property)}</span>
           <span className={styles.metaValue}>{propertyName}</span>
         </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>{t(T.meta.auditor)}</span>
-          <span className={styles.metaValue}>{auditorName}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>{t(T.meta.submitted)}</span>
-          <span className={styles.metaValue}>{submittedAt}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>{t(T.meta.template)}</span>
-          <span className={styles.metaValue}>{templateName}</span>
-        </div>
+        {!isPM && (
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t(T.meta.auditor)}</span>
+            <span className={styles.metaValue}>{auditorName}</span>
+          </div>
+        )}
+        {!isPM && submittedAt && (
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t(T.meta.submitted)}</span>
+            <span className={styles.metaValue}>{submittedAt}</span>
+          </div>
+        )}
+        {isPM && publishedAt && (
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t(T.meta.published)}</span>
+            <span className={styles.metaValue}>{publishedAt}</span>
+          </div>
+        )}
+        {!isPM && (
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t(T.meta.template)}</span>
+            <span className={styles.metaValue}>{templateName}</span>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -145,6 +159,7 @@ export default function ReviewInterface({
             campaignId={campaign.id}
             existingSummary={report?.executive_summary ?? ''}
             lang={lang}
+            readOnly={isPM}
           />
         )}
       </div>

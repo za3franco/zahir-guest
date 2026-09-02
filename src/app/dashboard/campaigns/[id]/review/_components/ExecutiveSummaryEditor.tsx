@@ -5,8 +5,10 @@ import styles from './ExecutiveSummaryEditor.module.css'
 
 const T = {
   title: { en: 'Executive Summary', fr: 'Synthèse exécutive' },
-  subtitle: { en: 'Write a narrative summary of the audit findings. This will appear at the top of the published report.', fr: 'Rédigez une synthèse narrative des résultats de l\'audit. Elle apparaîtra en haut du rapport publié.' },
-  placeholder: { en: 'Write your executive summary here…\n\nDescribe the overall guest experience, key strengths, areas for improvement, and your main recommendations.', fr: 'Rédigez votre synthèse ici…\n\nDécrivez l\'expérience client globale, les points forts, les axes d\'amélioration et vos principales recommandations.' },
+  subtitleEdit: { en: 'Write a narrative summary of the audit findings. This will appear at the top of the published report.', fr: "Rédigez une synthèse narrative des résultats de l'audit. Elle apparaîtra en haut du rapport publié." },
+  subtitleRead: { en: 'Executive summary as published in the report.', fr: 'Synthèse exécutive telle que publiée dans le rapport.' },
+  placeholder: { en: 'Write your executive summary here…\n\nDescribe the overall guest experience, key strengths, areas for improvement, and your main recommendations.', fr: "Rédigez votre synthèse ici…\n\nDécrivez l'expérience client globale, les points forts, les axes d'amélioration et vos principales recommandations." },
+  empty: { en: 'No executive summary has been written yet.', fr: 'Aucune synthèse exécutive n\'a encore été rédigée.' },
   save: { en: 'Save summary', fr: 'Enregistrer la synthèse' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   saved: { en: 'Saved ✓', fr: 'Enregistré ✓' },
@@ -18,7 +20,7 @@ const T = {
         'Open with the overall score and a one-sentence impression',
         'Highlight 2–3 standout strengths with specific examples',
         'Address the most critical BELOW standards directly',
-        'Note any patterns in the classification breakdown (e.g. "Service standards were strong but Efficiency was inconsistent")',
+        'Note any patterns in the classification breakdown',
         'Close with 3–5 prioritised recommendations',
       ],
       fr: [
@@ -36,9 +38,10 @@ interface Props {
   campaignId: string
   existingSummary: string
   lang: string
+  readOnly?: boolean
 }
 
-export default function ExecutiveSummaryEditor({ campaignId, existingSummary, lang }: Props) {
+export default function ExecutiveSummaryEditor({ campaignId, existingSummary, lang, readOnly = false }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [summary, setSummary] = useState(existingSummary)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -60,13 +63,37 @@ export default function ExecutiveSummaryEditor({ campaignId, existingSummary, la
 
   const tips = T.tips.items[lang as 'en' | 'fr']
 
+  // Read-only view for PM
+  if (readOnly) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.editorSection}>
+          <div className={styles.editorHeader}>
+            <div>
+              <h2 className={styles.title}>{t(T.title)}</h2>
+              <p className={styles.subtitle}>{t(T.subtitleRead)}</p>
+            </div>
+          </div>
+          {summary.trim() ? (
+            <div className={styles.readOnlyText}>
+              {summary}
+            </div>
+          ) : (
+            <p className={styles.emptyText}>{t(T.empty)}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Editable view for admin
   return (
     <div className={styles.container}>
       <div className={styles.editorSection}>
         <div className={styles.editorHeader}>
           <div>
             <h2 className={styles.title}>{t(T.title)}</h2>
-            <p className={styles.subtitle}>{t(T.subtitle)}</p>
+            <p className={styles.subtitle}>{t(T.subtitleEdit)}</p>
           </div>
         </div>
 

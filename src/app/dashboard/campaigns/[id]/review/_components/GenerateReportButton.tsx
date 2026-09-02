@@ -15,9 +15,10 @@ interface Props {
   reportId: string
   hasHtml: boolean
   lang: string
+  isAdmin: boolean
 }
 
-export default function GenerateReportButton({ reportId, hasHtml, lang }: Props) {
+export default function GenerateReportButton({ reportId, hasHtml, lang, isAdmin }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(hasHtml)
@@ -26,18 +27,13 @@ export default function GenerateReportButton({ reportId, hasHtml, lang }: Props)
   async function handleGenerate() {
     setLoading(true)
     setError(null)
-
     try {
-      const res = await fetch(`/api/reports/${reportId}/generate`, {
-        method: 'POST',
-      })
-
+      const res = await fetch(`/api/reports/${reportId}/generate`, { method: 'POST' })
       if (!res.ok) {
         const data = await res.json()
         setError(data.error ?? t(T.error))
         return
       }
-
       setReady(true)
     } catch {
       setError(t(T.error))
@@ -49,14 +45,18 @@ export default function GenerateReportButton({ reportId, hasHtml, lang }: Props)
   return (
     <div className={styles.container}>
       <div className={styles.buttons}>
-        <button
-          onClick={handleGenerate}
-          className="btn btn-ghost btn-sm"
-          disabled={loading}
-        >
-          {loading ? t(T.generating) : ready ? t(T.regenerate) : t(T.generate)}
-        </button>
+        {/* Generate / Regenerate — admin only */}
+        {isAdmin && (
+          <button
+            onClick={handleGenerate}
+            className="btn btn-ghost btn-sm"
+            disabled={loading}
+          >
+            {loading ? t(T.generating) : ready ? t(T.regenerate) : t(T.generate)}
+          </button>
+        )}
 
+        {/* View & PDF — visible to everyone once report HTML exists */}
         {ready && (
           <a
             href={`/dashboard/reports/${reportId}/view`}
