@@ -13,6 +13,7 @@ interface NavItem {
   labelFr: string
   icon: React.ReactNode
   roles: string[]
+  exact?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -21,7 +22,17 @@ const NAV_ITEMS: NavItem[] = [
     labelEn: 'Dashboard',
     labelFr: 'Tableau de bord',
     icon: <IconDashboard />,
-    roles: ['super_admin', 'tenant_admin', 'auditor', 'property_manager', 'department_manager'],
+    roles: ['super_admin', 'tenant_admin', 'auditor'],
+    exact: true,
+  },
+  {
+    // PM/DM Dashboard = analytics view at /dashboard/reports
+    href: '/dashboard/reports',
+    labelEn: 'Dashboard',
+    labelFr: 'Tableau de bord',
+    icon: <IconDashboard />,
+    roles: ['property_manager', 'department_manager'],
+    exact: true,
   },
   {
     href: '/dashboard/campaigns',
@@ -36,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
     labelFr: 'Mes Audits',
     icon: <IconAudit />,
     roles: ['auditor'],
+    exact: true,
   },
   {
     href: '/dashboard/properties',
@@ -45,7 +57,7 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['super_admin', 'tenant_admin'],
   },
   {
-    href: '/dashboard/reports',
+    href: '/dashboard/reports/list',
     labelEn: 'Reports',
     labelFr: 'Rapports',
     icon: <IconReports />,
@@ -68,22 +80,15 @@ const ROLE_LABELS: Record<string, { en: string; fr: string }> = {
   department_manager: { en: 'Dept. Manager', fr: 'Chef de département' },
 }
 
-interface SidebarProps {
-  user: User
-}
-
-export default function Sidebar({ user }: SidebarProps) {
+export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname()
-  const [lang, setLang] = useState<'en' | 'fr'>(
-    user.default_language === 'en' ? 'en' : 'fr'
-  )
+  const [lang, setLang] = useState<'en' | 'fr'>(user.default_language === 'en' ? 'en' : 'fr')
   const [switching, setSwitching] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const visibleItems = NAV_ITEMS.filter(item => item.roles.includes(user.role))
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
-
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -113,9 +118,13 @@ export default function Sidebar({ user }: SidebarProps) {
     }
   }
 
-  function isActive(href: string) {
-    if (href === '/dashboard') return pathname === '/dashboard'
-    return pathname.startsWith(href)
+  function isActive(item: NavItem) {
+    if (item.exact) return pathname === item.href
+    // Reports list and report detail both highlight the Reports nav item
+    if (item.href === '/dashboard/reports/list') {
+      return pathname === '/dashboard/reports/list' || pathname.startsWith('/dashboard/reports/')
+    }
+    return pathname.startsWith(item.href)
   }
 
   return (
@@ -156,8 +165,8 @@ export default function Sidebar({ user }: SidebarProps) {
             <Link
               key={`${item.href}-${item.labelEn}`}
               href={item.href}
-              className={`${styles.navItem} ${isActive(item.href) ? styles.navItemActive : ''}`}
-              aria-current={isActive(item.href) ? 'page' : undefined}
+              className={`${styles.navItem} ${isActive(item) ? styles.navItemActive : ''}`}
+              aria-current={isActive(item) ? 'page' : undefined}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{lang === 'en' ? item.labelEn : item.labelFr}</span>
