@@ -2,12 +2,17 @@ export const dynamic = 'force-dynamic'
 
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Property } from '@/types'
 import PropertyForm from '../../_components/PropertyForm'
 
 export default async function EditPropertyPage({ params }: { params: { id: string } }) {
   const user = await requireUser()
+
+  // Only admins can edit properties
+  if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
+    redirect('/dashboard/reports')
+  }
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
