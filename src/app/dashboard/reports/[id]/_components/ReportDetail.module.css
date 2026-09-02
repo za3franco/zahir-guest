@@ -1,0 +1,112 @@
+.page { max-width: 900px; }
+
+.topNav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-6); gap: var(--space-4);
+}
+.backLink { color: var(--color-sand); text-decoration: none; font-size: 0.875rem; transition: color var(--transition-fast); }
+.backLink:hover { color: var(--color-gold); }
+
+/* Report header */
+.reportHeader {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-6); margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6); border-bottom: 1px solid var(--color-border-subtle);
+  flex-wrap: wrap;
+}
+.reportHeaderLeft { flex: 1; min-width: 0; }
+.propertyMeta { font-size: 0.875rem; color: var(--color-sand); margin-bottom: var(--space-2); }
+.reportTitle {
+  font-family: var(--font-display); font-size: 1.875rem; font-weight: 300;
+  color: var(--color-ivory); margin-bottom: var(--space-3); line-height: 1.2;
+}
+.reportDates { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+.reportDates span { font-size: 0.8125rem; color: var(--color-sand); }
+
+/* Overall score circle */
+.overallScore { flex-shrink: 0; text-align: center; }
+.overallScoreCircle {
+  width: 100px; height: 100px; border-radius: 50%;
+  border: 3px solid; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  margin-bottom: var(--space-2);
+}
+.overallScoreValue { font-size: 1.625rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.overallScoreLabel { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-top: 2px; }
+.overallScoreRating { font-size: 0.8125rem; font-weight: 600; }
+
+/* Cards */
+.card {
+  background: var(--color-slate-navy); border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-5);
+}
+.cardTitle {
+  font-family: var(--font-display); font-size: 1.125rem; font-weight: 400;
+  color: var(--color-gold); margin: 0 0 var(--space-5);
+  padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* Executive summary */
+.executiveSummary {
+  color: var(--color-ivory); font-size: 0.9375rem; line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* Domain scores */
+.domainList { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.domainRow {
+  padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border-subtle);
+}
+.domainRow:last-child { border-bottom: none; padding-bottom: 0; }
+
+.domainHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4); margin-bottom: var(--space-3);
+}
+.domainName { font-size: 0.9375rem; font-weight: 600; color: var(--color-ivory); }
+
+.domainRight { display: flex; align-items: center; gap: var(--space-3); flex-shrink: 0; }
+
+.domainBar {
+  width: 120px; height: 6px; background: rgba(255,255,255,0.08);
+  border-radius: 3px; overflow: hidden;
+}
+.domainBarFill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+.domainScore {
+  font-size: 0.9375rem; font-weight: 700; min-width: 48px;
+  text-align: right; border-radius: 4px; padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section breakdown */
+.sectionList { display: flex; flex-direction: column; gap: var(--space-2); padding-left: var(--space-4); }
+.sectionRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-2) 0;
+}
+.sectionName { font-size: 0.8125rem; color: var(--color-sand); }
+.sectionScore { font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Print styles */
+@media print {
+  .topNav { display: none; }
+  .page { max-width: 100%; }
+  .card { break-inside: avoid; border: 1px solid #ccc; background: white !important; }
+  .cardTitle { color: #8B6914 !important; border-bottom-color: #eee !important; }
+  .reportTitle, .domainName { color: #1a1a2e !important; }
+  .executiveSummary, .sectionName { color: #333 !important; }
+  .domainBar { background: #eee !important; }
+  .reportHeader { border-bottom-color: #ccc !important; }
+}
+
+@media (max-width: 768px) {
+  .reportHeader { flex-direction: column; }
+  .overallScore { align-self: flex-start; flex-direction: row; display: flex; align-items: center; gap: var(--space-3); }
+  .overallScoreCircle { width: 72px; height: 72px; }
+  .overallScoreValue { font-size: 1.25rem; }
+  .card { padding: var(--space-4); }
+  .domainBar { width: 80px; }
+  .reportTitle { font-size: 1.5rem; }
+}
