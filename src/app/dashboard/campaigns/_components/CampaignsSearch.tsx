@@ -5,7 +5,7 @@ import styles from '../campaigns.module.css'
 
 interface CampaignRow {
   id: string; name: string; propertyName: string; propertyCity: string
-  auditorName: string; statusLabel: string; dateFormatted: string; reviewHref: string
+  auditorName: string; statusLabel: string; dateFormatted: string; href: string
 }
 
 interface Props {
@@ -53,7 +53,7 @@ export default function CampaignsSearch({ campaigns, searchPlaceholder, clearLab
               <tr><td colSpan={isPM ? 3 : 5} className={styles.empty}>{emptyLabel}</td></tr>
             ) : filtered.map(c => (
               <tr key={c.id}>
-                <td><a href={c.reviewHref} className={styles.tableLink}>{c.name}</a></td>
+                <td><a href={c.href} className={styles.tableLink}>{c.name}</a></td>
                 <td className={styles.muted}>{c.propertyName}{c.propertyCity ? ` · ${c.propertyCity}` : ''}</td>
                 {!isPM && <td className={styles.muted}>{c.auditorName}</td>}
                 {!isPM && <td><span className="badge badge-sand">{c.statusLabel}</span></td>}
@@ -68,7 +68,7 @@ export default function CampaignsSearch({ campaigns, searchPlaceholder, clearLab
         {!filtered.length ? (
           <p className={styles.empty}>{emptyLabel}</p>
         ) : filtered.map(c => (
-          <a key={c.id} href={c.reviewHref} className={styles.mobileCard}>
+          <a key={c.id} href={c.href} className={styles.mobileCard}>
             <div className={styles.mobileCardTop}>
               <span className={styles.mobileCardName}>{c.name}</span>
               {!isPM && <span className="badge badge-sand">{c.statusLabel}</span>}

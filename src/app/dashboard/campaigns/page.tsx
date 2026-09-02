@@ -108,7 +108,7 @@ export default async function CampaignsPage({
         day: 'numeric', month: 'short', year: 'numeric',
       }),
       publishedAt: c.published_at,
-      reviewHref: `/dashboard/campaigns/${c.id}/review`,
+      href: isPM ? `/dashboard/campaigns/${c.id}/review` : `/dashboard/campaigns/${c.id}`,
     }
   })
 
