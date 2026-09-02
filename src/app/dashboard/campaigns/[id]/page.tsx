@@ -11,9 +11,7 @@ import DeleteCampaignButton from './_components/DeleteCampaignButton'
 const T = {
   back: { en: '← Campaigns', fr: '← Campagnes' },
   edit: { en: 'Edit', fr: 'Modifier' },
-  sections: {
-    details: { en: 'Campaign details', fr: 'Détails de la campagne' },
-  },
+  sections: { details: { en: 'Campaign details', fr: 'Détails de la campagne' } },
   fields: {
     property: { en: 'Property', fr: 'Établissement' },
     auditor: { en: 'Auditor', fr: 'Auditeur' },
@@ -45,10 +43,11 @@ export default async function CampaignDetailPage({
   params: { id: string }
 }) {
   const user = await requireUser()
+  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
 
-  // PM and DM cannot access campaign detail pages
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
-    redirect('/dashboard/reports')
+  // PM: redirect straight to review page
+  if (isPM) {
+    redirect(`/dashboard/campaigns/${params.id}/review`)
   }
 
   const lang = user.default_language === 'en' ? 'en' : 'fr'
@@ -93,11 +92,7 @@ export default async function CampaignDetailPage({
             </a>
           )}
           {isAdmin && (
-            <DeleteCampaignButton
-              campaignId={campaign.id}
-              status={campaign.status}
-              lang={lang}
-            />
+            <DeleteCampaignButton campaignId={campaign.id} status={campaign.status} lang={lang} />
           )}
         </div>
       </div>

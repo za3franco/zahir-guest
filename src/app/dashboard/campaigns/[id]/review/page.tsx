@@ -11,8 +11,10 @@ export default async function CampaignReviewPage({
   params: { id: string }
 }) {
   const user = await requireUser()
+  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
-  if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
+  if (!isAdmin && !isPM) {
     redirect('/dashboard')
   }
 
@@ -21,7 +23,6 @@ export default async function CampaignReviewPage({
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Load campaign
   const { data: campaign } = await supabaseAdmin
     .from('campaigns')
     .select(`
@@ -36,18 +37,35 @@ export default async function CampaignReviewPage({
 
   if (!campaign) notFound()
 
-  if (!['submitted', 'under_review', 'finalized', 'published'].includes(campaign.status)) {
-    redirect(`/dashboard/campaigns/${params.id}`)
+  // PM can only view published campaigns for their assigned properties
+  if (isPM) {
+    if (campaign.status !== 'published') redirect('/dashboard/campaigns')
+
+    const roleColumn = user.role === 'department_manager'
+      ? 'department_manager_user_id'
+      : 'property_manager_user_id'
+
+    const { data: property } = await supabaseAdmin
+      .from('properties')
+      .select('id')
+      .eq('id', campaign.property_id)
+      .eq(roleColumn, user.id)
+      .single()
+
+    if (!property) redirect('/dashboard/campaigns')
+  } else {
+    // Admin: must be in reviewable status
+    if (!['submitted', 'under_review', 'finalized', 'published'].includes(campaign.status)) {
+      redirect(`/dashboard/campaigns/${params.id}`)
+    }
   }
 
-  // Load report with scores
   const { data: report } = await supabaseAdmin
     .from('audit_reports')
     .select('*')
     .eq('campaign_id', params.id)
     .single()
 
-  // Load full questionnaire structure
   const { data: domains } = await supabaseAdmin
     .from('template_domains')
     .select('*')
@@ -66,7 +84,6 @@ export default async function CampaignReviewPage({
     .in('section_id', (sections ?? []).map((s: any) => s.id))
     .order('display_order')
 
-  // Load responses
   const { data: responses } = await supabaseAdmin
     .from('audit_responses')
     .select('*')

@@ -38,7 +38,7 @@ export default async function DashboardPage() {
 
   // PM and DM go straight to their reports portal
   if (user.role === 'property_manager' || user.role === 'department_manager') {
-    redirect("/dashboard/reports")
+    redirect('/dashboard/reports')
   }
 
   const supabaseAdmin = createClient(
