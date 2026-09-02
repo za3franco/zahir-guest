@@ -2,13 +2,14 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Property, Campaign } from '@/types'
 import { STATUS_LABELS } from '@/types'
 import styles from './property.module.css'
 
 const T = {
   backToProperties: { en: '← Properties', fr: '← Établissements' },
+  backToReports: { en: '← Reports', fr: '← Rapports' },
   edit: { en: 'Edit', fr: 'Modifier' },
   archive: { en: 'Archive', fr: 'Archiver' },
   restore: { en: 'Restore', fr: 'Restaurer' },
@@ -67,6 +68,12 @@ export default async function PropertyDetailPage({
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
+  const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
+
+  // PM and DM cannot access property detail pages — redirect to reports
+  if (user.role === 'property_manager' || user.role === 'department_manager') {
+    redirect('/dashboard/reports')
+  }
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -104,17 +111,19 @@ export default async function PropertyDetailPage({
     <div className={styles.page}>
       <div className={styles.topNav}>
         <a href="/dashboard/properties" className={styles.backLink}>{t(T.backToProperties)}</a>
-        <div className={styles.topActions}>
-          <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
-            {t(T.edit)}
-          </a>
-          <form action={`/api/properties/${p.id}/archive`} method="POST" style={{ display: 'inline' }}>
-            <input type="hidden" name="archived" value={p.is_archived ? '0' : '1'} />
-            <button type="submit" className="btn btn-ghost btn-sm">
-              {p.is_archived ? t(T.restore) : t(T.archive)}
-            </button>
-          </form>
-        </div>
+        {isAdmin && (
+          <div className={styles.topActions}>
+            <a href={`/dashboard/properties/${p.id}/edit`} className="btn btn-ghost btn-sm">
+              {t(T.edit)}
+            </a>
+            <form action={`/api/properties/${p.id}/archive`} method="POST" style={{ display: 'inline' }}>
+              <input type="hidden" name="archived" value={p.is_archived ? '0' : '1'} />
+              <button type="submit" className="btn btn-ghost btn-sm">
+                {p.is_archived ? t(T.restore) : t(T.archive)}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       <div className={styles.propertyHeader}>
@@ -142,9 +151,7 @@ export default async function PropertyDetailPage({
       </div>
 
       {p.is_archived && (
-        <div className={styles.archivedNotice}>
-          {t(T.archivedNotice)}
-        </div>
+        <div className={styles.archivedNotice}>{t(T.archivedNotice)}</div>
       )}
 
       <div className={styles.grid}>
@@ -184,11 +191,7 @@ export default async function PropertyDetailPage({
             )}
             <div className={styles.detailRow}>
               <dt>{t(T.fields.added)}</dt>
-              <dd>
-                {new Date(p.created_at).toLocaleDateString(dateLocale, {
-                  day: 'numeric', month: 'long', year: 'numeric',
-                })}
-              </dd>
+              <dd>{new Date(p.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
             </div>
           </dl>
         </div>
@@ -196,9 +199,11 @@ export default async function PropertyDetailPage({
         <div className={styles.campaignsSection}>
           <div className={styles.campaignsSectionHeader}>
             <h2 className={styles.cardTitle}>{t(T.sections.campaigns)}</h2>
-            <a href={`/dashboard/campaigns/new?property_id=${p.id}`} className="btn btn-primary btn-sm">
-              {t(T.createCampaign)}
-            </a>
+            {isAdmin && (
+              <a href={`/dashboard/campaigns/new?property_id=${p.id}`} className="btn btn-primary btn-sm">
+                {t(T.createCampaign)}
+              </a>
+            )}
           </div>
 
           {campaignList.length === 0 ? (
@@ -229,23 +234,14 @@ export default async function PropertyDetailPage({
                     return (
                       <tr key={c.id}>
                         <td>
-                          <a href={`/campaigns/${c.id}`} className={styles.campaignLink}>
+                          {/* Fixed: was /campaigns/${c.id}, now /dashboard/campaigns/${c.id} */}
+                          <a href={`/dashboard/campaigns/${c.id}`} className={styles.campaignLink}>
                             {c.name}
                           </a>
                         </td>
-                        <td className={styles.metaCell}>
-                          {(c.auditor as any)?.name ?? '—'}
-                        </td>
-                        <td>
-                          <span className={`badge ${colorClass}`}>
-                            {lang === 'en' ? s?.en : s?.fr}
-                          </span>
-                        </td>
-                        <td className={styles.metaCell}>
-                          {new Date(c.created_at).toLocaleDateString(dateLocale, {
-                            day: 'numeric', month: 'short',
-                          })}
-                        </td>
+                        <td className={styles.metaCell}>{(c.auditor as any)?.name ?? '—'}</td>
+                        <td><span className={`badge ${colorClass}`}>{lang === 'en' ? s?.en : s?.fr}</span></td>
+                        <td className={styles.metaCell}>{new Date(c.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })}</td>
                       </tr>
                     )
                   })}
