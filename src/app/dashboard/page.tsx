@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { STATUS_LABELS } from '@/types'
+import { redirect } from 'next/navigation'
 import styles from './dashboard.module.css'
 
 const T = {
@@ -27,7 +28,7 @@ const T = {
   noCampaigns: { en: 'No campaigns yet', fr: 'Aucune campagne' },
   noProperties: { en: 'No properties yet', fr: 'Aucun établissement' },
   myCampaigns: { en: 'My assigned audits', fr: 'Mes audits assignés' },
-  startAudit: { en: 'Start audit →', fr: 'Commencer l\'audit →' },
+  startAudit: { en: 'Start audit →', fr: "Commencer l'audit →" },
 }
 
 export default async function DashboardPage() {
@@ -35,11 +36,17 @@ export default async function DashboardPage() {
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
 
+  // PM and DM go straight to their reports portal
+  if (user.role === 'property_manager' || user.role === 'department_manager') {
+    redirect('/dashboard/reports')
+  }
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // Auditor view
   if (user.role === 'auditor') {
     const { data: campaigns } = await supabaseAdmin
       .from('campaigns')
@@ -96,7 +103,6 @@ export default async function DashboardPage() {
   const inProgress = allCampaigns.filter((c: any) => c.status === 'in_progress').length
   const underReview = allCampaigns.filter((c: any) => ['submitted', 'under_review', 'finalized'].includes(c.status)).length
   const published = allCampaigns.filter((c: any) => c.status === 'published').length
-
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
 
   return (
@@ -132,8 +138,6 @@ export default async function DashboardPage() {
           <h2 className={styles.sectionTitle}>{t(T.recent)}</h2>
           <a href="/dashboard/campaigns" className={styles.sectionLink}>{t(T.viewAll)}</a>
         </div>
-
-        {/* Desktop table */}
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -152,27 +156,17 @@ export default async function DashboardPage() {
                 const s = STATUS_LABELS[c.status as keyof typeof STATUS_LABELS]
                 return (
                   <tr key={c.id}>
-                    <td>
-                      <a href={`/dashboard/campaigns/${c.id}`} className={styles.tableLink}>{c.name}</a>
-                    </td>
-                    <td className={styles.tableMuted}>
-                      {c.property?.name}{c.property?.city ? ` · ${c.property.city}` : ''}
-                    </td>
+                    <td><a href={`/dashboard/campaigns/${c.id}`} className={styles.tableLink}>{c.name}</a></td>
+                    <td className={styles.tableMuted}>{c.property?.name}{c.property?.city ? ` · ${c.property.city}` : ''}</td>
                     <td className={styles.tableMuted}>{c.auditor?.name ?? '—'}</td>
-                    <td>
-                      <span className="badge badge-sand">{lang === 'en' ? s?.en : s?.fr}</span>
-                    </td>
-                    <td className={styles.tableMuted}>
-                      {new Date(c.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })}
-                    </td>
+                    <td><span className="badge badge-sand">{lang === 'en' ? s?.en : s?.fr}</span></td>
+                    <td className={styles.tableMuted}>{new Date(c.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })}</td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-
-        {/* Mobile cards */}
         <div className={styles.mobileCards}>
           {allCampaigns.length === 0 ? (
             <p className={styles.empty}>{t(T.noCampaigns)}</p>
@@ -184,12 +178,8 @@ export default async function DashboardPage() {
                   <span className={styles.mobileCardName}>{c.name}</span>
                   <span className="badge badge-sand">{lang === 'en' ? s?.en : s?.fr}</span>
                 </div>
-                <div className={styles.mobileCardSub}>
-                  {c.property?.name}{c.property?.city ? ` · ${c.property.city}` : ''}
-                </div>
-                <div className={styles.mobileCardMeta}>
-                  {c.auditor?.name ?? '—'} · {new Date(c.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })}
-                </div>
+                <div className={styles.mobileCardSub}>{c.property?.name}{c.property?.city ? ` · ${c.property.city}` : ''}</div>
+                <div className={styles.mobileCardMeta}>{c.auditor?.name ?? '—'} · {new Date(c.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })}</div>
               </a>
             )
           })}
