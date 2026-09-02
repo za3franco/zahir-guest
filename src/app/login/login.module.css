@@ -119,6 +119,20 @@
   gap: var(--space-5);
 }
 
+/* Forgot password link */
+.forgotLink {
+  display: block;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-sand);
+  margin-top: var(--space-2);
+  transition: color var(--transition-fast);
+}
+
+.forgotLink:hover {
+  color: var(--color-gold);
+}
+
 /* Error */
 .errorBox {
   background: rgba(192, 80, 58, 0.1);

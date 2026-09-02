@@ -22,9 +22,15 @@ const T = {
     type: { en: 'Type', fr: 'Type' },
     city: { en: 'City', fr: 'Ville' },
     country: { en: 'Country', fr: 'Pays' },
+    region: { en: 'Region', fr: 'Région' },
     contact: { en: 'Contact', fr: 'Contact' },
     manager: { en: 'Property manager', fr: 'Directeur' },
     added: { en: 'Added', fr: 'Ajouté le' },
+    phone: { en: 'Phone', fr: 'Téléphone' },
+    website: { en: 'Website', fr: 'Site web' },
+    roomsCount: { en: 'Rooms', fr: 'Chambres' },
+    gmName: { en: 'General Manager', fr: 'Directeur Général' },
+    officialStarRating: { en: 'Official classification', fr: 'Classement officiel' },
   },
   noCampaigns: { en: 'No campaigns for this property yet.', fr: 'Aucune campagne pour cet établissement.' },
   createCampaign: { en: '+ Create campaign', fr: '+ Créer une campagne' },
@@ -174,6 +180,42 @@ export default async function PropertyDetailPage({
               <dt>{t(T.fields.country)}</dt>
               <dd>{p.country}</dd>
             </div>
+            {p.region && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.region)}</dt>
+                <dd>{p.region}</dd>
+              </div>
+            )}
+            {p.official_star_rating && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.officialStarRating)}</dt>
+                <dd>{p.official_star_rating}</dd>
+              </div>
+            )}
+            {p.rooms_count != null && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.roomsCount)}</dt>
+                <dd>{p.rooms_count}</dd>
+              </div>
+            )}
+            {p.gm_name && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.gmName)}</dt>
+                <dd>{p.gm_name}</dd>
+              </div>
+            )}
+            {p.phone && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.phone)}</dt>
+                <dd>{p.phone}</dd>
+              </div>
+            )}
+            {p.website && (
+              <div className={styles.detailRow}>
+                <dt>{t(T.fields.website)}</dt>
+                <dd><a href={p.website} target="_blank" rel="noopener noreferrer" className={styles.campaignLink}>{p.website}</a></dd>
+              </div>
+            )}
             {p.contact_name && (
               <div className={styles.detailRow}>
                 <dt>{t(T.fields.contact)}</dt>

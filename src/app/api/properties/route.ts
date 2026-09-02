@@ -24,6 +24,12 @@ export async function POST(request: Request) {
       contact_name: body.contact_name ?? null,
       contact_email: body.contact_email ?? null,
       property_manager_user_id: body.property_manager_user_id ?? null,
+      region: body.region ?? null,
+      phone: body.phone ?? null,
+      website: body.website ?? null,
+      rooms_count: body.rooms_count ?? null,
+      gm_name: body.gm_name ?? null,
+      official_star_rating: body.official_star_rating ?? null,
       is_archived: false,
     })
     .select('id')

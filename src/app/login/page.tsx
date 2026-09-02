@@ -126,6 +126,10 @@ export default function LoginPage() {
                 'Se connecter / Sign in'
               )}
             </button>
+
+            <a href="/auth/forgot-password" className={styles.forgotLink}>
+              Mot de passe oublié ? / Forgot password?
+            </a>
           </form>
         </div>
 

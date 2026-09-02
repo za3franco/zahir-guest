@@ -22,6 +22,8 @@ export interface Property {
   id: string; tenant_id: string; name: string; category: PropertyCategory; type: PropertyType
   city?: string | null; country: string; contact_name?: string | null; contact_email?: string | null
   property_manager_user_id?: string | null; department_manager_user_id?: string | null
+  phone?: string | null; website?: string | null; rooms_count?: number | null
+  region?: string | null; gm_name?: string | null; official_star_rating?: string | null
   is_archived: boolean; created_at: string
 }
 

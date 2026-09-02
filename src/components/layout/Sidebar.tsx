@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@/types'
+import FeedbackWidget from './FeedbackWidget'
 import styles from './Sidebar.module.css'
 
 interface NavItem {
@@ -176,6 +177,8 @@ export default function Sidebar({ user }: { user: User }) {
             </Link>
           ))}
         </nav>
+
+        <FeedbackWidget lang={lang} />
 
         <div className={styles.langToggle}>
           <button onClick={() => handleLanguageSwitch('fr')} className={`${styles.langBtn} ${lang === 'fr' ? styles.langBtnActive : ''}`} disabled={switching}>FR</button>

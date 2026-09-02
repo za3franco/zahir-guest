@@ -14,6 +14,7 @@ const T = {
     basic: { en: 'Basic information', fr: 'Informations générales' },
     location: { en: 'Location', fr: 'Localisation' },
     contact: { en: 'Contact', fr: 'Contact' },
+    profile: { en: 'Property profile', fr: "Profil de l'établissement" },
   },
   fields: {
     name: { en: 'Property name', fr: "Nom de l'établissement" },
@@ -24,11 +25,23 @@ const T = {
     cityPlaceholder: { en: 'e.g. Marrakech', fr: 'ex. Marrakech' },
     country: { en: 'Country', fr: 'Pays' },
     countryPlaceholder: { en: 'e.g. Morocco', fr: 'ex. Maroc' },
+    region: { en: 'Region (optional)', fr: 'Région (optionnel)' },
+    regionPlaceholder: { en: 'e.g. Marrakech-Safi', fr: 'ex. Marrakech-Safi' },
     contactName: { en: 'Contact name', fr: 'Nom du contact' },
     contactNamePlaceholder: { en: 'e.g. Ahmed Benali', fr: 'ex. Ahmed Benali' },
     contactEmail: { en: 'Contact email', fr: 'Email du contact' },
     propertyManager: { en: 'Property manager (optional)', fr: "Directeur d'établissement (optionnel)" },
     pmNone: { en: '— None assigned —', fr: '— Aucun assigné —' },
+    phone: { en: 'Phone number', fr: 'Téléphone' },
+    phonePlaceholder: { en: '+212 5XX XX XX XX', fr: '+212 5XX XX XX XX' },
+    website: { en: 'Website', fr: 'Site web' },
+    websitePlaceholder: { en: 'https://www.hotel.com', fr: 'https://www.hotel.com' },
+    roomsCount: { en: 'Number of rooms', fr: 'Nombre de chambres' },
+    roomsCountPlaceholder: { en: 'e.g. 120', fr: 'ex. 120' },
+    gmName: { en: 'General Manager', fr: 'Directeur Général' },
+    gmNamePlaceholder: { en: 'e.g. Fatima Zahra El Amrani', fr: 'ex. Fatima Zahra El Amrani' },
+    officialStarRating: { en: 'Official classification (optional)', fr: 'Classement officiel (optionnel)' },
+    officialStarRatingPlaceholder: { en: 'e.g. 5* Ministry of Tourism', fr: 'ex. 5* Ministère du Tourisme' },
   },
   categoryOptions: {
     '5_star': { en: '5 Stars ★★★★★', fr: '5 Étoiles ★★★★★' },
@@ -80,6 +93,12 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
     contact_name: property?.contact_name ?? '',
     contact_email: property?.contact_email ?? '',
     property_manager_user_id: property?.property_manager_user_id ?? '',
+    region: property?.region ?? '',
+    phone: property?.phone ?? '',
+    website: property?.website ?? '',
+    rooms_count: property?.rooms_count != null ? String(property.rooms_count) : '',
+    gm_name: property?.gm_name ?? '',
+    official_star_rating: property?.official_star_rating ?? '',
   })
 
   function set(field: string, value: string) {
@@ -101,6 +120,12 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
       contact_name: form.contact_name.trim() || null,
       contact_email: form.contact_email.trim() || null,
       property_manager_user_id: form.property_manager_user_id || null,
+      region: form.region.trim() || null,
+      phone: form.phone.trim() || null,
+      website: form.website.trim() || null,
+      rooms_count: form.rooms_count.trim() ? parseInt(form.rooms_count.trim(), 10) : null,
+      gm_name: form.gm_name.trim() || null,
+      official_star_rating: form.official_star_rating.trim() || null,
     }
 
     const url = mode === 'create' ? '/api/properties' : `/api/properties/${property!.id}`
@@ -201,6 +226,79 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
                 required
               />
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>{t(T.fields.region)}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={form.region}
+              onChange={e => set('region', e.target.value)}
+              placeholder={t(T.fields.regionPlaceholder)}
+            />
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h2 className={styles.formSectionTitle}>{t(T.sections.profile)}</h2>
+
+          <div className={styles.fieldRow}>
+            <div className={styles.field}>
+              <label className={styles.label}>{t(T.fields.roomsCount)}</label>
+              <input
+                className={styles.input}
+                type="number"
+                min="0"
+                value={form.rooms_count}
+                onChange={e => set('rooms_count', e.target.value)}
+                placeholder={t(T.fields.roomsCountPlaceholder)}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>{t(T.fields.officialStarRating)}</label>
+              <input
+                className={styles.input}
+                type="text"
+                value={form.official_star_rating}
+                onChange={e => set('official_star_rating', e.target.value)}
+                placeholder={t(T.fields.officialStarRatingPlaceholder)}
+              />
+            </div>
+          </div>
+
+          <div className={styles.fieldRow}>
+            <div className={styles.field}>
+              <label className={styles.label}>{t(T.fields.phone)}</label>
+              <input
+                className={styles.input}
+                type="tel"
+                value={form.phone}
+                onChange={e => set('phone', e.target.value)}
+                placeholder={t(T.fields.phonePlaceholder)}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>{t(T.fields.website)}</label>
+              <input
+                className={styles.input}
+                type="url"
+                value={form.website}
+                onChange={e => set('website', e.target.value)}
+                placeholder={t(T.fields.websitePlaceholder)}
+              />
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>{t(T.fields.gmName)}</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={form.gm_name}
+              onChange={e => set('gm_name', e.target.value)}
+              placeholder={t(T.fields.gmNamePlaceholder)}
+            />
           </div>
         </div>
 
