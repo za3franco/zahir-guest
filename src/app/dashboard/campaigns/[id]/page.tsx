@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { STATUS_LABELS } from '@/types'
 import styles from './campaign.module.css'
 import CampaignStatusActions from './_components/CampaignStatusActions'
@@ -45,6 +45,12 @@ export default async function CampaignDetailPage({
   params: { id: string }
 }) {
   const user = await requireUser()
+
+  // PM and DM cannot access campaign detail pages
+  if (user.role === 'property_manager' || user.role === 'department_manager') {
+    redirect('/dashboard/reports')
+  }
+
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
@@ -78,7 +84,6 @@ export default async function CampaignDetailPage({
 
   return (
     <div className={styles.page}>
-      {/* Top nav */}
       <div className={styles.topNav}>
         <a href="/dashboard/campaigns" className={styles.backLink}>{t(T.back)}</a>
         <div className={styles.topActions}>
@@ -97,14 +102,11 @@ export default async function CampaignDetailPage({
         </div>
       </div>
 
-      {/* Campaign header */}
       <div className={styles.campaignHeader}>
         <div>
           <h1 className={styles.campaignName}>{campaign.name}</h1>
           <div className={styles.campaignMeta}>
-            <span className="badge badge-sand">
-              {lang === 'en' ? s?.en : s?.fr}
-            </span>
+            <span className="badge badge-sand">{lang === 'en' ? s?.en : s?.fr}</span>
             <span className={styles.metaDot}>·</span>
             <span className={styles.metaText}>
               {t(T.statusFlow[campaign.status as keyof typeof T.statusFlow] ?? { en: campaign.status, fr: campaign.status })}
@@ -114,7 +116,6 @@ export default async function CampaignDetailPage({
       </div>
 
       <div className={styles.grid}>
-        {/* Details card */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>{t(T.sections.details)}</h2>
           <dl className={styles.detailList}>
@@ -168,7 +169,6 @@ export default async function CampaignDetailPage({
           </dl>
         </div>
 
-        {/* Actions panel */}
         <div className={styles.actionsPanel}>
           <CampaignStatusActions
             campaignId={campaign.id}
