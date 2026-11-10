@@ -20,6 +20,7 @@ export interface User {
   id: string; tenant_id: string; email: string; name: string; role: UserRole
   default_language: Language; created_at: string; last_login?: string | null
   onboarding_dismissed?: boolean
+  impersonating_tenant_id?: string // set only while a super_admin is in "view as" mode
 }
 
 export interface Property {

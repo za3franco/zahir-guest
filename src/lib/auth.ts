@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+
+export const IMPERSONATE_COOKIE = 'zg_impersonate_tenant'
 import type { User } from '@/types'
 
 function decodeJwtPayload(token: string): { sub?: string } | null {
@@ -28,7 +30,8 @@ function tryExtractToken(value: string): string | null {
   return null
 }
 
-export async function requireUser(): Promise<User> {
+// Real signed-in profile, ignoring any impersonation.
+async function loadRealUser(): Promise<User> {
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -99,4 +102,26 @@ export async function requireUser(): Promise<User> {
   if (!userProfile) redirect('/login?error=no_profile')
 
   return userProfile as User
+}
+
+/**
+ * The current user. A super_admin who started "view as" gets their profile re-scoped to the chosen
+ * tenant as a tenant_admin (impersonating_tenant_id set); everyone else is unaffected.
+ */
+export async function requireUser(): Promise<User> {
+  const real = await loadRealUser()
+  if (real.role === 'super_admin') {
+    const target = cookies().get(IMPERSONATE_COOKIE)?.value
+    if (target && /^[0-9a-f-]{36}$/i.test(target)) {
+      return { ...real, tenant_id: target, role: 'tenant_admin', impersonating_tenant_id: target }
+    }
+  }
+  return real
+}
+
+/** Only for /superadmin pages and APIs: the real super_admin, never an impersonated view. */
+export async function requireSuperAdmin(): Promise<User> {
+  const real = await loadRealUser()
+  if (real.role !== 'super_admin') redirect('/dashboard')
+  return real
 }

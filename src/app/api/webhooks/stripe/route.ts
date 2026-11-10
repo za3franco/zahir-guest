@@ -38,6 +38,16 @@ async function findTenantId(supabase: ReturnType<typeof admin>, opts: { tenantId
   return data?.id ?? null
 }
 
+// A tenant suspended by a super admin stays suspended whatever Stripe says.
+async function keepSuspension(supabase: ReturnType<typeof admin>, tenantId: string, fields: Record<string, unknown>) {
+  const { data } = await supabase.from('tenants').select('subscription_status').eq('id', tenantId).maybeSingle()
+  if (data?.subscription_status === 'suspended') {
+    const { subscription_status: _ignored, ...rest } = fields
+    return rest
+  }
+  return fields
+}
+
 async function handleCheckoutCompleted(supabase: ReturnType<typeof admin>, session: any) {
   if (session.mode !== 'subscription' || !session.subscription) return
 
@@ -55,7 +65,7 @@ async function handleCheckoutCompleted(supabase: ReturnType<typeof admin>, sessi
   if (existingTenantId) {
     const { error } = await supabase
       .from('tenants')
-      .update({ ...fields, stripe_customer_id: customerId, trial_ends_at: null })
+      .update({ ...(await keepSuspension(supabase, existingTenantId, fields)), stripe_customer_id: customerId, trial_ends_at: null })
       .eq('id', existingTenantId)
     if (error) throw new Error(`tenant update failed: ${error.message}`)
     return
@@ -128,7 +138,7 @@ async function handleSubscriptionChanged(supabase: ReturnType<typeof admin>, sub
   }
 
   const { fields } = subscriptionFields(sub)
-  const { error } = await supabase.from('tenants').update(fields).eq('id', tenantId)
+  const { error } = await supabase.from('tenants').update(await keepSuspension(supabase, tenantId, fields)).eq('id', tenantId)
   if (error) throw new Error(`tenant sync failed: ${error.message}`)
 }
 
