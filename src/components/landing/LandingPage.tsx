@@ -235,6 +235,8 @@ export default function LandingPage({ lang }: { lang: Lang }) {
             <p className={styles.footHead}>{c.footer.contact}</p>
             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
             <a href={DEMO_MAILTO(lang)}>{c.hero.cta2}</a>
+            <Link href={lang === 'en' ? '/en/privacy' : '/privacy'}>{lang === 'en' ? 'Privacy policy' : 'Confidentialité'}</Link>
+            <Link href={lang === 'en' ? '/en/terms' : '/terms'}>{lang === 'en' ? 'Terms' : 'Conditions générales'}</Link>
           </div>
         </div>
         <p className={styles.copy}>© {new Date().getFullYear()} Zahir Guest · {c.footer.by}. {c.footer.rights}</p>

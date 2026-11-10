@@ -149,6 +149,12 @@ export default function SignupPage() {
 
                 {error && <div className={styles.errorBox} role="alert">{error}</div>}
 
+                <p style={{ fontSize: '0.8125rem', opacity: 0.8, textAlign: 'center', margin: '0 0 12px' }}>
+                  {t({ fr: 'En créant votre espace, vous acceptez nos ', en: 'By creating your workspace, you accept our ' })}
+                  <a href={lang === 'en' ? '/en/terms' : '/terms'} target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'underline' }}>{t({ fr: 'conditions', en: 'terms' })}</a>
+                  {t({ fr: ' et notre ', en: ' and our ' })}
+                  <a href={lang === 'en' ? '/en/privacy' : '/privacy'} target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'underline' }}>{t({ fr: 'politique de confidentialité', en: 'privacy policy' })}</a>.
+                </p>
                 <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
                   {loading ? t(T.sending) : t(T.submit)}
                 </button>

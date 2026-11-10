@@ -153,7 +153,7 @@ export default function LoginPage() {
         </div>
 
         <p className={styles.footer}>
-          Za3fran Consulting &nbsp;·&nbsp; Zahir Guest v1
+          Za3fran Consulting &nbsp;·&nbsp; Zahir Guest v1 &nbsp;·&nbsp; <a href="/terms">CGU / Terms</a> &nbsp;·&nbsp; <a href="/privacy">Confidentialité / Privacy</a>
         </p>
       </main>
     </div>
