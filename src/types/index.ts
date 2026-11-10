@@ -21,6 +21,7 @@ export interface User {
   default_language: Language; created_at: string; last_login?: string | null
   onboarding_dismissed?: boolean
   impersonating_tenant_id?: string // set only while a super_admin is in "view as" mode
+  tour_completed?: boolean
 }
 
 export interface Property {

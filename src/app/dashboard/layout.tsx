@@ -4,6 +4,9 @@ import ScrollToTop from '@/components/ScrollToTop'
 import SessionTimeout from '@/components/SessionTimeout'
 import TrialBanner from '@/components/layout/TrialBanner'
 import ImpersonationBanner from '@/components/layout/ImpersonationBanner'
+import HelpCoach from '@/components/help/HelpCoach'
+import ProductTour from '@/components/help/ProductTour'
+import { helpRoleFor } from '@/lib/helpContent'
 import { createClient } from '@supabase/supabase-js'
 import { brandingFromTenant, DEFAULT_ACCENT } from '@/lib/branding'
 import { SUPPORT_EMAIL } from '@/lib/site'
@@ -83,6 +86,8 @@ export default async function DashboardLayout({
           />
         )}
         <ScrollToTop />
+        <HelpCoach lang={user.default_language === 'en' ? 'en' : 'fr'} />
+        <ProductTour lang={user.default_language === 'en' ? 'en' : 'fr'} group={helpRoleFor(user.role)} autoStart={!user.tour_completed && !user.impersonating_tenant_id} />
         <SessionTimeout role={user.role} />
         <div className={styles.content}>
           {children}

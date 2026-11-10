@@ -68,6 +68,7 @@ export default function FeedbackWidget({ lang }: { lang: 'en' | 'fr' }) {
       <button
         type="button"
         className={styles.trigger}
+        data-tour="feedback"
         onClick={() => setOpen(true)}
       >
         <IconFeedback />

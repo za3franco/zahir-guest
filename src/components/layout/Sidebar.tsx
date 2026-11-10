@@ -81,6 +81,13 @@ const NAV_ITEMS: NavItem[] = [
     roles: ['super_admin', 'tenant_admin'],
   },
   {
+    href: '/dashboard/help',
+    labelEn: 'Help',
+    labelFr: 'Aide',
+    icon: <IconHelp />,
+    roles: ['super_admin', 'tenant_admin', 'auditor', 'property_manager', 'department_manager'],
+  },
+  {
     href: '/superadmin',
     labelEn: 'Platform',
     labelFr: 'Plateforme',
@@ -200,6 +207,7 @@ export default function Sidebar({ user, brand }: { user: User; brand?: SidebarBr
             <Link
               key={`${item.href}-${item.labelEn}`}
               href={item.href}
+              data-tour={item.href}
               className={`${styles.navItem} ${isActive(item) ? styles.navItemActive : ''}`}
               aria-current={isActive(item) ? 'page' : undefined}
             >
@@ -264,6 +272,14 @@ function IconPlatform() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2l9 4v6c0 5-3.5 9-9 10-5.5-1-9-5-9-10V6l9-4z"/>
+    </svg>
+  )
+}
+
+function IconHelp() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
   )
 }
