@@ -6,6 +6,7 @@ import TrialBanner from '@/components/layout/TrialBanner'
 import ImpersonationBanner from '@/components/layout/ImpersonationBanner'
 import { createClient } from '@supabase/supabase-js'
 import { brandingFromTenant, DEFAULT_ACCENT } from '@/lib/branding'
+import { SUPPORT_EMAIL } from '@/lib/site'
 import styles from './layout.module.css'
 
 export default async function DashboardLayout({
@@ -57,7 +58,7 @@ export default async function DashboardLayout({
               ? 'Access to this workspace has been suspended. Please contact us to restore it.'
               : "L'accès à cet espace a été suspendu. Contactez-nous pour le rétablir."}
           </p>
-          <a href="mailto:hello@zahirguest.com" style={{ color: 'var(--color-gold)' }}>hello@zahirguest.com</a>
+          <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: 'var(--color-gold)' }}>{SUPPORT_EMAIL}</a>
         </div>
       </div>
     )
