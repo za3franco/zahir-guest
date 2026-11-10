@@ -1,3 +1,4 @@
+import { DEFAULT_ACCENT, hexToRgba, type TenantBranding } from '@/lib/branding'
 /**
  * ZAHIR GUEST — HTML REPORT TEMPLATE v3
  * - Domain pages: visual section scorecard (no below list)
@@ -111,10 +112,16 @@ interface ReportData {
   scores: any
   tenantName: string
   logoUrl?: string | null
+  branding?: TenantBranding
 }
 
 export function generateReportHtml(data: ReportData): string {
   const { campaign, report, scores, tenantName } = data
+  const accent = data.branding?.accent ?? DEFAULT_ACCENT
+  const whiteLabel = !!data.branding?.whiteLabel
+  const brandLogo = whiteLabel ? data.branding?.logoUrl ?? null : null
+  const brandTitle = (whiteLabel && data.branding?.brandName) || 'Zahir Guest'
+  const escHtml = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const propertyName = campaign.property?.name ?? ''
   const propertyCity = campaign.property?.city ?? ''
   const propertyCountry = campaign.property?.country ?? ''
@@ -156,10 +163,10 @@ export function generateReportHtml(data: ReportData): string {
   @media screen {
     .print-fab {
       position: fixed; bottom: 32px; right: 32px;
-      background: #C8A45A; color: #0D1B2A; border: none;
+      background: ${accent}; color: #0D1B2A; border: none;
       border-radius: 50px; padding: 14px 28px;
       font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-      cursor: pointer; box-shadow: 0 4px 20px rgba(200,164,90,0.4);
+      cursor: pointer; box-shadow: 0 4px 20px ${hexToRgba(accent,0.4)};
       z-index: 9999; letter-spacing: 0.02em;
     }
     .print-fab:hover { opacity: 0.9; }
@@ -252,7 +259,7 @@ export function generateReportHtml(data: ReportData): string {
     white-space: nowrap;
   }
 
-  .emotional-star { font-size: 8pt; color: #C8A45A; white-space: nowrap; }
+  .emotional-star { font-size: 8pt; color: ${accent}; white-space: nowrap; }
 
   /* APPENDIX */
   .appendix-group { margin-bottom: 16px; }
@@ -262,7 +269,7 @@ export function generateReportHtml(data: ReportData): string {
     font-size: 13pt;
     color: #1a1a2e;
     padding-bottom: 5px;
-    border-bottom: 2px solid #C8A45A;
+    border-bottom: 2px solid ${accent};
     margin-bottom: 8px;
     margin-top: 16px;
   }
@@ -319,33 +326,33 @@ export function generateReportHtml(data: ReportData): string {
 
 <!-- ══ COVER ══ -->
 <div class="cover">
-  <div style="position:absolute;top:-180px;right:-180px;width:520px;height:520px;border-radius:50%;border:1px solid rgba(200,164,90,0.07);pointer-events:none;"></div>
-  <div style="position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;border:1px solid rgba(200,164,90,0.12);pointer-events:none;"></div>
-  <div style="position:absolute;bottom:60px;left:-120px;width:360px;height:360px;border-radius:50%;border:1px solid rgba(200,164,90,0.05);pointer-events:none;"></div>
+  <div style="position:absolute;top:-180px;right:-180px;width:520px;height:520px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.07)};pointer-events:none;"></div>
+  <div style="position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.12)};pointer-events:none;"></div>
+  <div style="position:absolute;bottom:60px;left:-120px;width:360px;height:360px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.05)};pointer-events:none;"></div>
 
   <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
-    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="3" fill="#C8A45A"/>
-      <circle cx="20" cy="20" r="7" stroke="#C8A45A" stroke-width="1" stroke-opacity="0.5" fill="none"/>
-      <circle cx="20" cy="20" r="13" stroke="#C8A45A" stroke-width="0.5" stroke-opacity="0.25" fill="none"/>
-      <line x1="20" y1="4" x2="20" y2="10" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="20" y1="30" x2="20" y2="36" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="4" y1="20" x2="10" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="30" y1="20" x2="36" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-    </svg>
+    ${brandLogo ? `<img src="${escHtml(brandLogo)}" alt="" style="height:34px;max-width:140px;object-fit:contain;">` : `    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="3" fill="${accent}"/>
+      <circle cx="20" cy="20" r="7" stroke="${accent}" stroke-width="1" stroke-opacity="0.5" fill="none"/>
+      <circle cx="20" cy="20" r="13" stroke="${accent}" stroke-width="0.5" stroke-opacity="0.25" fill="none"/>
+      <line x1="20" y1="4" x2="20" y2="10" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
+      <line x1="20" y1="30" x2="20" y2="36" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
+      <line x1="4" y1="20" x2="10" y2="20" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
+      <line x1="30" y1="20" x2="36" y2="20" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
+    </svg>`}
     <div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:17pt;font-weight:400;color:#F4F1EC;letter-spacing:0.06em;line-height:1;">${tenantName ? 'Zahir Guest' : 'Zahir Guest'}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17pt;font-weight:400;color:#F4F1EC;letter-spacing:0.06em;line-height:1;">${escHtml(brandTitle)}</div>
       <div style="font-size:7.5pt;color:#9B9488;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;">${tenantName}</div>
     </div>
   </div>
 
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:48px 0;position:relative;z-index:1;">
-    <div style="font-size:8pt;text-transform:uppercase;letter-spacing:0.14em;color:#C8A45A;font-weight:600;margin-bottom:18px;">Mystery Guest Audit Report · Rapport d'Audit Mystère</div>
+    <div style="font-size:8pt;text-transform:uppercase;letter-spacing:0.14em;color:${accent};font-weight:600;margin-bottom:18px;">Mystery Guest Audit Report · Rapport d'Audit Mystère</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:38pt;font-weight:300;color:#F4F1EC;line-height:1.05;margin-bottom:10px;">${propertyName}</div>
     <div style="font-size:12pt;color:#9B9488;margin-bottom:8px;">${[propertyCity, propertyCountry].filter(Boolean).join(', ')}</div>
-    ${templateTier ? `<div style="font-size:8.5pt;color:#C8A45A;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:44px;opacity:0.8;">${templateName}</div>` : '<div style="margin-bottom:44px;"></div>'}
+    ${templateTier ? `<div style="font-size:8.5pt;color:${accent};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:44px;opacity:0.8;">${templateName}</div>` : '<div style="margin-bottom:44px;"></div>'}
 
-    <div style="display:flex;align-items:center;gap:28px;padding:28px 32px;background:rgba(255,255,255,0.04);border:1px solid rgba(200,164,90,0.18);border-radius:10px;max-width:460px;">
+    <div style="display:flex;align-items:center;gap:28px;padding:28px 32px;background:rgba(255,255,255,0.04);border:1px solid ${hexToRgba(accent,0.18)};border-radius:10px;max-width:460px;">
       ${circleProgress(overallPercent, 110, 7)}
       <div style="flex:1;">
         <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#9B9488;margin-bottom:8px;display:block;">Overall Score · Score Global</div>
@@ -353,7 +360,7 @@ export function generateReportHtml(data: ReportData): string {
           ${scores.total_meet} meet · ${scores.total_below} below · ${scores.total_na} N/A<br>
           ${scores.total_standards} standards evaluated
         </div>
-        ${avgEmotional && emotionalLabel ? `<div style="font-size:10pt;color:#C8A45A;margin-top:8px;">★ ${avgEmotional} — ${emotionalLabel.en} / ${emotionalLabel.fr}</div>` : ''}
+        ${avgEmotional && emotionalLabel ? `<div style="font-size:10pt;color:${accent};margin-top:8px;">★ ${avgEmotional} — ${emotionalLabel.en} / ${emotionalLabel.fr}</div>` : ''}
       </div>
     </div>
   </div>
@@ -366,7 +373,7 @@ export function generateReportHtml(data: ReportData): string {
     </div>
     <div style="font-size:8.5pt;color:#9B9488;text-align:right;line-height:1.9;">
       ${auditDate}<br>${auditDateEn}<br>
-      <span style="color:#C8A45A;">zahirguest.com</span>
+      <span style="color:${accent};">${whiteLabel ? escHtml(brandTitle) : 'zahirguest.com'}</span>
     </div>
   </div>
 </div>
@@ -375,18 +382,18 @@ ${executiveSummary ? `
 <!-- ══ EXECUTIVE SUMMARY ══ -->
 <div class="page">
   ${pageHeader(propertyName, auditDateEn)}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:4px;">Executive Summary · Synthèse Exécutive</div>
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:4px;">Executive Summary · Synthèse Exécutive</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#1a1a2e;margin-bottom:4px;line-height:1.1;">Overview</div>
-  <div style="width:36px;height:2px;background:#C8A45A;margin:10px 0 24px;"></div>
+  <div style="width:36px;height:2px;background:${accent};margin:10px 0 24px;"></div>
   <div class="summary-body">${executiveSummary.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 </div>` : ''}
 
 <!-- ══ SCORE DASHBOARD ══ -->
 <div class="page">
   ${pageHeader(propertyName, auditDateEn)}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:4px;">Score Dashboard · Tableau de Bord</div>
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:4px;">Score Dashboard · Tableau de Bord</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#1a1a2e;margin-bottom:4px;line-height:1.1;">Results at a Glance</div>
-  <div style="width:36px;height:2px;background:#C8A45A;margin:10px 0 24px;"></div>
+  <div style="width:36px;height:2px;background:${accent};margin:10px 0 24px;"></div>
 
   <div class="domain-score-grid">
     ${(scores.domains ?? []).map((domain: any) => `
@@ -430,7 +437,7 @@ ${(scores.domains ?? []).map((domain: any) => {
 <div class="page domain-page">
   <!-- Domain cover band — fully inline, no negative margins -->
   <div class="domain-cover">
-    <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.14em;color:#C8A45A;font-weight:600;margin-bottom:6px;">Domain · Domaine</div>
+    <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.14em;color:${accent};font-weight:600;margin-bottom:6px;">Domain · Domaine</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:22pt;font-weight:300;color:#F4F1EC;line-height:1.1;margin-bottom:8px;">${domain.name_en} / ${domain.name_fr}</div>
     <div style="font-size:12pt;font-weight:600;color:${domainColor};">
       ${domainScore !== null ? `${domainScore}%` : 'N/A'} — ${scoreLabel(domainScore, 'en')} / ${scoreLabel(domainScore, 'fr')}
@@ -500,12 +507,12 @@ ${(scores.domains ?? []).map((domain: any, domainIndex: number) => `
 <div class="page domain-page">
   ${pageHeader(propertyName, auditDateEn)}
   ${domainIndex === 0 ? `
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:20pt;font-weight:300;color:#1a1a2e;line-height:1.1;margin-bottom:6px;">Full Scorecard</div>
-  <div style="width:36px;height:2px;background:#C8A45A;margin-bottom:16px;"></div>
+  <div style="width:36px;height:2px;background:${accent};margin-bottom:16px;"></div>
   ` : ''}
-  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:#C8A45A;font-weight:600;margin-bottom:2px;">Appendix · ${domain.name_en}</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#1a1a2e;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #C8A45A;">${domain.name_en} / ${domain.name_fr}</div>
+  <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:2px;">Appendix · ${domain.name_en}</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#1a1a2e;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid ${accent};">${domain.name_en} / ${domain.name_fr}</div>
 
   ${(domain.sections ?? []).map((section: any) => {
     const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')

@@ -291,3 +291,10 @@
     display: block;
   }
 }
+
+.brandLogo {
+  height: 32px;
+  max-width: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+}

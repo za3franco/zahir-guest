@@ -133,6 +133,7 @@ export async function POST(
     if (admins && campaignDetail) {
       await Promise.all(admins.map(admin =>
         sendAuditSubmittedEmail({
+          tenantId: user.tenant_id,
           adminName: admin.name,
           adminEmail: admin.email,
           auditorName: user.name,

@@ -104,6 +104,7 @@ export async function POST(
           const overallScore = (report.report_json as any)?.overall_percent ?? null
 
           await sendReportPublishedEmail({
+          tenantId: user.tenant_id,
             pmName: pm.name,
             pmEmail: pm.email,
             propertyName: property.name,

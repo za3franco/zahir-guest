@@ -80,6 +80,7 @@ export async function PATCH(
 
       if (auditor && property) {
         await sendAuditorAssignedEmail({
+          tenantId: user.tenant_id,
           auditorName: auditor.name,
           auditorEmail: auditor.email,
           campaignName,

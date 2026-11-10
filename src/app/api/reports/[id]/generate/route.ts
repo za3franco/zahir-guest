@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { generateReportHtml } from '@/lib/reportTemplate'
+import { brandingFromTenant } from '@/lib/branding'
 
 export async function POST(
   request: Request,
@@ -49,7 +50,7 @@ export async function POST(
   // Load tenant
   const { data: tenant } = await supabaseAdmin
     .from('tenants')
-    .select('name, branding_config')
+    .select('name, branding_config, subscription_tier, subscription_status')
     .eq('id', user.tenant_id)
     .single()
 
@@ -66,6 +67,7 @@ export async function POST(
     scores,
     tenantName: tenant?.name ?? 'Za3fran Consulting',
     logoUrl: tenant?.branding_config?.logo_url ?? null,
+    branding: brandingFromTenant(tenant),
   })
 
   // Store HTML in report
