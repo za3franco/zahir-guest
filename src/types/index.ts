@@ -10,7 +10,10 @@ export type PropertyType = 'hotel' | 'riad' | 'resort' | 'guesthouse' | 'apartme
 export interface Tenant {
   id: string; name: string; slug: string
   branding_config: { primary_color?: string; secondary_color?: string; logo_url?: string | null; brand_name?: string }
-  subscription_tier: SubscriptionTier; subscription_status: string; stripe_customer_id?: string | null; created_at: string
+  subscription_tier: SubscriptionTier; subscription_status: string; stripe_customer_id?: string | null
+  stripe_subscription_id?: string | null; billing_interval?: 'monthly' | 'annual' | null
+  trial_ends_at?: string | null; current_period_end?: string | null; cancel_at_period_end?: boolean
+  created_at: string
 }
 
 export interface User {

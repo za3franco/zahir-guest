@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
+import { checkPlanLimit } from '@/lib/limits'
 
 export async function POST(request: Request) {
   const user = await requireUser()
@@ -10,6 +11,12 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+
+  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const limit = await checkPlanLimit(user.tenant_id, 'audits', lang)
+  if (!limit.allowed) {
+    return NextResponse.json({ error: limit.message, code: limit.code }, { status: 402 })
+  }
 
   const body = await request.json()
 
