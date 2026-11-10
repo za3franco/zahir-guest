@@ -162,3 +162,24 @@
     transform: translateY(0);
   }
 }
+
+/* Signup notice + trial link */
+.noticeBox {
+  background: rgba(74, 124, 107, 0.12);
+  border: 1px solid rgba(74, 124, 107, 0.4);
+  border-radius: var(--radius-md);
+  color: var(--color-ivory);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: var(--space-3) var(--space-4);
+}
+
+.signupLink {
+  color: var(--color-gold);
+  font-size: 0.8125rem;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+.signupLink:hover { text-decoration: underline; }

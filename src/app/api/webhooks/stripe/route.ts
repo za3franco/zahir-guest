@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { planFromPriceId, PLAN_DISPLAY } from '@/lib/plans'
 import { stripeRequest, subscriptionPeriodEnd, verifyStripeSignature } from '@/lib/stripe'
 import { sendWelcomeEmail } from '@/lib/billingEmails'
+import { createTenantWithAdmin } from '@/lib/tenants'
 
 // Stripe needs the raw body for signature verification, so we read it as text.
 export const runtime = 'nodejs'
@@ -10,17 +11,6 @@ export const dynamic = 'force-dynamic'
 
 function admin() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-}
-
-function slugify(input: string): string {
-  const base = input
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-  return base || 'tenant'
 }
 
 function subscriptionFields(sub: any) {
@@ -87,72 +77,30 @@ async function handleCheckoutCompleted(supabase: ReturnType<typeof admin>, sessi
     return
   }
 
-  // Create tenant (retry slug on the rare collision).
-  let tenantId: string | null = null
-  for (let attempt = 0; attempt < 3 && !tenantId; attempt++) {
-    const slug = `${slugify(companyName)}-${Math.random().toString(36).slice(2, 6)}`
-    const { data, error } = await supabase
-      .from('tenants')
-      .insert({
-        name: companyName,
-        slug,
-        branding_config: { brand_name: companyName },
-        stripe_customer_id: customerId,
-        trial_ends_at: null,
-        ...fields,
-        // The column default is 'za3fran_internal' (unlimited, unbilled). A paying customer must
-        // never fall back to it, even if the price ID is unknown to this deployment.
-        subscription_tier: plan?.tier ?? 'starter',
-      })
-      .select('id')
-      .single()
-    if (!error && data) tenantId = data.id
-    else if (error && error.code !== '23505') throw new Error(`tenant insert failed: ${error.message}`)
-  }
-  if (!tenantId) throw new Error('could not allocate tenant slug')
-
-  // Create first admin (auth user + profile row), same pattern as the invite flow.
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+  // Create tenant + first admin (rolls back on failure). The column default for subscription_tier is
+  // 'za3fran_internal' (unlimited, unbilled); a paying customer must never fall back to it.
+  const created = await createTenantWithAdmin(supabase, {
+    companyName,
+    adminName,
     email,
-    password: crypto.randomUUID() + crypto.randomUUID(),
-    email_confirm: true,
-    user_metadata: { name: adminName, role: 'tenant_admin', tenant_id: tenantId },
+    lang,
+    tenantFields: {
+      stripe_customer_id: customerId,
+      trial_ends_at: null,
+      ...fields,
+      subscription_tier: plan?.tier ?? 'starter',
+    },
   })
-  if (authError || !authData?.user) {
-    await supabase.from('tenants').delete().eq('id', tenantId)
-    throw new Error(`auth user creation failed: ${authError?.message}`)
-  }
-
-  const { error: profileError } = await supabase.from('users').insert({
-    id: authData.user.id,
-    tenant_id: tenantId,
-    email,
-    name: adminName,
-    role: 'tenant_admin',
-    default_language: lang,
-  })
-  if (profileError) {
-    await supabase.auth.admin.deleteUser(authData.user.id)
-    await supabase.from('tenants').delete().eq('id', tenantId)
-    throw new Error(`user profile insert failed: ${profileError.message}`)
-  }
 
   // Welcome email with set-password link. A failure here must not fail the webhook.
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
-    const { data: linkData } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-      options: { redirectTo: `${appUrl}/auth/set-password` },
-    })
-    const link = linkData?.properties?.action_link
-    if (link) {
+    if (created.setPasswordLink) {
       await sendWelcomeEmail({
         name: adminName,
         email,
         companyName,
         planName: PLAN_DISPLAY.find(p => p.tier === plan?.tier)?.name ?? 'Zahir Guest',
-        setPasswordLink: link,
+        setPasswordLink: created.setPasswordLink,
         lang,
       })
     }

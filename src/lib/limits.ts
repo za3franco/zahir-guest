@@ -30,7 +30,7 @@ export async function checkPlanLimit(
 
   const { data: tenant } = await supabase
     .from('tenants')
-    .select('subscription_tier, subscription_status')
+    .select('subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id')
     .eq('id', tenantId)
     .single()
 
@@ -39,7 +39,13 @@ export async function checkPlanLimit(
 
   if (tenant.subscription_tier === 'za3fran_internal') return { allowed: true }
 
-  if (BLOCKED_STATUSES.includes(tenant.subscription_status ?? '')) {
+  const trialOverdue =
+    tenant.subscription_status === 'trialing' &&
+    !tenant.stripe_subscription_id &&
+    !!tenant.trial_ends_at &&
+    new Date(tenant.trial_ends_at).getTime() < Date.now()
+
+  if (trialOverdue || BLOCKED_STATUSES.includes(tenant.subscription_status ?? '')) {
     return {
       allowed: false,
       code: 'subscription_inactive',

@@ -10,15 +10,21 @@ export async function sendWelcomeEmail(opts: {
   planName: string
   setPasswordLink: string
   lang: 'en' | 'fr'
+  /** When set, the workspace is a free trial of this many days (no plan sentence, trial wording). */
+  trialDays?: number
 }): Promise<boolean> {
-  const { name, email, companyName, planName, setPasswordLink, lang } = opts
+  const { name, email, companyName, planName, setPasswordLink, lang, trialDays } = opts
   const en = lang === 'en'
 
   const subject = en ? 'Welcome to Zahir Guest' : 'Bienvenue sur Zahir Guest'
   const title = en ? 'Welcome aboard' : 'Bienvenue à bord'
-  const intro = en
-    ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready on the <strong style="color:#C8A45A;">${esc(planName)}</strong> plan.`
-    : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt avec le forfait <strong style="color:#C8A45A;">${esc(planName)}</strong>.`
+  const intro = trialDays
+    ? en
+      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready. You have <strong style="color:#C8A45A;">${trialDays} days</strong> to try Zahir Guest for free, with no card required.`
+      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt. Vous disposez de <strong style="color:#C8A45A;">${trialDays} jours</strong> pour essayer Zahir Guest gratuitement, sans carte bancaire.`
+    : en
+      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready on the <strong style="color:#C8A45A;">${esc(planName)}</strong> plan.`
+      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt avec le forfait <strong style="color:#C8A45A;">${esc(planName)}</strong>.`
   const next = en
     ? 'Set your password to sign in, then add your first property, invite an auditor and create your first campaign.'
     : 'Définissez votre mot de passe pour vous connecter, puis ajoutez votre premier établissement, invitez un auditeur et créez votre première campagne.'

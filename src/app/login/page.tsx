@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import styles from './login.module.css'
 
@@ -9,6 +9,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  // ?signup=success|cancelled comes back from the public Stripe checkout
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get('signup')
+    if (v === 'success')
+      setNotice('Paiement reçu ! Vérifiez votre boîte mail pour définir votre mot de passe. / Payment received! Check your inbox to set your password.')
+    else if (v === 'cancelled') setNotice('Paiement annulé. Aucun débit effectué. / Checkout cancelled. No charge was made.')
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -106,6 +115,12 @@ export default function LoginPage() {
               />
             </div>
 
+            {notice && (
+              <div className={styles.noticeBox} role="status">
+                <span>{notice}</span>
+              </div>
+            )}
+
             {error && (
               <div className={styles.errorBox} role="alert">
                 <span>{error}</span>
@@ -129,6 +144,10 @@ export default function LoginPage() {
 
             <a href="/auth/forgot-password" className={styles.forgotLink}>
               Mot de passe oublié ? / Forgot password?
+            </a>
+
+            <a href="/signup" className={styles.signupLink}>
+              Pas encore de compte ? Essai gratuit 14 jours / No account yet? Start a free 14-day trial
             </a>
           </form>
         </div>

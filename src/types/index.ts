@@ -19,6 +19,7 @@ export interface Tenant {
 export interface User {
   id: string; tenant_id: string; email: string; name: string; role: UserRole
   default_language: Language; created_at: string; last_login?: string | null
+  onboarding_dismissed?: boolean
 }
 
 export interface Property {

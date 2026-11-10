@@ -1,0 +1,30 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  background: rgba(200, 164, 90, 0.1);
+  border-bottom: 1px solid rgba(200, 164, 90, 0.35);
+  color: var(--color-ivory);
+  font-size: 0.8125rem;
+  padding: var(--space-3) var(--space-6);
+}
+
+.warn {
+  background: rgba(196, 98, 45, 0.14);
+  border-bottom-color: rgba(196, 98, 45, 0.45);
+}
+
+.cta {
+  color: var(--color-gold);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cta:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .banner { padding: var(--space-3) var(--space-4); }
+}

@@ -98,11 +98,14 @@ export function planFromPriceId(priceId: string | null | undefined): { tier: Pla
 /** Effective limits for a tenant given its tier and subscription status. */
 export function limitsFor(tier: string | null | undefined, status: string | null | undefined): PlanLimits {
   if (tier === 'za3fran_internal') return PLAN_LIMITS.za3fran_internal
-  if (status === 'trialing' && !isPlanTier(tier)) return PLAN_LIMITS.trial
-  if (status === 'trialing' && tier === 'trial') return PLAN_LIMITS.trial
+  // 'trialing' is always the in-app 14-day trial (no Stripe trials are configured), whatever plan
+  // the prospect picked at signup: they get the full-product trial limits until they subscribe.
+  if (status === 'trialing') return PLAN_LIMITS.trial
   if (isPlanTier(tier)) return PLAN_LIMITS[tier]
   return PLAN_LIMITS.trial
 }
+
+export const TRIAL_DAYS = 14
 
 /** Statuses in which creating new properties/users/campaigns is blocked. */
 export const BLOCKED_STATUSES = ['canceled', 'trial_expired', 'unpaid', 'incomplete_expired', 'suspended']
