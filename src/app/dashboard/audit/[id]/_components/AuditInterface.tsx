@@ -6,6 +6,7 @@ import styles from './AuditInterface.module.css'
 import SectionAudit from './SectionAudit'
 import AuditOverview from './AuditOverview'
 import AuditSubmit from './AuditSubmit'
+import type { PhotoRef } from './StandardPhotos'
 
 export interface Domain {
   id: string
@@ -53,6 +54,7 @@ interface Props {
   standards: Standard[]
   existingResponses: any[]
   existingEmotionalRatings: any[]
+  existingPhotos: { id: string; standard_id: string | null }[]
   user: User
 }
 
@@ -63,6 +65,7 @@ export default function AuditInterface({
   standards,
   existingResponses,
   existingEmotionalRatings,
+  existingPhotos,
   user,
 }: Props) {
   const lang = user.default_language === 'en' ? 'en' : 'fr'
@@ -82,6 +85,11 @@ export default function AuditInterface({
     initialEmotional[r.section_id] = r.rating
   })
 
+  const initialPhotos: Record<string, PhotoRef[]> = {}
+  existingPhotos.forEach(p => {
+    if (p.standard_id) (initialPhotos[p.standard_id] ??= []).push({ id: p.id })
+  })
+  const [photos, setPhotos] = useState<Record<string, PhotoRef[]>>(initialPhotos)
   const [responses, setResponses] = useState<ResponseMap>(initialResponses)
   const [emotionalRatings, setEmotionalRatings] = useState<EmotionalRatingMap>(initialEmotional)
   const [currentView, setCurrentView] = useState<'overview' | 'section' | 'submit'>('overview')
@@ -206,6 +214,8 @@ export default function AuditInterface({
         domain={currentDomain}
         standards={currentStandards}
         responses={responses}
+        photos={photos}
+        onPhotosChange={(standardId, list) => setPhotos(prev => ({ ...prev, [standardId]: list }))}
         emotionalRating={emotionalRatings[currentSection.id] ?? null}
         onResponseChange={handleResponseChange}
         onEmotionalRatingChange={handleEmotionalRatingChange}

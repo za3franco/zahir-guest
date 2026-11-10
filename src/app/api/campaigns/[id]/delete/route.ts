@@ -37,6 +37,12 @@ export async function POST(
     )
   }
 
+  // Remove the stored photo files first (the rows are deleted just below)
+  const { data: photoRows } = await supabaseAdmin.from('audit_photos').select('storage_path').eq('campaign_id', params.id)
+  if (photoRows?.length) {
+    await supabaseAdmin.storage.from('audit-photos').remove(photoRows.map((p: any) => p.storage_path))
+  }
+
   // Delete associated data first (photos, responses, ratings, reports)
   await Promise.all([
     supabaseAdmin.from('audit_photos').delete().eq('campaign_id', params.id),

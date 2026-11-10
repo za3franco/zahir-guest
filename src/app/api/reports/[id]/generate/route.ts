@@ -60,6 +60,15 @@ export async function POST(
     return NextResponse.json({ error: 'No scores available. Submit the audit first.' }, { status: 400 })
   }
 
+  // Photos per standard (thumbnails in the appendix)
+  const { data: photoRows } = await supabaseAdmin
+    .from('audit_photos')
+    .select('id, standard_id')
+    .eq('campaign_id', report.campaign_id)
+    .order('uploaded_at')
+  const photos: Record<string, string[]> = {}
+  ;(photoRows ?? []).forEach((p: any) => { if (p.standard_id) (photos[p.standard_id] ??= []).push(p.id) })
+
   // Generate HTML
   const html = generateReportHtml({
     campaign,
@@ -68,6 +77,7 @@ export async function POST(
     tenantName: tenant?.name ?? 'Za3fran Consulting',
     logoUrl: tenant?.branding_config?.logo_url ?? null,
     branding: brandingFromTenant(tenant),
+    photos,
   })
 
   // Store HTML in report

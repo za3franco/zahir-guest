@@ -68,6 +68,13 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
     .select('*')
     .eq('campaign_id', params.id)
 
+  // Photos already attached to this audit (only metadata; images load through /api/photos/<id>)
+  const { data: photos } = await supabaseAdmin
+    .from('audit_photos')
+    .select('id, standard_id')
+    .eq('campaign_id', params.id)
+    .order('uploaded_at')
+
   return (
     <AuditInterface
       campaign={campaign}
@@ -76,6 +83,7 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
       standards={standards ?? []}
       existingResponses={responses ?? []}
       existingEmotionalRatings={emotionalRatings ?? []}
+      existingPhotos={photos ?? []}
       user={user}
     />
   )

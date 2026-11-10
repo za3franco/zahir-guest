@@ -113,6 +113,8 @@ interface ReportData {
   tenantName: string
   logoUrl?: string | null
   branding?: TenantBranding
+  /** standard_id -> photo ids, rendered as thumbnails in the appendix (images load through /api/photos/<id>) */
+  photos?: Record<string, string[]>
 }
 
 export function generateReportHtml(data: ReportData): string {
@@ -535,13 +537,17 @@ ${(scores.domains ?? []).map((domain: any, domainIndex: number) => `
         const qEn = (std.question_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
         const qFr = (std.question_fr ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
         const note = (std.auditor_note ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        const stdPhotos = (data.photos?.[std.standard_id] ?? []).slice(0, 4)
+        const photoRow = stdPhotos.length
+          ? `<tr style="${std.response === 'below' ? 'background:#fffaf5;' : ''}"><td colspan="4" style="padding:4px 8px 8px;">${stdPhotos.map(id => `<img src="/api/photos/${id}" alt="" loading="eager" style="height:84px;width:auto;max-width:130px;object-fit:cover;border-radius:3px;margin-right:6px;border:1px solid #e5e0d6;">`).join('')}</td></tr>`
+          : ''
         const rowBg = std.response === 'below' ? 'background:#fffaf5;' : std.response === 'meet' ? 'background:#f9fcfa;' : ''
         return `<tr style="${rowBg}">
           <td>${qEn}<br><span style="color:#9B9488;font-size:7pt;">${qFr}</span></td>
           <td style="color:#9B9488;font-size:7pt;">${std.performance_classification ?? ''}</td>
           <td class="${rClass}">${rLabel}</td>
           <td style="color:#9B9488;font-style:italic;">${note}</td>
-        </tr>`
+        </tr>${photoRow}`
       }).join('')}
     </tbody>
   </table>`

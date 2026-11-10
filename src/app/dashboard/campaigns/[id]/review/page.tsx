@@ -89,6 +89,12 @@ export default async function CampaignReviewPage({
     .select('*')
     .eq('campaign_id', params.id)
 
+  const { data: photos } = await supabaseAdmin
+    .from('audit_photos')
+    .select('id, standard_id')
+    .eq('campaign_id', params.id)
+    .order('uploaded_at')
+
   return (
     <ReviewInterface
       campaign={campaign}
@@ -97,6 +103,7 @@ export default async function CampaignReviewPage({
       sections={sections ?? []}
       standards={standards ?? []}
       responses={responses ?? []}
+      photos={photos ?? []}
       user={user}
     />
   )

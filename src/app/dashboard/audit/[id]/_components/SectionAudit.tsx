@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import styles from './SectionAudit.module.css'
 import type { Section, Standard, Domain, ResponseMap } from './AuditInterface'
+import StandardPhotos, { type PhotoRef } from './StandardPhotos'
 
 const T = {
   meet: { en: 'MEET', fr: 'CONFORME' },
@@ -33,6 +34,8 @@ interface Props {
   domain: Domain | null
   standards: Standard[]
   responses: ResponseMap
+  photos: Record<string, PhotoRef[]>
+  onPhotosChange: (standardId: string, photos: PhotoRef[]) => void
   emotionalRating: number | null
   onResponseChange: (standardId: string, response: 'meet' | 'below' | 'na' | null, note: string) => void
   onEmotionalRatingChange: (sectionId: string, rating: number) => void
@@ -46,6 +49,9 @@ interface Props {
 }
 
 export default function SectionAudit({
+  campaign,
+  photos,
+  onPhotosChange,
   section,
   domain,
   standards,
@@ -204,6 +210,14 @@ export default function SectionAudit({
                   rows={3}
                 />
               )}
+
+              <StandardPhotos
+                campaignId={campaign.id}
+                standardId={standard.id}
+                photos={photos[standard.id] ?? []}
+                lang={lang === 'en' ? 'en' : 'fr'}
+                onChange={list => onPhotosChange(standard.id, list)}
+              />
             </div>
           )
         })}
