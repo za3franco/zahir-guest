@@ -27,6 +27,9 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
 
   if (!campaign) notFound()
 
+  // Admins can only open audits of their own workspace (a super admin "viewing as" is scoped by requireUser)
+  if (user.role !== 'super_admin' && campaign.tenant_id !== user.tenant_id) notFound()
+
   // Auditors can only access their own campaigns
   if (user.role === 'auditor' && campaign.auditor_user_id !== user.id) {
     redirect('/dashboard')

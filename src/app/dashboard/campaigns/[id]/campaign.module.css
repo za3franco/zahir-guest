@@ -8,6 +8,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .backLink {
@@ -24,6 +26,7 @@
 .topActions {
   display: flex;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .campaignHeader {
@@ -58,9 +61,17 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: var(--space-6);
   align-items: start;
+}
+
+.grid > * { min-width: 0; }
+
+/* Phones and small tablets: details then actions, stacked */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .campaignName { font-size: 1.75rem; }
 }
 
 .card {

@@ -162,3 +162,8 @@
   color: var(--color-sand);
   font-size: 0.9375rem;
 }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .grid > * { min-width: 0; }
+}
