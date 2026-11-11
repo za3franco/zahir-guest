@@ -115,3 +115,7 @@
   gap: var(--space-3);
   padding-top: var(--space-2);
 }
+
+@media (max-width: 640px) {
+  .fieldRow { grid-template-columns: 1fr; }
+}

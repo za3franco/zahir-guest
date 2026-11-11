@@ -11,6 +11,8 @@ import DeleteCampaignButton from './_components/DeleteCampaignButton'
 const T = {
   back: { en: '← Campaigns', fr: '← Campagnes' },
   edit: { en: 'Edit', fr: 'Modifier' },
+  fillAudit: { en: 'Fill in the audit', fr: "Remplir l'audit" },
+  continueAudit: { en: 'Continue the audit', fr: "Continuer l'audit" },
   sections: { details: { en: 'Campaign details', fr: 'Détails de la campagne' } },
   fields: {
     property: { en: 'Property', fr: 'Établissement' },
@@ -86,6 +88,11 @@ export default async function CampaignDetailPage({
       <div className={styles.topNav}>
         <a href="/dashboard/campaigns" className={styles.backLink}>{t(T.back)}</a>
         <div className={styles.topActions}>
+          {isAdmin && ['assigned', 'in_progress'].includes(campaign.status) && (
+            <a href={`/dashboard/audit/${campaign.id}`} className="btn btn-primary btn-sm">
+              {campaign.status === 'in_progress' ? t(T.continueAudit) : t(T.fillAudit)}
+            </a>
+          )}
           {canEdit && (
             <a href={`/dashboard/campaigns/${campaign.id}/edit`} className="btn btn-ghost btn-sm">
               {t(T.edit)}
