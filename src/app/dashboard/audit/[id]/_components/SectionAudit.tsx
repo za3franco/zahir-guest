@@ -43,6 +43,7 @@ interface Props {
   onNext: () => void
   hasNext: boolean
   saving: boolean
+  saveStatus?: React.ReactNode
   lang: string
   sectionName: string
   domainName: string
@@ -63,6 +64,7 @@ export default function SectionAudit({
   onNext,
   hasNext,
   saving,
+  saveStatus,
   lang,
   sectionName,
   domainName,
@@ -242,13 +244,11 @@ export default function SectionAudit({
         </div>
       </div>
 
-      {/* Saving indicator */}
-      {saving && (
-        <div className={styles.savingIndicator}>{t(T.saving)}</div>
-      )}
+      {/* Save status is shown by <SaveStatus/> in AuditInterface */}
 
       {/* Navigation */}
       <div className={styles.navigation}>
+        {saveStatus}
         <button onClick={onNext} className={styles.nextBtn}>
           {hasNext ? t(T.next) : t(T.finish)}
         </button>

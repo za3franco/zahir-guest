@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import SaveStatus from './SaveStatus'
 import type { User } from '@/types'
 import styles from './AuditInterface.module.css'
 import SectionAudit from './SectionAudit'
@@ -94,7 +95,6 @@ export default function AuditInterface({
   const [emotionalRatings, setEmotionalRatings] = useState<EmotionalRatingMap>(initialEmotional)
   const [currentView, setCurrentView] = useState<'overview' | 'section' | 'submit'>('overview')
   const [currentSectionId, setCurrentSectionId] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
 
   const sectionName = (s: Section) => lang === 'en' ? s.name_en : s.name_fr
   const domainName = (d: Domain) => lang === 'en' ? d.name_en : d.name_fr
@@ -116,46 +116,109 @@ export default function AuditInterface({
   const answeredStandards = standards.filter(s => responses[s.id]?.response != null).length
   const overallPercent = totalStandards > 0 ? Math.round((answeredStandards / totalStandards) * 100) : 0
 
-  // Save a single response
-  const saveResponse = useCallback(async (
-    standardId: string,
-    response: 'meet' | 'below' | 'na' | null,
-    note: string
-  ) => {
-    setSaving(true)
-    try {
-      await fetch(`/api/audit/${campaign.id}/response`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ standard_id: standardId, response, auditor_note: note }),
-      })
-    } finally {
-      setSaving(false)
-    }
-  }, [campaign.id])
+  // ── Autosave ─────────────────────────────────────────────
+  // Every answer, note and rating is saved as it changes; there is no "save" button.
+  // Notes are saved 700 ms after the auditor stops typing (one request instead of one per key).
+  // Failed saves are kept and retried when the auditor taps "Retry" or when the next save succeeds.
+  type Job = { url: string; body: unknown }
+  const [pending, setPending] = useState(0)
+  const [typing, setTyping] = useState(0)
+  const [failedCount, setFailedCount] = useState(0)
+  const failed = useRef(new Map<string, Job>())
+  const noteTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
+  const noteJobs = useRef(new Map<string, Job>())
 
-  // Save emotional rating
-  const saveEmotionalRating = useCallback(async (sectionId: string, rating: number) => {
+  const send = useCallback(async (key: string, job: Job, keepalive = false) => {
+    setPending(n => n + 1)
     try {
-      await fetch(`/api/audit/${campaign.id}/emotional-rating`, {
+      const res = await fetch(job.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section_id: sectionId, rating }),
+        body: JSON.stringify(job.body),
+        keepalive,
       })
+      // A redirect means the session expired (sent to /login): not saved
+      if (!res.ok || res.redirected) throw new Error(String(res.status))
+      failed.current.delete(key)
     } catch {
-      // silent fail
+      failed.current.set(key, job)
+    } finally {
+      setFailedCount(failed.current.size)
+      setPending(n => n - 1)
     }
-  }, [campaign.id])
+  }, [])
+
+  const retryFailed = useCallback(() => {
+    for (const [key, job] of Array.from(failed.current.entries())) send(key, job)
+  }, [send])
+
+  const flushNotes = useCallback((keepalive = false) => {
+    for (const [id, timer] of Array.from(noteTimers.current.entries())) {
+      clearTimeout(timer)
+      const job = noteJobs.current.get(id)
+      if (job) send(`r:${id}`, job, keepalive)
+    }
+    noteTimers.current.clear()
+    noteJobs.current.clear()
+    setTyping(0)
+  }, [send])
+
+  // Leaving the page or switching app: send any note still being typed
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flushNotes(true) }
+    const onPageHide = () => flushNotes(true)
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', onPageHide)
+    return () => {
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', onPageHide)
+    }
+  }, [flushNotes])
+
+  // Coming back online: retry what failed
+  useEffect(() => {
+    window.addEventListener('online', retryFailed)
+    return () => window.removeEventListener('online', retryFailed)
+  }, [retryFailed])
+
+  const responseJob = (standardId: string, response: 'meet' | 'below' | 'na' | null, note: string): Job => ({
+    url: `/api/audit/${campaign.id}/response`,
+    body: { standard_id: standardId, response, auditor_note: note },
+  })
 
   function handleResponseChange(standardId: string, response: 'meet' | 'below' | 'na' | null, note: string) {
-    setResponses(prev => ({ ...prev, [standardId]: { response, note } }))
-    saveResponse(standardId, response, note)
+    const prev = responses[standardId]
+    setResponses(p => ({ ...p, [standardId]: { response, note } }))
+    const job = responseJob(standardId, response, note)
+    const onlyNote = (prev?.response ?? null) === response && (prev?.note ?? '') !== note
+
+    const existing = noteTimers.current.get(standardId)
+    if (existing) clearTimeout(existing)
+
+    if (onlyNote) {
+      noteJobs.current.set(standardId, job)
+      noteTimers.current.set(standardId, setTimeout(() => {
+        noteTimers.current.delete(standardId)
+        noteJobs.current.delete(standardId)
+        setTyping(noteTimers.current.size)
+        send(`r:${standardId}`, job)
+      }, 700))
+      setTyping(noteTimers.current.size)
+    } else {
+      noteTimers.current.delete(standardId)
+      noteJobs.current.delete(standardId)
+      setTyping(noteTimers.current.size)
+      send(`r:${standardId}`, job)
+    }
+    if (failed.current.size > 0) retryFailed()
   }
 
   function handleEmotionalRatingChange(sectionId: string, rating: number) {
     setEmotionalRatings(prev => ({ ...prev, [sectionId]: rating }))
-    saveEmotionalRating(sectionId, rating)
+    send(`e:${sectionId}`, { url: `/api/audit/${campaign.id}/emotional-rating`, body: { section_id: sectionId, rating } })
   }
+
+  const saving = pending > 0 || typing > 0
 
   function openSection(sectionId: string) {
     setCurrentSectionId(sectionId)
@@ -170,6 +233,7 @@ export default function AuditInterface({
   }
 
   function goToSubmit() {
+    flushNotes()
     setCurrentView('submit')
     window.scrollTo(0, 0)
   }
@@ -190,9 +254,11 @@ export default function AuditInterface({
     ? sections[currentSectionIndex + 1]
     : null
 
+  const status = <SaveStatus lang={lang} saving={saving} failed={failedCount} onRetry={retryFailed} />
+
   if (currentView === 'submit') {
     return (
-      <AuditSubmit
+      <>{status}<AuditSubmit
         campaign={campaign}
         sections={sections}
         domains={domains}
@@ -202,13 +268,14 @@ export default function AuditInterface({
         getSectionProgress={getSectionProgress}
         onBack={goToOverview}
         lang={lang}
-      />
+      /></>
     )
   }
 
   if (currentView === 'section' && currentSection) {
     return (
       <SectionAudit
+        saveStatus={<SaveStatus lang={lang} saving={saving} failed={failedCount} onRetry={retryFailed} inline />}
         campaign={campaign}
         section={currentSection}
         domain={currentDomain}
@@ -231,7 +298,7 @@ export default function AuditInterface({
   }
 
   return (
-    <AuditOverview
+    <>{status}<AuditOverview
       campaign={campaign}
       domains={domains}
       sections={sections}
@@ -246,6 +313,6 @@ export default function AuditInterface({
       lang={lang}
       domainName={domainName}
       sectionName={sectionName}
-    />
+    /></>
   )
 }
