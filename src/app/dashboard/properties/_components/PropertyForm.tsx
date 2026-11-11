@@ -30,8 +30,9 @@ const T = {
     contactName: { en: 'Contact name', fr: 'Nom du contact' },
     contactNamePlaceholder: { en: 'e.g. Ahmed Benali', fr: 'ex. Ahmed Benali' },
     contactEmail: { en: 'Contact email', fr: 'Email du contact' },
-    propertyManager: { en: 'Property manager (optional)', fr: "Directeur d'établissement (optionnel)" },
-    pmNone: { en: '— None assigned —', fr: '— Aucun assigné —' },
+    client: { en: 'Client (optional)', fr: 'Client (optionnel)' },
+    clientNone: { en: '— No client —', fr: '— Aucun client —' },
+    clientHint: { en: 'Who can see this property is managed from the Users page (access).', fr: "Qui voit cet établissement se règle depuis la page Utilisateurs (accès)." },
     phone: { en: 'Phone number', fr: 'Téléphone' },
     phonePlaceholder: { en: '+212 5XX XX XX XX', fr: '+212 5XX XX XX XX' },
     website: { en: 'Website', fr: 'Site web' },
@@ -72,11 +73,12 @@ const T = {
 interface PropertyFormProps {
   user: User
   property?: Property
-  propertyManagers: { id: string; name: string; email: string }[]
+  clients: { id: string; name: string }[]
+  defaultClientId?: string
   mode: 'create' | 'edit'
 }
 
-export default function PropertyForm({ user, property, propertyManagers, mode }: PropertyFormProps) {
+export default function PropertyForm({ user, property, clients, defaultClientId, mode }: PropertyFormProps) {
   const router = useRouter()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
@@ -92,7 +94,7 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
     country: property?.country ?? 'Morocco',
     contact_name: property?.contact_name ?? '',
     contact_email: property?.contact_email ?? '',
-    property_manager_user_id: property?.property_manager_user_id ?? '',
+    client_id: (property as any)?.client_id ?? defaultClientId ?? '',
     region: property?.region ?? '',
     phone: property?.phone ?? '',
     website: property?.website ?? '',
@@ -119,7 +121,7 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
       city: form.city.trim() || null,
       contact_name: form.contact_name.trim() || null,
       contact_email: form.contact_email.trim() || null,
-      property_manager_user_id: form.property_manager_user_id || null,
+      client_id: form.client_id || null,
       region: form.region.trim() || null,
       phone: form.phone.trim() || null,
       website: form.website.trim() || null,
@@ -329,21 +331,16 @@ export default function PropertyForm({ user, property, propertyManagers, mode }:
             </div>
           </div>
 
-          {propertyManagers.length > 0 && (
-            <div className={styles.field}>
-              <label className={styles.label}>{t(T.fields.propertyManager)}</label>
-              <select
-                className={styles.select}
-                value={form.property_manager_user_id}
-                onChange={e => set('property_manager_user_id', e.target.value)}
-              >
-                <option value="">{t(T.fields.pmNone)}</option>
-                {propertyManagers.map(pm => (
-                  <option key={pm.id} value={pm.id}>{pm.name} ({pm.email})</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className={styles.field}>
+            <label className={styles.label}>{t(T.fields.client)}</label>
+            <select className={styles.select} value={form.client_id} onChange={e => set('client_id', e.target.value)}>
+              <option value="">{t(T.fields.clientNone)}</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-sand)', margin: '4px 0 0' }}>{t(T.fields.clientHint)}</p>
+          </div>
         </div>
 
         {error && <div className={styles.errorBanner}>{error}</div>}

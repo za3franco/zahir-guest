@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: { photoId: string
   if (!photo) return new NextResponse('Not found', { status: 404 })
 
   const campaign = await loadPhotoCampaign(supabase, photo.campaign_id)
-  if (!campaign || !canViewPhotos(user, campaign)) return new NextResponse('Forbidden', { status: 403 })
+  if (!campaign || !(await canViewPhotos(supabase, user, campaign))) return new NextResponse('Forbidden', { status: 403 })
 
   const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrl(photo.storage_path, 300)
   if (error || !data?.signedUrl) return new NextResponse('Unavailable', { status: 502 })

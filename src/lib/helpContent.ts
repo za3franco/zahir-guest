@@ -13,7 +13,7 @@ export interface HelpArticle {
 
 export function helpRoleFor(role: string): HelpRole {
   if (role === 'auditor') return 'auditor'
-  if (role === 'property_manager' || role === 'department_manager') return 'manager'
+  if (role === 'property_manager' || role === 'department_manager' || role === 'client_admin') return 'manager'
   return 'admin'
 }
 
@@ -32,8 +32,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
     roles: ['admin'],
     title: { en: 'Managing properties', fr: 'Gérer les établissements' },
     body: {
-      en: 'Properties are the establishments you audit. Each has a category, city, contact details, an optional property manager (who can see its published reports) and extended details (phone, website, rooms, region, GM, official star rating). You can edit or archive a property at any time. The number of properties is limited by your plan (see Billing).',
-      fr: "Les établissements sont les lieux que vous auditez. Chacun a une catégorie, une ville, des contacts, un directeur d'établissement optionnel (qui voit ses rapports publiés) et des informations détaillées (téléphone, site web, chambres, région, directeur général, classement officiel). Vous pouvez modifier ou archiver un établissement à tout moment. Le nombre d'établissements dépend de votre forfait (voir Facturation).",
+      en: 'Properties are the establishments you audit. Each has a category, city, contact details, an optional client it belongs to, and extended details (phone, website, rooms, region, GM, official star rating). You can edit or archive a property at any time. The number of properties is limited by your plan (see Billing).',
+      fr: "Les établissements sont les lieux que vous auditez. Chacun a une catégorie, une ville, des contacts, un client de rattachement optionnel et des informations détaillées (téléphone, site web, chambres, région, directeur général, classement officiel). Vous pouvez modifier ou archiver un établissement à tout moment. Le nombre d'établissements dépend de votre forfait (voir Facturation).",
     },
   },
   {
@@ -41,8 +41,17 @@ export const HELP_ARTICLES: HelpArticle[] = [
     roles: ['admin'],
     title: { en: 'Users and roles', fr: 'Utilisateurs et rôles' },
     body: {
-      en: 'Roles: Admin (full access to your workspace), Auditor (performs audits on mobile), Property Manager and Department Manager (see the published reports and score trends of their properties). Invite people from Users > Invite: they get an email with a link to set their password (valid 24 hours). You can change a user\'s role, name or language, or remove them from Users. The number of users depends on your plan.',
-      fr: "Rôles : Administrateur (accès complet à votre espace), Auditeur (réalise les audits sur mobile), Directeur d'établissement et Chef de département (voient les rapports publiés et l'évolution des scores de leurs établissements). Invitez depuis Utilisateurs > Inviter : la personne reçoit un email avec un lien pour définir son mot de passe (valable 24 h). Vous pouvez modifier le rôle, le nom ou la langue d'un utilisateur, ou le retirer, depuis Utilisateurs. Le nombre d'utilisateurs dépend de votre forfait.",
+      en: 'Roles: Admin (full access to your workspace), Auditor (performs audits on mobile), Client manager, Property manager and Department manager (see the published reports and score trends of the client or properties you give them access to). After inviting a manager, open their page (Users > Edit) and tick what they can see in "Access to reports": a whole client or individual properties. Invite people from Users > Invite: they get an email with a link to set their password (valid 24 hours). You can change a user\'s role, name or language, or remove them from Users. The number of users depends on your plan.',
+      fr: "Rôles : Administrateur (accès complet à votre espace), Auditeur (réalise les audits sur mobile), Responsable client, Directeur d'établissement et Chef de département (voient les rapports publiés et l'évolution des scores du client ou des établissements auxquels vous leur donnez accès). Après avoir invité un responsable, ouvrez sa fiche (Utilisateurs > Modifier) et cochez ce qu'il voit dans « Accès aux rapports » : un client entier ou des établissements à l'unité. Invitez depuis Utilisateurs > Inviter : la personne reçoit un email avec un lien pour définir son mot de passe (valable 24 h). Vous pouvez modifier le rôle, le nom ou la langue d'un utilisateur, ou le retirer, depuis Utilisateurs. Le nombre d'utilisateurs dépend de votre forfait.",
+    },
+  },
+  {
+    id: 'clients',
+    roles: ['admin'],
+    title: { en: 'Clients, contracts and access', fr: 'Clients, contrats et accès' },
+    body: {
+      en: 'Clients (menu Clients) group the properties of one customer: a hotel group, an independent hotel or a programme. On a client page you see its properties, the people who can see its reports, its recent campaigns and its contract (reference, value, dates, audits planned vs done, days left). Attach properties from the client page or choose the client when creating a property. Give access from each user\'s page: a whole client (including properties added later) or individual properties. Client managers, property managers and department managers only ever see published reports. The Users list is grouped by client and can be filtered by role and client; the Campaigns list can be filtered by client. Contract figures are internal and never shown to the client.',
+      fr: "Les clients (menu Clients) regroupent les établissements d'un même donneur d'ordre : un groupe hôtelier, un hôtel indépendant ou un programme. La fiche client montre ses établissements, les personnes qui voient ses rapports, ses campagnes récentes et son contrat (référence, montant, dates, audits prévus et réalisés, jours restants). Rattachez des établissements depuis la fiche client, ou choisissez le client en créant un établissement. Donnez les accès depuis la fiche de chaque utilisateur : un client entier (y compris ses futurs établissements) ou des établissements à l'unité. Les responsables client, directeurs d'établissement et chefs de département ne voient que les rapports publiés. La liste des utilisateurs est regroupée par client et filtrable par rôle et par client ; la liste des campagnes est filtrable par client. Les informations de contrat sont internes et ne sont jamais montrées au client.",
     },
   },
   {

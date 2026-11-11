@@ -8,6 +8,11 @@ export async function POST(
 ) {
   const user = await requireUser()
 
+  // Only workspace admins archive properties
+  if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!

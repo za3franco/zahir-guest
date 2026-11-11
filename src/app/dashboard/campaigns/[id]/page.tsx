@@ -45,7 +45,7 @@ export default async function CampaignDetailPage({
   params: { id: string }
 }) {
   const user = await requireUser()
-  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isPM = user.role === 'property_manager' || user.role === 'department_manager' || user.role === 'client_admin'
 
   // PM: redirect straight to review page
   if (isPM) {

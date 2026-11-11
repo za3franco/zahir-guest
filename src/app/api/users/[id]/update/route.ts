@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { ASSIGNABLE_ROLES } from '@/lib/access'
 
 export async function PATCH(
   request: Request,
@@ -20,7 +21,7 @@ export async function PATCH(
   // Verify target user is in same tenant
   const { data: targetUser } = await supabaseAdmin
     .from('users')
-    .select('id, tenant_id')
+    .select('id, tenant_id, role')
     .eq('id', params.id)
     .eq('tenant_id', currentUser.tenant_id)
     .single()
@@ -29,11 +30,16 @@ export async function PATCH(
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
+  // A platform super admin can only be changed by a super admin
+  if (targetUser.role === 'super_admin' && currentUser.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   const body = await request.json()
   const updates: Record<string, string> = {}
 
   if (body.name?.trim()) updates.name = body.name.trim()
-  if (body.role && ['auditor', 'property_manager', 'tenant_admin'].includes(body.role)) {
+  if (body.role && (ASSIGNABLE_ROLES as readonly string[]).includes(body.role)) {
     updates.role = body.role
   }
   if (body.default_language && ['en', 'fr'].includes(body.default_language)) {

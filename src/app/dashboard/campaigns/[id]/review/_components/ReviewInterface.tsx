@@ -45,7 +45,7 @@ export default function ReviewInterface({
   const [activeTab, setActiveTab] = useState<'scores' | 'responses' | 'summary'>('scores')
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
 
-  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isPM = user.role === 'property_manager' || user.role === 'department_manager' || user.role === 'client_admin'
   const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
   const scores = report?.report_json ?? null

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
+import { ROLE_LABELS, viewersOfProperty } from '@/lib/access'
 import { notFound, redirect } from 'next/navigation'
 import type { Property, Campaign } from '@/types'
 import { STATUS_LABELS } from '@/types'
@@ -24,7 +25,9 @@ const T = {
     country: { en: 'Country', fr: 'Pays' },
     region: { en: 'Region', fr: 'Région' },
     contact: { en: 'Contact', fr: 'Contact' },
-    manager: { en: 'Property manager', fr: 'Directeur' },
+    manager: { en: 'Who can see the reports', fr: 'Accès aux rapports' },
+    client: { en: 'Client', fr: 'Client' },
+    noAccess: { en: 'Nobody yet: grant access from Users.', fr: 'Personne pour le moment : donnez un accès depuis Utilisateurs.' },
     added: { en: 'Added', fr: 'Ajouté le' },
     phone: { en: 'Phone', fr: 'Téléphone' },
     website: { en: 'Website', fr: 'Site web' },
@@ -77,7 +80,7 @@ export default async function PropertyDetailPage({
   const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
   // PM and DM cannot access property detail pages — redirect to reports
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
+  if (user.role === 'property_manager' || user.role === 'department_manager' || user.role === 'client_admin') {
     redirect('/dashboard/reports')
   }
 
@@ -102,13 +105,12 @@ export default async function PropertyDetailPage({
     .eq('tenant_id', user.tenant_id)
     .order('created_at', { ascending: false })
 
-  const { data: manager } = property.property_manager_user_id
-    ? await supabaseAdmin
-        .from('users')
-        .select('name, email')
-        .eq('id', property.property_manager_user_id)
-        .single()
-    : { data: null }
+  const [viewers, { data: client }] = await Promise.all([
+    viewersOfProperty(supabaseAdmin, user.tenant_id, params.id),
+    property.client_id
+      ? supabaseAdmin.from('clients').select('id, name').eq('id', property.client_id).maybeSingle()
+      : Promise.resolve({ data: null as { id: string; name: string } | null }),
+  ])
 
   const p = property as Property
   const campaignList = (campaigns ?? []) as unknown as Campaign[]
@@ -225,12 +227,25 @@ export default async function PropertyDetailPage({
                 </dd>
               </div>
             )}
-            {manager && (
+            {client && (
               <div className={styles.detailRow}>
-                <dt>{t(T.fields.manager)}</dt>
-                <dd>{manager.name}</dd>
+                <dt>{t(T.fields.client)}</dt>
+                <dd>{isAdmin ? <a href={`/dashboard/clients/${client.id}`} style={{ color: 'var(--color-gold)' }}>{client.name}</a> : client.name}</dd>
               </div>
             )}
+            <div className={styles.detailRow}>
+              <dt>{t(T.fields.manager)}</dt>
+              <dd>
+                {viewers.length
+                  ? viewers.map(v => (
+                      <span key={v.id} style={{ display: 'block' }}>
+                        {isAdmin ? <a href={`/dashboard/users/${v.id}/edit`} style={{ color: 'inherit' }}>{v.name}</a> : v.name}
+                        <span className={styles.email}> · {ROLE_LABELS[v.role]?.[lang] ?? v.role}</span>
+                      </span>
+                    ))
+                  : <span className={styles.email}>{t(T.fields.noAccess)}</span>}
+              </dd>
+            </div>
             <div className={styles.detailRow}>
               <dt>{t(T.fields.added)}</dt>
               <dd>{new Date(p.created_at).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })}</dd>

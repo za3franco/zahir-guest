@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@/types'
+import { canViewProperty, isViewer } from '@/lib/access'
 
 export const PHOTO_BUCKET = 'audit-photos'
 export const MAX_PHOTOS_PER_STANDARD = 4
@@ -15,29 +16,25 @@ export interface PhotoCampaign {
   status: string
   auditor_user_id: string | null
   template_id: string
-  property?: { property_manager_user_id: string | null; department_manager_user_id: string | null } | null
+  property_id: string
 }
 
 export async function loadPhotoCampaign(supabase: SupabaseClient<any, any, any>, campaignId: string): Promise<PhotoCampaign | null> {
   const { data } = await supabase
     .from('campaigns')
-    .select('id, tenant_id, status, auditor_user_id, template_id, property:properties(property_manager_user_id, department_manager_user_id)')
+    .select('id, tenant_id, status, auditor_user_id, template_id, property_id')
     .eq('id', campaignId)
     .maybeSingle()
   return (data as unknown as PhotoCampaign) ?? null
 }
 
-/** Who may VIEW photos of a campaign. */
-export function canViewPhotos(user: User, c: PhotoCampaign): boolean {
+/** Who may VIEW photos of a campaign. Viewers (client / property / department managers) only on published audits they can see. */
+export async function canViewPhotos(supabase: SupabaseClient<any, any, any>, user: User, c: PhotoCampaign): Promise<boolean> {
   if (user.role === 'super_admin') return true
   if (user.role === 'tenant_admin') return c.tenant_id === user.tenant_id
   if (user.role === 'auditor') return c.tenant_id === user.tenant_id && c.auditor_user_id === user.id
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
-    return (
-      c.tenant_id === user.tenant_id &&
-      c.status === 'published' &&
-      (c.property?.property_manager_user_id === user.id || c.property?.department_manager_user_id === user.id)
-    )
+  if (isViewer(user.role)) {
+    return c.tenant_id === user.tenant_id && c.status === 'published' && (await canViewProperty(supabase, user, c.property_id, c.tenant_id))
   }
   return false
 }

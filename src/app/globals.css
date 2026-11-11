@@ -222,3 +222,16 @@ tbody tr:hover td { background: rgba(255,255,255,0.02); }
     box-sizing: border-box !important;
   }
 }
+
+/* Checkboxes and radios keep their native look and size (the input rules above are for text fields) */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: auto !important;
+  appearance: auto !important;
+  width: 18px !important;
+  height: 18px;
+  max-width: none !important;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--color-gold);
+}

@@ -58,7 +58,7 @@ export default function ReportsPortal({ properties, campaigns, userRole, lang }:
     properties[0]?.id ?? ''
   )
   const [visitFilter, setVisitFilter] = useState('all')
-  const canDownload = userRole === 'property_manager'
+  const canDownload = userRole === 'property_manager' || userRole === 'client_admin'
 
   const propertyCampaigns = useMemo(() =>
     campaigns.filter(c => c.propertyId === selectedPropertyId),
