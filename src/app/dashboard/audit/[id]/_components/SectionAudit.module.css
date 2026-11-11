@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-bottom: var(--space-16);
+  padding-bottom: calc(var(--space-16) + 48px);
 }
 
 .header {
@@ -381,4 +381,9 @@
 
 .nextBtn:hover {
   opacity: 0.9;
+}
+
+/* Phones: no sidebar on screen, the Next bar spans the full width */
+@media (max-width: 768px) {
+  .navigation { left: 0; padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); }
 }
