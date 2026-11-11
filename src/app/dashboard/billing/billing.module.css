@@ -221,3 +221,11 @@
   .plansGrid { grid-template-columns: 1fr; }
   .card { padding: var(--space-4); }
 }
+
+.noticeDanger {
+  background: rgba(176, 58, 46, 0.16);
+  border-color: rgba(176, 58, 46, 0.6);
+  color: var(--color-ivory);
+}
+.noticeDanger strong { display: block; color: #E8897E; margin-bottom: var(--space-2); }
+.noticeDanger p { margin: 0 0 var(--space-3); color: var(--color-ivory); opacity: 0.9; }

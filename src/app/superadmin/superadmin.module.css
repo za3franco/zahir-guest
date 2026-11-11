@@ -32,3 +32,14 @@
 .btnDanger:hover:not(:disabled) { border-color: var(--color-terracotta); color: var(--color-terracotta); }
 .footnote { color: var(--color-sand); font-size: 0.75rem; line-height: 1.5; margin-top: var(--space-4); }
 @media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .main { padding: var(--space-4); } }
+.btnPrimary { border-color: var(--color-gold); color: var(--color-gold); }
+.btnPrimary:hover:not(:disabled) { background: rgba(200,164,90,0.12); }
+.sectionHead { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin: var(--space-8) 0 var(--space-4); }
+.sectionHead .subtitle { margin: 0; }
+.form { width: 100%; background: var(--color-slate-navy); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.formGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.formGrid label { display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; color: var(--color-sand); }
+.formGrid input, .formGrid select { font-size: 16px; background: var(--color-deep-ink); color: var(--color-ivory); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 10px; font-family: var(--font-body); }
+.formGrid .checkbox { flex-direction: row; align-items: center; gap: 8px; grid-column: 1 / -1; color: var(--color-ivory); font-size: 0.8125rem; }
+.success { color: #7fc4a8; font-size: 0.8125rem; word-break: break-all; }
+@media (max-width: 800px) { .formGrid { grid-template-columns: 1fr; } }

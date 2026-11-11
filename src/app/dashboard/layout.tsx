@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   const user = await requireUser()
 
   // Tenant billing + branding. Never blocks rendering on error.
-  let billing: { status: string | null; trialEndsAt: string | null; hasSubscription: boolean } | null = null
+  let billing: { status: string | null; trialEndsAt: string | null; hasSubscription: boolean; cancelAtPeriodEnd: boolean; periodEnd: string | null } | null = null
   let branding = brandingFromTenant(null)
   let tenantName = ''
   let suspended = false
@@ -28,18 +28,21 @@ export default async function DashboardLayout({
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('name, subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, branding_config')
+      .select('name, subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, branding_config, cancel_at_period_end, current_period_end')
       .eq('id', user.tenant_id)
       .single()
     if (tenant) {
       branding = brandingFromTenant(tenant)
       tenantName = tenant.name
       suspended = tenant.subscription_status === 'suspended'
-      if (user.role === 'tenant_admin' && tenant.subscription_tier !== 'za3fran_internal') {
+      // Subscription notices are shown to everyone in the workspace (admins also get the actions)
+      if (tenant.subscription_tier !== 'za3fran_internal') {
         billing = {
           status: tenant.subscription_status,
           trialEndsAt: tenant.trial_ends_at,
           hasSubscription: !!tenant.stripe_subscription_id,
+          cancelAtPeriodEnd: !!tenant.cancel_at_period_end,
+          periodEnd: tenant.current_period_end,
         }
       }
     }
@@ -83,6 +86,9 @@ export default async function DashboardLayout({
             status={billing.status}
             trialEndsAt={billing.trialEndsAt}
             hasSubscription={billing.hasSubscription}
+            isAdmin={user.role === 'tenant_admin' || user.role === 'super_admin'}
+            cancelAtPeriodEnd={billing.cancelAtPeriodEnd}
+            periodEnd={billing.periodEnd}
           />
         )}
         <ScrollToTop />

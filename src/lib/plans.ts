@@ -100,7 +100,7 @@ export function limitsFor(tier: string | null | undefined, status: string | null
   if (tier === 'za3fran_internal') return PLAN_LIMITS.za3fran_internal
   // 'trialing' is always the in-app 14-day trial (no Stripe trials are configured), whatever plan
   // the prospect picked at signup: they get the full-product trial limits until they subscribe.
-  if (status === 'trialing') return PLAN_LIMITS.trial
+  if (status === 'trialing' || status === 'trial_expired') return PLAN_LIMITS.trial
   if (isPlanTier(tier)) return PLAN_LIMITS[tier]
   return PLAN_LIMITS.trial
 }
