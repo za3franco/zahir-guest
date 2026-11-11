@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@supabase/supabase-js'
 import { PLAN_DISPLAY } from '@/lib/plans'
 import TenantActions from './TenantActions'
+import CreateTenantForm from './CreateTenantForm'
 import styles from './superadmin.module.css'
 
 interface Row {
@@ -20,6 +21,8 @@ interface Row {
   properties_count: number
   campaigns_count: number
   campaigns_month: number
+  billing_mode: string | null
+  contract_mrr_eur: number | null
 }
 
 const eur = (n: number) => `€${Math.round(n).toLocaleString('en-GB')}`
@@ -30,6 +33,8 @@ function monthlyValue(r: Row): number {
   if (r.subscription_tier === 'za3fran_internal') return 0
   if (!['active', 'past_due'].includes(r.subscription_status ?? '')) return 0
   const plan = PLAN_DISPLAY.find(p => p.tier === r.subscription_tier)
+  // Direct contracts: use the contract value when one was entered, else the list price
+  if (r.billing_mode === 'direct') return r.contract_mrr_eur != null ? Number(r.contract_mrr_eur) : plan?.monthlyEur ?? 0
   if (!plan) return 0
   return r.billing_interval === 'annual' && plan.annualEur ? plan.annualEur / 12 : plan.monthlyEur
 }
@@ -77,7 +82,10 @@ export default async function SuperAdminPage() {
         ))}
       </div>
 
-      <h2 className={styles.subtitle}>Tenants ({rows.length})</h2>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.subtitle}>Tenants ({rows.length})</h2>
+        <CreateTenantForm />
+      </div>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
@@ -95,12 +103,12 @@ export default async function SuperAdminPage() {
               return (
                 <tr key={r.id}>
                   <td className={styles.nameCell}>{r.name}</td>
-                  <td>{plan}{r.billing_interval ? ` · ${r.billing_interval}` : ''}</td>
+                  <td>{plan}{r.billing_mode === 'direct' ? ' · direct contract' : r.billing_interval ? ` · ${r.billing_interval}` : ''}</td>
                   <td>
                     <span className={`${styles.pill} ${status === 'active' ? styles.pillOk : ['suspended', 'canceled', 'trial_expired', 'unpaid', 'past_due'].includes(status) ? styles.pillBad : styles.pillNeutral}`}>
                       {isTrial ? 'trial' : status}
                     </span>
-                    {r.cancel_at_period_end && <span className={styles.note}> ends</span>}
+                    {r.cancel_at_period_end && <span className={`${styles.pill} ${styles.pillBad}`} style={{ marginLeft: 6 }}>cancelled — ends</span>}
                   </td>
                   <td>{r.users_count}</td>
                   <td>{r.properties_count}</td>
@@ -114,7 +122,7 @@ export default async function SuperAdminPage() {
           </tbody>
         </table>
       </div>
-      <p className={styles.footnote}>MRR is computed from each tenant&apos;s plan and billing interval (annual plans divided by 12), counting active and past-due subscriptions. Stripe remains the source of truth for actual revenue.</p>
+      <p className={styles.footnote}>MRR is computed from each tenant&apos;s plan and billing interval (annual plans divided by 12), counting active and past-due subscriptions; direct contracts count their contract value (or the list price if none was entered). Stripe remains the source of truth for actual revenue.</p>
     </div>
   )
 }

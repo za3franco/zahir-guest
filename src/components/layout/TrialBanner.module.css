@@ -28,3 +28,8 @@
 @media (max-width: 768px) {
   .banner { padding: var(--space-3) var(--space-4); }
 }
+
+.danger {
+  background: rgba(176, 58, 46, 0.2);
+  border-bottom-color: rgba(176, 58, 46, 0.6);
+}

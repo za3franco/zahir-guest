@@ -31,7 +31,7 @@ async function postJson(url: string, body?: unknown) {
   return { ok: res.ok, status: res.status, data }
 }
 
-export function ManageBillingButton({ lang }: { lang: Lang }) {
+export function ManageBillingButton({ lang, label, primary }: { lang: Lang; label?: string; primary?: boolean }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -53,8 +53,8 @@ export function ManageBillingButton({ lang }: { lang: Lang }) {
 
   return (
     <div>
-      <button type="button" className="btn btn-secondary btn-sm" onClick={open} disabled={loading}>
-        {loading ? T.redirecting[lang] : T.manage[lang]}
+      <button type="button" className={`btn ${primary ? 'btn-primary' : 'btn-secondary'} btn-sm`} onClick={open} disabled={loading}>
+        {loading ? T.redirecting[lang] : label ?? T.manage[lang]}
       </button>
       {error && <p className={styles.error}>{error}</p>}
     </div>
@@ -120,7 +120,8 @@ export function BillingPlans({
 
       <div className={styles.plansGrid}>
         {PLAN_DISPLAY.map(plan => {
-          const isCurrent = currentTier === plan.tier
+          // Only a paid, running subscription makes a plan 'current': a trial or an ended plan can be (re)subscribed
+          const isCurrent = hasActiveSubscription && currentTier === plan.tier
           // Enterprise has no self-serve annual price: fall back to monthly for that card.
           const effective: BillingInterval = interval === 'annual' && plan.annualEur ? 'annual' : 'monthly'
           const price = effective === 'annual' ? plan.annualPerMonthEur! : plan.monthlyEur

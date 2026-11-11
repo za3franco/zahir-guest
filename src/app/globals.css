@@ -167,6 +167,12 @@ select {
   border: 1px solid rgba(74, 124, 107, 0.3);
 }
 
+.badge-red {
+  background: rgba(176, 58, 46, 0.16);
+  color: #E8897E;
+  border: 1px solid rgba(176, 58, 46, 0.5);
+}
+
 .badge-amber {
   background: rgba(212, 136, 42, 0.12);
   color: var(--color-amber);
