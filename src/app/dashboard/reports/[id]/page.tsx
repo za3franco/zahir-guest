@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
+import { canViewProperty, isAdminRole, isViewer } from '@/lib/access'
 import { notFound, redirect } from 'next/navigation'
 import ReportDetail from './_components/ReportDetail'
 
@@ -12,7 +13,7 @@ export default async function ReportDetailPage({
 }) {
   const user = await requireUser()
 
-  if (!['property_manager', 'department_manager', 'tenant_admin', 'super_admin'].includes(user.role)) {
+  if (!isViewer(user.role) && !isAdminRole(user.role)) {
     redirect('/dashboard')
   }
 
@@ -39,21 +40,19 @@ export default async function ReportDetailPage({
   if (!campaign || campaign.tenant_id !== user.tenant_id) notFound()
 
   // PM/DM: must be assigned to the property and report must be published
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
+  if (isViewer(user.role)) {
     if (campaign.status !== 'published') notFound()
 
-    const roleColumn = user.role === 'department_manager'
-      ? 'department_manager_user_id'
-      : 'property_manager_user_id'
+    const allowed = await canViewProperty(supabaseAdmin, user, campaign.property_id, campaign.tenant_id)
 
     const { data: property } = await supabaseAdmin
       .from('properties')
       .select('id, name, city, country, category')
       .eq('id', campaign.property_id)
-      .eq(roleColumn, user.id)
+      
       .single()
 
-    if (!property) notFound()
+    if (!property || !allowed) notFound()
 
     const lang = user.default_language === 'en' ? 'en' : 'fr'
     return (
@@ -62,7 +61,7 @@ export default async function ReportDetailPage({
         campaign={campaign}
         property={property}
         lang={lang}
-        canDownload={user.role === 'property_manager'}
+        canDownload={user.role === 'property_manager' || user.role === 'client_admin'}
         backHref="/dashboard/reports/list"
       />
     )

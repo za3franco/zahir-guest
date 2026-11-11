@@ -2,9 +2,15 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { checkPlanLimit } from '@/lib/limits'
+import { ASSIGNABLE_ROLES, ROLE_LABELS, isAdminRole } from '@/lib/access'
 
 export async function POST(request: Request) {
   const currentUser = await requireUser()
+
+  // Only workspace admins invite people, and never as super admin
+  if (!isAdminRole(currentUser.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +28,9 @@ export async function POST(request: Request) {
 
   if (!name || !email || !role) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+  if (!(ASSIGNABLE_ROLES as readonly string[]).includes(role)) {
+    return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
 
   // 1. Create auth user with a random password (they'll set their own via the email link)
@@ -69,7 +78,7 @@ export async function POST(request: Request) {
   if (linkError || !linkData) {
   console.error('Link generation error:', JSON.stringify(linkError))
   // User was created — still return success, admin can resend manually
-  return NextResponse.json({ ok: true, warning: 'User created but email failed' })
+  return NextResponse.json({ ok: true, userId, warning: 'User created but email failed' })
 }
 
   const inviteLink = linkData.properties?.action_link
@@ -77,12 +86,7 @@ export async function POST(request: Request) {
   // 4. Send branded Brevo email
   const lang = default_language === 'en' ? 'en' : 'fr'
 
-  const roleLabel: Record<string, { en: string; fr: string }> = {
-    auditor: { en: 'Auditor', fr: 'Auditeur' },
-    property_manager: { en: 'Property Manager', fr: "Directeur d'établissement" },
-    tenant_admin: { en: 'Administrator', fr: 'Administrateur' },
-  }
-  const roleName = roleLabel[role]?.[lang] ?? role
+  const roleName = ROLE_LABELS[role]?.[lang] ?? role
 
   const subject = lang === 'en'
     ? 'You have been invited to Zahir Guest'
@@ -210,5 +214,5 @@ export async function POST(request: Request) {
     console.error('Brevo error:', brevoError)
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, userId })
 }

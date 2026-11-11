@@ -15,9 +15,11 @@ const T = {
     language: { en: 'Preferred language', fr: 'Langue préférée' },
   },
   roles: {
-    auditor: { en: 'Auditor', fr: 'Auditeur' },
-    property_manager: { en: 'Property Manager', fr: "Directeur d'établissement" },
     tenant_admin: { en: 'Admin', fr: 'Administrateur' },
+    auditor: { en: 'Auditor', fr: 'Auditeur' },
+    client_admin: { en: 'Client manager (sees a whole client)', fr: 'Responsable client (voit tout un client)' },
+    property_manager: { en: 'Property manager', fr: "Directeur d'établissement" },
+    department_manager: { en: 'Department manager', fr: 'Chef de département' },
   },
   save: { en: 'Save changes', fr: 'Enregistrer' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
@@ -50,6 +52,7 @@ export default function EditUserForm({ currentUser, targetUser }: Props) {
   const [language, setLanguage] = useState(targetUser.default_language ?? 'fr')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -67,6 +70,13 @@ export default function EditUserForm({ currentUser, targetUser }: Props) {
         const data = await res.json()
         setError(data.error ?? t(T.errors.failed))
         setSaving(false)
+        return
+      }
+      // Managers: stay here so their access can be set right below
+      if (['client_admin', 'property_manager', 'department_manager'].includes(role)) {
+        setSaving(false)
+        setSaved(true)
+        router.refresh()
         return
       }
       router.push('/dashboard/users')
@@ -132,6 +142,11 @@ export default function EditUserForm({ currentUser, targetUser }: Props) {
         </div>
 
         {error && <div className={styles.errorBanner}>{error}</div>}
+        {saved && !error && (
+          <div style={{ color: '#7fc4a8', fontSize: '0.875rem' }}>
+            {lang === 'en' ? 'Saved. Set what this person can see below.' : 'Enregistré. Choisissez ci-dessous ce que cette personne peut voir.'}
+          </div>
+        )}
 
         <div className={styles.formActions}>
           <button type="button" onClick={() => router.back()} className="btn btn-ghost" disabled={saving}>

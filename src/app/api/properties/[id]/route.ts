@@ -8,12 +8,24 @@ export async function PATCH(
 ) {
   const user = await requireUser()
 
+  // Only workspace admins manage properties
+  if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
   const body = await request.json()
+
+  // The client must belong to this workspace
+  let clientId: string | null = body.client_id || null
+  if (clientId) {
+    const { data: c } = await supabaseAdmin.from('clients').select('id').eq('id', clientId).eq('tenant_id', user.tenant_id).maybeSingle()
+    if (!c) clientId = null
+  }
 
   const { error } = await supabaseAdmin
     .from('properties')
@@ -25,7 +37,7 @@ export async function PATCH(
       country: body.country,
       contact_name: body.contact_name ?? null,
       contact_email: body.contact_email ?? null,
-      property_manager_user_id: body.property_manager_user_id ?? null,
+      client_id: clientId,
       region: body.region ?? null,
       phone: body.phone ?? null,
       website: body.website ?? null,

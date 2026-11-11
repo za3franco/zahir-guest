@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
+import { canViewProperty, isAdminRole, isViewer } from '@/lib/access'
 import { notFound, redirect } from 'next/navigation'
 import ReviewInterface from './_components/ReviewInterface'
 
@@ -11,7 +12,7 @@ export default async function CampaignReviewPage({
   params: { id: string }
 }) {
   const user = await requireUser()
-  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isPM = isViewer(user.role)
   const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
   if (!isAdmin && !isPM) {
@@ -41,18 +42,16 @@ export default async function CampaignReviewPage({
   if (isPM) {
     if (campaign.status !== 'published') redirect('/dashboard/campaigns')
 
-    const roleColumn = user.role === 'department_manager'
-      ? 'department_manager_user_id'
-      : 'property_manager_user_id'
+    const allowed = await canViewProperty(supabaseAdmin, user, campaign.property_id, campaign.tenant_id)
 
     const { data: property } = await supabaseAdmin
       .from('properties')
       .select('id')
       .eq('id', campaign.property_id)
-      .eq(roleColumn, user.id)
+      
       .single()
 
-    if (!property) redirect('/dashboard/campaigns')
+    if (!property || !allowed) redirect('/dashboard/campaigns')
   } else {
     // Admin: must be in reviewable status
     if (!['submitted', 'under_review', 'finalized', 'published'].includes(campaign.status)) {

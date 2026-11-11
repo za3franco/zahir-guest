@@ -2,13 +2,14 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
+import { accessiblePropertyIds, isViewer } from '@/lib/access'
 import { redirect } from 'next/navigation'
 import ReportsDashboard from './_components/ReportsDashboard'
 
 export default async function ReportsDashboardPage() {
   const user = await requireUser()
 
-  if (!['property_manager', 'department_manager'].includes(user.role)) {
+  if (!isViewer(user.role)) {
     redirect('/dashboard')
   }
 
@@ -18,15 +19,15 @@ export default async function ReportsDashboardPage() {
   )
 
   const lang = user.default_language === 'en' ? 'en' : 'fr'
-  const roleColumn = user.role === 'department_manager'
-    ? 'department_manager_user_id'
-    : 'property_manager_user_id'
+  // Properties this viewer may see (direct or through a client)
+  const accessIds = await accessiblePropertyIds(supabaseAdmin, user)
+  const accessList = accessIds === 'all' ? [] : accessIds
 
   const { data: properties } = await supabaseAdmin
     .from('properties')
     .select('id, name, city, country, category')
     .eq('tenant_id', user.tenant_id)
-    .eq(roleColumn, user.id)
+    .in('id', accessList.length ? accessList : ['00000000-0000-0000-0000-000000000000'])
     .eq('is_archived', false)
     .order('name')
 

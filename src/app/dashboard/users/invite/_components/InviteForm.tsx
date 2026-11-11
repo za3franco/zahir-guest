@@ -18,10 +18,16 @@ const T = {
     language: { en: 'Preferred language', fr: 'Langue préférée' },
   },
   roles: {
-    auditor: { en: 'Auditor — can conduct audits on mobile', fr: 'Auditeur — conduit les audits sur mobile' },
-    property_manager: { en: 'Property Manager — can view all reports and trends', fr: 'Directeur — peut consulter tous les rapports et tendances' },
-    department_manager: { en: 'Dept. Manager — read-only access to reports', fr: 'Chef de département — accès lecture seule aux rapports' },
+    auditor: { en: 'Auditor — conducts audits on mobile', fr: 'Auditeur — conduit les audits sur mobile' },
+    client_admin: { en: 'Client manager — sees every property of a client', fr: "Responsable client — voit tous les établissements d'un client" },
+    property_manager: { en: 'Property manager — sees the reports of their properties', fr: "Directeur d'établissement — voit les rapports de ses établissements" },
+    department_manager: { en: 'Department manager — sees the reports of their properties', fr: 'Chef de département — voit les rapports de ses établissements' },
     tenant_admin: { en: 'Admin — full access to the platform', fr: 'Administrateur — accès complet à la plateforme' },
+  },
+  setAccess: { en: 'Set what they can see →', fr: 'Choisir ce que cette personne voit →' },
+  accessHint: {
+    en: 'This person sees nothing until you give them access to a client or to properties.',
+    fr: "Cette personne ne voit rien tant que vous ne lui donnez pas accès à un client ou à des établissements.",
   },
   languages: { fr: { en: 'French', fr: 'Français' }, en: { en: 'English', fr: 'Anglais' } },
   send: { en: 'Send invitation', fr: "Envoyer l'invitation" },
@@ -48,6 +54,8 @@ export default function InviteForm({ user }: InviteFormProps) {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [newUserId, setNewUserId] = useState<string | null>(null)
+  const [newRole, setNewRole] = useState<string>('auditor')
   const [form, setForm] = useState({ name: '', email: '', role: 'auditor', default_language: lang })
 
   function set(field: string, value: string) {
@@ -72,6 +80,9 @@ export default function InviteForm({ user }: InviteFormProps) {
         setSending(false)
         return
       }
+      const d = await res.json().catch(() => ({}))
+      setNewUserId(d.userId ?? null)
+      setNewRole(form.role)
       setSuccess(form.email)
     } catch {
       setError(t(T.errors.failed))
@@ -88,6 +99,12 @@ export default function InviteForm({ user }: InviteFormProps) {
           <h1 className={styles.successTitle}>{t(T.successTitle)}</h1>
           <p className={styles.successMessage}>{t(T.successMessage)} <strong>{success}</strong>.</p>
           <p className={styles.successHint}>{t(T.successHint)}</p>
+          {newUserId && ['client_admin', 'property_manager', 'department_manager'].includes(newRole) && (
+            <>
+              <p className={styles.successHint} style={{ color: 'var(--color-gold)' }}>{t(T.accessHint)}</p>
+              <a href={`/dashboard/users/${newUserId}/edit`} className="btn btn-primary" style={{ marginBottom: 12 }}>{t(T.setAccess)}</a>
+            </>
+          )}
           <div className={styles.successActions}>
             <button onClick={() => { setSuccess(null); setForm({ name: '', email: '', role: 'auditor', default_language: lang }) }} className="btn btn-secondary">
               {t(T.inviteAnother)}

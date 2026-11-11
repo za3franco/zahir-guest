@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/auth'
+import { canViewProperty, isAdminRole, isViewer } from '@/lib/access'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
@@ -45,23 +46,21 @@ export async function GET(
 
   // Property managers and department managers can only see published reports
   // for properties they are assigned to
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
+  if (isViewer(user.role)) {
     if (campaign.status !== 'published') {
       return new NextResponse('Report not available', { status: 403 })
     }
 
-    const roleColumn = user.role === 'department_manager'
-      ? 'department_manager_user_id'
-      : 'property_manager_user_id'
+    const allowed = await canViewProperty(supabaseAdmin, user, campaign.property_id, campaign.tenant_id)
 
     const { data: property } = await supabaseAdmin
       .from('properties')
       .select('id')
       .eq('id', campaign.property_id)
-      .eq(roleColumn, user.id)
+      
       .single()
 
-    if (!property) {
+    if (!property || !allowed) {
       return new NextResponse('Unauthorized', { status: 403 })
     }
 

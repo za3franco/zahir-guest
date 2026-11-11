@@ -28,18 +28,18 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
 
   if (!property) notFound()
 
-  const { data: managers } = await supabaseAdmin
-    .from('users')
-    .select('id, name, email')
+  const { data: clients } = await supabaseAdmin
+    .from('clients')
+    .select('id, name')
     .eq('tenant_id', user.tenant_id)
-    .eq('role', 'property_manager')
+    .eq('is_archived', false)
     .order('name')
 
   return (
     <PropertyForm
       user={user}
       property={property as Property}
-      propertyManagers={managers ?? []}
+      clients={clients ?? []}
       mode="edit"
     />
   )

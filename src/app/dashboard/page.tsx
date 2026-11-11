@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const t = (key: { en: string; fr: string }) => key[lang]
 
   // PM and DM go straight to their reports portal
-  if (user.role === 'property_manager' || user.role === 'department_manager') {
+  if (user.role === 'property_manager' || user.role === 'department_manager' || user.role === 'client_admin') {
     redirect('/dashboard/reports')
   }
 

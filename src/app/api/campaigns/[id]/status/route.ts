@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
+import { viewersOfProperty } from '@/lib/access'
 import { createClient } from '@supabase/supabase-js'
 import { sendReportPublishedEmail } from '@/lib/emailNotifications'
 
@@ -34,7 +35,7 @@ export async function POST(
 
   const { data: campaign } = await supabaseAdmin
     .from('campaigns')
-    .select('status, tenant_id, name, property_id')
+    .select('status, tenant_id, name, property_id, auditor_user_id')
     .eq('id', params.id)
     .single()
 
@@ -43,6 +44,15 @@ export async function POST(
   }
 
   if (campaign.tenant_id !== user.tenant_id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  // Only admins move campaigns through review and publication; an auditor can only start or
+  // submit their own audit. Client / property / department managers can never change a status.
+  const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
+  const auditorStep = user.role === 'auditor' && campaign.auditor_user_id === user.id &&
+    ((campaign.status === 'assigned' && newStatus === 'in_progress') || (campaign.status === 'in_progress' && newStatus === 'submitted'))
+  if (!isAdmin && !auditorStep) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
@@ -78,41 +88,28 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Send report published email to property manager
+  // Publication email to everyone who can see this property (client, property and department managers)
   if (newStatus === 'published') {
     try {
-      const { data: property } = await supabaseAdmin
-        .from('properties')
-        .select('name, city, property_manager_user_id')
-        .eq('id', campaign.property_id)
-        .single()
+      const [{ data: property }, { data: report }, viewers] = await Promise.all([
+        supabaseAdmin.from('properties').select('name, city').eq('id', campaign.property_id).single(),
+        supabaseAdmin.from('audit_reports').select('id, report_json').eq('campaign_id', params.id).single(),
+        viewersOfProperty(supabaseAdmin, user.tenant_id, campaign.property_id),
+      ])
 
-      if (property?.property_manager_user_id) {
-        const { data: pm } = await supabaseAdmin
-          .from('users')
-          .select('name, email, default_language')
-          .eq('id', property.property_manager_user_id)
-          .single()
-
-        const { data: report } = await supabaseAdmin
-          .from('audit_reports')
-          .select('id, report_json')
-          .eq('campaign_id', params.id)
-          .single()
-
-        if (pm && report) {
-          const overallScore = (report.report_json as any)?.overall_percent ?? null
-
+      if (property && report) {
+        const overallScore = (report.report_json as any)?.overall_percent ?? null
+        for (const v of viewers) {
           await sendReportPublishedEmail({
-          tenantId: user.tenant_id,
-            pmName: pm.name,
-            pmEmail: pm.email,
+            tenantId: user.tenant_id,
+            pmName: v.name,
+            pmEmail: v.email,
             propertyName: property.name,
             propertyCity: property.city ?? null,
             campaignName: campaign.name,
             overallScore,
             reportId: report.id,
-            lang: pm.default_language === 'en' ? 'en' : 'fr',
+            lang: v.default_language === 'en' ? 'en' : 'fr',
           })
         }
       }

@@ -56,6 +56,11 @@ export async function POST(
 ) {
   const currentUser = await requireUser()
 
+  // Only workspace admins remove people
+  if (currentUser.role !== 'tenant_admin' && currentUser.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   if (params.id === currentUser.id) {
     return NextResponse.json({ error: 'Cannot remove yourself' }, { status: 400 })
   }
@@ -67,13 +72,18 @@ export async function POST(
 
   const { data: targetUser } = await supabaseAdmin
     .from('users')
-    .select('id, tenant_id, name, email, default_language')
+    .select('id, tenant_id, name, email, default_language, role')
     .eq('id', params.id)
     .eq('tenant_id', currentUser.tenant_id)
     .single()
 
   if (!targetUser) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  // A platform super admin can only be changed by a super admin
+  if (targetUser.role === 'super_admin' && currentUser.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   // Send removal email before deleting

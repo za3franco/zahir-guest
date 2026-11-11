@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
+import { accessiblePropertyIds, isViewer } from '@/lib/access'
 import { STATUS_LABELS } from '@/types'
 import styles from './campaigns.module.css'
 import CampaignsSearch from './_components/CampaignsSearch'
@@ -24,17 +25,18 @@ const T = {
 export default async function CampaignsPage({
   searchParams,
 }: {
-  searchParams: { status?: string; from?: string; to?: string; property?: string }
+  searchParams: { status?: string; from?: string; to?: string; property?: string; client?: string }
 }) {
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
 
-  const isPM = user.role === 'property_manager' || user.role === 'department_manager'
+  const isPM = isViewer(user.role)
   const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'
 
   const activeStatus = searchParams.status ?? 'all'
+  const activeClient = searchParams.client ?? ''
   const fromDate = searchParams.from ?? ''
   const toDate = searchParams.to ?? ''
 
@@ -47,21 +49,25 @@ export default async function CampaignsPage({
   let pmPropertyIds: string[] = []
   let pmProperties: { id: string; name: string }[] = []
   if (isPM) {
-    const roleColumn = user.role === 'department_manager'
-      ? 'department_manager_user_id'
-      : 'property_manager_user_id'
+    const accessIds = await accessiblePropertyIds(supabaseAdmin, user)
+    const accessList = accessIds === 'all' ? [] : accessIds
 
     const { data: props } = await supabaseAdmin
       .from('properties')
       .select('id, name')
       .eq('tenant_id', user.tenant_id)
-      .eq(roleColumn, user.id)
+      .in('id', accessList.length ? accessList : ['00000000-0000-0000-0000-000000000000'])
       .eq('is_archived', false)
       .order('name')
 
     pmProperties = props ?? []
     pmPropertyIds = pmProperties.map((p: any) => p.id)
   }
+
+  // Clients, for the admin filter
+  const { data: clientList } = isAdmin
+    ? await supabaseAdmin.from('clients').select('id, name').eq('tenant_id', user.tenant_id).eq('is_archived', false).order('name')
+    : { data: [] as { id: string; name: string }[] }
 
   // Build query
   let query = supabaseAdmin
@@ -90,6 +96,12 @@ export default async function CampaignsPage({
   } else {
     // Admin: status filter
     if (activeStatus !== 'all') query = query.eq('status', activeStatus)
+    // Admin: client filter (all properties of that client)
+    if (activeClient) {
+      const { data: cp } = await supabaseAdmin.from('properties').select('id').eq('tenant_id', user.tenant_id).eq('client_id', activeClient)
+      const ids = (cp ?? []).map((p: any) => p.id)
+      query = query.in('property_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000'])
+    }
     query = query.order('created_at', { ascending: false })
   }
 
@@ -141,13 +153,35 @@ export default async function CampaignsPage({
           {filterTabs.map(tab => (
             <a
               key={tab.key}
-              href={tab.key === 'all' ? '/dashboard/campaigns' : `/dashboard/campaigns?status=${tab.key}`}
+              href={`/dashboard/campaigns?${new URLSearchParams({ ...(tab.key !== 'all' ? { status: tab.key } : {}), ...(activeClient ? { client: activeClient } : {}) }).toString()}`}
               className={`${styles.filterTab} ${activeStatus === tab.key ? styles.filterTabActive : ''}`}
             >
               {tab.label}
             </a>
           ))}
         </div>
+      )}
+
+      {/* Admin: client filter */}
+      {isAdmin && (clientList ?? []).length > 0 && (
+        <form method="GET" action="/dashboard/campaigns" className={styles.dateFilterForm}>
+          {activeStatus !== 'all' && <input type="hidden" name="status" value={activeStatus} />}
+          <div className={styles.dateFilterRow}>
+            <div className={styles.dateField}>
+              <label className={styles.dateLabel}>{lang === 'en' ? 'Client' : 'Client'}</label>
+              <select name="client" defaultValue={activeClient} className={styles.dateInput}>
+                <option value="">{lang === 'en' ? 'All clients' : 'Tous les clients'}</option>
+                {(clientList ?? []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <button type="submit" className="btn btn-secondary btn-sm">{lang === 'en' ? 'Apply' : 'Appliquer'}</button>
+            {activeClient && (
+              <a href={activeStatus !== 'all' ? `/dashboard/campaigns?status=${activeStatus}` : '/dashboard/campaigns'} className="btn btn-ghost btn-sm">
+                {lang === 'en' ? 'Clear' : 'Effacer'}
+              </a>
+            )}
+          </div>
+        </form>
       )}
 
       {/* PM: date range filter */}
