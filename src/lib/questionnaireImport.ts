@@ -53,10 +53,13 @@ const YES = new Set(['1', 'true', 'yes', 'y', 'oui', 'o', 'x', 'vrai'])
 
 /** Minimal RFC-4180 CSV reader; auto-detects , ; or tab; strips BOM. */
 export function parseCsv(text: string): string[][] {
-  const src = text.replace(/^﻿/, '')
+  let src = text.replace(/^\uFEFF/, '')
+  // Excel's "sep=;" first line tells it which delimiter to use; we honour it and drop it
+  const sep = /^"?sep=(.)"?[^\n]*\r?\n/i.exec(src)
+  if (sep) src = src.slice(sep[0].length)
   const firstLine = src.split(/\r?\n/, 1)[0] ?? ''
   const count = (c: string) => firstLine.split(c).length - 1
-  const delim = count(';') > count(',') && count(';') >= count('\t') ? ';' : count('\t') > count(',') ? '\t' : ','
+  const delim = sep ? sep[1] : count(';') > count(',') && count(';') >= count('\t') ? ';' : count('\t') > count(',') ? '\t' : ','
   const rows: string[][] = []
   let row: string[] = []
   let cur = ''
@@ -132,9 +135,18 @@ export function parseQuestionnaire(text: string): ImportResult {
   return { rows, errors, domains: domains.size, sections: sections.size }
 }
 
-/** Template file offered for download (semicolon-free, comma CSV with BOM so Excel opens accents correctly). */
-export const TEMPLATE_CSV =
-  '﻿domain,section,question,classification,critical,guidance,domain_fr,section_fr,question_fr,guidance_fr\n' +
-  'Arrival,Reception,"Was the guest greeted within 30 seconds?",SERVICE,no,"Count from the moment the guest reaches the desk","Arrivée","Réception","Le client a-t-il été accueilli en moins de 30 secondes ?","Compter dès que le client arrive au comptoir"\n' +
-  'Arrival,Reception,"Was the guest offered a welcome drink?",SALES_OPPORTUNITY,no,,"Arrivée","Réception","Une boisson de bienvenue a-t-elle été proposée ?",\n' +
-  'Room,Cleanliness,"Is the bathroom spotless?",CLEANLINESS,yes,"Check mirror, floor and fittings","Chambre","Propreté","La salle de bain est-elle impeccable ?","Vérifier miroir, sol et robinetterie"\n'
+const HEADER = ['domain', 'section', 'question', 'classification', 'critical', 'guidance', 'domain_fr', 'section_fr', 'question_fr', 'guidance_fr']
+
+/** Serialises rows as a semicolon CSV with a UTF-8 BOM: French-locale Excel opens it directly in columns with accents intact.
+ *  (A "sep=;" line would make English Excel split too, but it then ignores the BOM and breaks accents.) */
+export function toCsv(rows: string[][]): string {
+  const q = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`
+  return '\uFEFF' + [HEADER, ...rows].map(r => r.map(q).join(';')).join('\r\n') + '\r\n'
+}
+
+/** Small example file offered for download. The full Zahir Guest questionnaire can be exported too. */
+export const TEMPLATE_CSV = toCsv([
+  ['Arrival', 'Reception', 'Was the guest greeted within 30 seconds?', 'SERVICE', 'no', 'Count from the moment the guest reaches the desk', 'Arrivée', 'Réception', 'Le client a-t-il été accueilli en moins de 30 secondes ?', 'Compter dès que le client arrive au comptoir'],
+  ['Arrival', 'Reception', 'Was the guest offered a welcome drink?', 'SALES_OPPORTUNITY', 'no', '', 'Arrivée', 'Réception', 'Une boisson de bienvenue a-t-elle été proposée ?', ''],
+  ['Room', 'Cleanliness', 'Is the bathroom spotless?', 'CLEANLINESS', 'yes', 'Check mirror, floor and fittings', 'Chambre', 'Propreté', 'La salle de bain est-elle impeccable ?', 'Vérifier miroir, sol et robinetterie'],
+])
