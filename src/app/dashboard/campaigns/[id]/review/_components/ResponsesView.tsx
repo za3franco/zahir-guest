@@ -8,16 +8,19 @@ interface Props {
   sections: any[]
   standards: any[]
   responses: any[]
+  photos?: { id: string; standard_id: string | null }[]
   lang: string
 }
 
-export default function ResponsesView({ domains, sections, standards, responses, lang }: Props) {
+export default function ResponsesView({ domains, sections, standards, responses, photos = [], lang }: Props) {
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set(domains.map(d => d.id)))
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<'all' | 'below' | 'meet' | 'na' | 'unanswered'>('all')
 
   const responseMap = new Map<string, any>()
   responses.forEach(r => responseMap.set(r.standard_id, r))
+  const photoMap = new Map<string, string[]>()
+  photos.forEach(p => { if (p.standard_id) photoMap.set(p.standard_id, [...(photoMap.get(p.standard_id) ?? []), p.id]) })
 
   function toggleDomain(id: string) {
     setExpandedDomains(prev => {
@@ -189,6 +192,16 @@ export default function ResponsesView({ domains, sections, standards, responses,
                               <div className={styles.note}>
                                 <span className={styles.noteIcon}>📝</span>
                                 <p className={styles.noteText}>{note}</p>
+                              </div>
+                            )}
+                            {(photoMap.get(std.id) ?? []).length > 0 && (
+                              <div className={styles.photos}>
+                                {(photoMap.get(std.id) ?? []).map(id => (
+                                  <a key={id} href={`/api/photos/${id}`} target="_blank" rel="noreferrer">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={`/api/photos/${id}`} alt="" loading="lazy" />
+                                  </a>
+                                ))}
                               </div>
                             )}
                           </div>

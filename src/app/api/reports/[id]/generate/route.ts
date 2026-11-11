@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { generateReportHtml } from '@/lib/reportTemplate'
+import { brandingFromTenant } from '@/lib/branding'
 
 export async function POST(
   request: Request,
@@ -49,7 +50,7 @@ export async function POST(
   // Load tenant
   const { data: tenant } = await supabaseAdmin
     .from('tenants')
-    .select('name, branding_config')
+    .select('name, branding_config, subscription_tier, subscription_status')
     .eq('id', user.tenant_id)
     .single()
 
@@ -59,6 +60,15 @@ export async function POST(
     return NextResponse.json({ error: 'No scores available. Submit the audit first.' }, { status: 400 })
   }
 
+  // Photos per standard (thumbnails in the appendix)
+  const { data: photoRows } = await supabaseAdmin
+    .from('audit_photos')
+    .select('id, standard_id')
+    .eq('campaign_id', report.campaign_id)
+    .order('uploaded_at')
+  const photos: Record<string, string[]> = {}
+  ;(photoRows ?? []).forEach((p: any) => { if (p.standard_id) (photos[p.standard_id] ??= []).push(p.id) })
+
   // Generate HTML
   const html = generateReportHtml({
     campaign,
@@ -66,6 +76,8 @@ export async function POST(
     scores,
     tenantName: tenant?.name ?? 'Za3fran Consulting',
     logoUrl: tenant?.branding_config?.logo_url ?? null,
+    branding: brandingFromTenant(tenant),
+    photos,
   })
 
   // Store HTML in report

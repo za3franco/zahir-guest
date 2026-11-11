@@ -1,3 +1,4 @@
+import { getTenantBranding } from '@/lib/branding'
 /**
  * ZAHIR GUEST — BREVO EMAIL UTILITY
  * All transactional email templates and send function
@@ -11,8 +12,14 @@ interface EmailPayload {
   htmlContent: string
 }
 
-async function sendEmail(payload: EmailPayload): Promise<boolean> {
+async function sendEmail(payload: EmailPayload, tenantId?: string): Promise<boolean> {
   try {
+    // White-label tenants send under their own brand name (the address stays our verified domain)
+    let senderName = process.env.BREVO_SENDER_NAME ?? 'Zahir Guest'
+    if (tenantId) {
+      const b = await getTenantBranding(tenantId).catch(() => null)
+      if (b?.brandName) senderName = b.brandName
+    }
     const res = await fetch(BREVO_API, {
       method: 'POST',
       headers: {
@@ -21,7 +28,7 @@ async function sendEmail(payload: EmailPayload): Promise<boolean> {
       },
       body: JSON.stringify({
         sender: {
-          name: process.env.BREVO_SENDER_NAME ?? 'Zahir Guest',
+          name: senderName,
           email: process.env.BREVO_SENDER_EMAIL ?? 'hello@zahirguest.com',
         },
         ...payload,
@@ -107,8 +114,9 @@ export async function sendAuditorAssignedEmail(params: {
   visitWindowEnd: string | null
   assignedByName: string
   lang: 'en' | 'fr'
+  tenantId?: string
 }): Promise<boolean> {
-  const { auditorName, auditorEmail, campaignName, propertyName, propertyCity, visitWindowStart, visitWindowEnd, assignedByName, lang } = params
+  const { auditorName, auditorEmail, campaignName, propertyName, propertyCity, visitWindowStart, visitWindowEnd, assignedByName, lang, tenantId } = params
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
@@ -177,7 +185,7 @@ export async function sendAuditorAssignedEmail(params: {
     to: [{ name: auditorName, email: auditorEmail }],
     subject,
     htmlContent: emailWrapper(content),
-  })
+  }, tenantId)
 }
 
 // ── 2. Admin notified when audit submitted ───────────────
@@ -190,8 +198,9 @@ export async function sendAuditSubmittedEmail(params: {
   propertyCity: string | null
   campaignId: string
   lang: 'en' | 'fr'
+  tenantId?: string
 }): Promise<boolean> {
-  const { adminName, adminEmail, auditorName, campaignName, propertyName, propertyCity, campaignId, lang } = params
+  const { adminName, adminEmail, auditorName, campaignName, propertyName, propertyCity, campaignId, lang, tenantId } = params
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
 
@@ -243,7 +252,7 @@ export async function sendAuditSubmittedEmail(params: {
     to: [{ name: adminName, email: adminEmail }],
     subject,
     htmlContent: emailWrapper(content),
-  })
+  }, tenantId)
 }
 
 // ── 3. Property manager notified when report published ───
@@ -256,8 +265,9 @@ export async function sendReportPublishedEmail(params: {
   overallScore: number | null
   reportId: string
   lang: 'en' | 'fr'
+  tenantId?: string
 }): Promise<boolean> {
-  const { pmName, pmEmail, propertyName, propertyCity, campaignName, overallScore, reportId, lang } = params
+  const { pmName, pmEmail, propertyName, propertyCity, campaignName, overallScore, reportId, lang, tenantId } = params
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
 
@@ -316,5 +326,5 @@ export async function sendReportPublishedEmail(params: {
     to: [{ name: pmName, email: pmEmail }],
     subject,
     htmlContent: emailWrapper(content),
-  })
+  }, tenantId)
 }

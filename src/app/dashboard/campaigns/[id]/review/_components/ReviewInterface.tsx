@@ -33,11 +33,12 @@ interface Props {
   sections: any[]
   standards: any[]
   responses: any[]
+  photos: { id: string; standard_id: string | null }[]
   user: User
 }
 
 export default function ReviewInterface({
-  campaign, report, domains, sections, standards, responses, user,
+  campaign, report, domains, sections, standards, responses, photos, user,
 }: Props) {
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]
@@ -151,6 +152,7 @@ export default function ReviewInterface({
             sections={sections}
             standards={standards}
             responses={responses}
+            photos={photos}
             lang={lang}
           />
         )}

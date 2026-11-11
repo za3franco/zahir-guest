@@ -27,6 +27,11 @@ export async function POST(
     return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
   }
 
+  // Only the assigned auditor or admins of the same workspace may touch an audit
+  if (!['auditor', 'tenant_admin', 'super_admin'].includes(user.role) || (user.role !== 'super_admin' && campaign.tenant_id !== user.tenant_id)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   if (user.role === 'auditor' && campaign.auditor_user_id !== user.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }

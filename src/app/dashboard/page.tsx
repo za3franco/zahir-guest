@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { STATUS_LABELS } from '@/types'
 import { redirect } from 'next/navigation'
+import OnboardingChecklist from './OnboardingChecklist'
 import styles from './dashboard.module.css'
 
 const T = {
@@ -98,6 +99,25 @@ export default async function DashboardPage() {
       .limit(6),
   ])
 
+  // Onboarding checklist: new tenant admins on a customer workspace (not Za3fran internal) until dismissed
+  let onboarding: { hasProperty: boolean; hasAuditor: boolean; hasCampaign: boolean } | null = null
+  if (user.role === 'tenant_admin' && !user.onboarding_dismissed) {
+    const { data: tenantRow } = await supabaseAdmin
+      .from('tenants')
+      .select('subscription_tier')
+      .eq('id', user.tenant_id)
+      .single()
+    if (tenantRow && tenantRow.subscription_tier !== 'za3fran_internal') {
+      const head = { count: 'exact' as const, head: true }
+      const [p, a, c] = await Promise.all([
+        supabaseAdmin.from('properties').select('id', head).eq('tenant_id', user.tenant_id).eq('is_archived', false),
+        supabaseAdmin.from('users').select('id', head).eq('tenant_id', user.tenant_id).eq('role', 'auditor'),
+        supabaseAdmin.from('campaigns').select('id', head).eq('tenant_id', user.tenant_id),
+      ])
+      onboarding = { hasProperty: (p.count ?? 0) > 0, hasAuditor: (a.count ?? 0) > 0, hasCampaign: (c.count ?? 0) > 0 }
+    }
+  }
+
   const allCampaigns = campaigns ?? []
   const total = allCampaigns.length
   const inProgress = allCampaigns.filter((c: any) => c.status === 'in_progress').length
@@ -111,6 +131,8 @@ export default async function DashboardPage() {
         <span className={styles.greetingWord}>{t(T.greeting)},</span>
         <h1 className={styles.greetingName}>{user.name}</h1>
       </div>
+
+      {onboarding && <OnboardingChecklist lang={lang} {...onboarding} />}
 
       {/* Stats */}
       <div className={styles.stats}>

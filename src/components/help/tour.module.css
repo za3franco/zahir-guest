@@ -1,0 +1,12 @@
+.root { position: fixed; inset: 0; z-index: 200; }
+.dim { position: absolute; inset: 0; background: rgba(5, 12, 20, 0.72); }
+.spot { position: absolute; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(5, 12, 20, 0.72); border: 2px solid var(--color-gold); pointer-events: none; transition: all 0.2s ease; }
+.pop { position: absolute; width: 320px; max-width: calc(100vw - 24px); background: var(--color-midnight-navy); border: 1px solid var(--color-gold); border-radius: 12px; padding: 18px 18px 14px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55); }
+.count { color: var(--color-gold); font-size: 0.6875rem; letter-spacing: 0.12em; margin-bottom: 6px; }
+.title { font-family: var(--font-display); font-size: 1.375rem; font-weight: 400; margin: 0 0 6px; color: var(--color-ivory); }
+.text { color: var(--color-sand); font-size: 0.875rem; line-height: 1.6; margin: 0 0 16px; }
+.actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.nav { display: flex; gap: 8px; }
+.skip, .back { background: none; border: none; color: var(--color-sand); cursor: pointer; font-size: 0.8125rem; padding: 8px 4px; }
+.back { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px 14px; color: var(--color-ivory); }
+.next { background: var(--color-gold); color: var(--color-deep-ink); border: none; border-radius: var(--radius-md); padding: 8px 18px; font-weight: 600; font-size: 0.875rem; cursor: pointer; }
