@@ -11,14 +11,25 @@ const T = {
   title: { en: 'Import a questionnaire', fr: 'Importer un questionnaire' },
   back: { en: '← Questionnaires', fr: '← Questionnaires' },
   how: { en: 'How it works', fr: 'Comment ça marche' },
-  s1: { en: 'Download the template and fill in one row per question.', fr: 'Téléchargez le modèle et remplissez une ligne par question.' },
-  s2: { en: 'In Excel: File → Save as → CSV. In Google Sheets: File → Download → CSV.', fr: 'Dans Excel : Fichier → Enregistrer sous → CSV. Dans Google Sheets : Fichier → Télécharger → CSV.' },
+  s1: {
+    en: 'Download the full Zahir Guest questionnaire (all domains, sections and questions already filled in) or the short example, and open it in Excel.',
+    fr: 'Téléchargez le questionnaire Zahir Guest complet (domaines, sections et questions déjà remplis) ou le petit exemple, et ouvrez-le dans Excel.',
+  },
+  s2: {
+    en: 'Edit, delete or add rows (one row = one question), then save as CSV: in Excel, File → Save as → “CSV (semicolon/comma delimited)”; in Google Sheets, File → Download → CSV.',
+    fr: 'Modifiez, supprimez ou ajoutez des lignes (une ligne = une question), puis enregistrez en CSV : dans Excel, Fichier → Enregistrer sous → « CSV (séparateur : point-virgule) » ; dans Google Sheets, Fichier → Télécharger → CSV.',
+  },
+  tip: {
+    en: 'Prefer working on screen? Use “Create a questionnaire” on the Questionnaires page instead: you can copy the Zahir Guest standard and edit it directly in the app.',
+    fr: "Vous préférez travailler à l'écran ? Utilisez plutôt « Créer un questionnaire » sur la page Questionnaires : vous pouvez copier le standard Zahir Guest et le modifier directement dans l'application.",
+  },
+  downloadFull: { en: 'Download the full questionnaire', fr: 'Télécharger le questionnaire complet' },
   s3: { en: 'Choose the file below, check the preview, then import.', fr: "Choisissez le fichier ci-dessous, vérifiez l'aperçu, puis importez." },
   cols: {
     en: 'Columns: domain, section, question, classification (SERVICE, EFFICIENCY, PRODUCT, CLEANLINESS, EMOTIONAL_INTELLIGENCE or SALES_OPPORTUNITY), critical (yes/no), guidance. For a bilingual questionnaire add domain_fr, section_fr, question_fr and guidance_fr.',
     fr: 'Colonnes : domain, section, question, classification (SERVICE, EFFICIENCY, PRODUCT, CLEANLINESS, EMOTIONAL_INTELLIGENCE ou SALES_OPPORTUNITY), critical (oui/non), guidance. Pour un questionnaire bilingue, ajoutez domain_fr, section_fr, question_fr et guidance_fr.',
   },
-  download: { en: 'Download the template', fr: 'Télécharger le modèle' },
+  download: { en: 'Download a short example', fr: 'Télécharger un petit exemple' },
   name: { en: 'Questionnaire name', fr: 'Nom du questionnaire' },
   file: { en: 'CSV file', fr: 'Fichier CSV' },
   preview: { en: 'Preview', fr: 'Aperçu' },
@@ -52,7 +63,7 @@ function describe(msg: string, line: number, l: Lang): string {
   }
 }
 
-export default function ImportForm({ lang }: { lang: Lang }) {
+export default function ImportForm({ lang, standards }: { lang: Lang; standards: { id: string; name: string }[] }) {
   const router = useRouter()
   const t = (k: { en: string; fr: string }) => k[lang]
   const [name, setName] = useState('')
@@ -111,8 +122,14 @@ export default function ImportForm({ lang }: { lang: Lang }) {
         </ol>
         <p className={styles.muted}>{t(T.cols)}</p>
         <div className={styles.actions}>
+          {standards.map(x => (
+            <a key={x.id} href={`/api/questionnaires/${x.id}/export`} className="btn btn-primary btn-sm">
+              {t(T.downloadFull)}{standards.length > 1 ? ` — ${x.name}` : ''}
+            </a>
+          ))}
           <button type="button" className="btn btn-ghost btn-sm" onClick={downloadTemplate}>{t(T.download)}</button>
         </div>
+        <p className={styles.muted} style={{ margin: 0 }}>{t(T.tip)}</p>
       </div>
 
       <div className={styles.panel}>
