@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
-import { PLAN_DISPLAY } from '@/lib/plans'
+import { listMonthlyValue, planName } from '@/lib/plans'
+import { EUR_PER_UNIT, isCurrency } from '@/lib/currency'
 import TenantActions from './TenantActions'
 import CreateTenantForm from './CreateTenantForm'
 import styles from './superadmin.module.css'
@@ -23,6 +24,8 @@ interface Row {
   campaigns_month: number
   billing_mode: string | null
   contract_mrr_eur: number | null
+  billing_currency?: string | null
+  extra_properties?: number | null
 }
 
 const eur = (n: number) => `€${Math.round(n).toLocaleString('en-GB')}`
@@ -32,11 +35,11 @@ const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-
 function monthlyValue(r: Row): number {
   if (r.subscription_tier === 'za3fran_internal') return 0
   if (!['active', 'past_due'].includes(r.subscription_status ?? '')) return 0
-  const plan = PLAN_DISPLAY.find(p => p.tier === r.subscription_tier)
+  const cur = isCurrency(r.billing_currency) ? r.billing_currency : 'EUR'
+  const list = listMonthlyValue(r.subscription_tier, r.billing_interval, r.extra_properties ?? 0, cur) * EUR_PER_UNIT[cur]
   // Direct contracts: use the contract value when one was entered, else the list price
-  if (r.billing_mode === 'direct') return r.contract_mrr_eur != null ? Number(r.contract_mrr_eur) : plan?.monthlyEur ?? 0
-  if (!plan) return 0
-  return r.billing_interval === 'annual' && plan.annualEur ? plan.annualEur / 12 : plan.monthlyEur
+  if (r.billing_mode === 'direct') return r.contract_mrr_eur != null ? Number(r.contract_mrr_eur) : list
+  return list
 }
 
 export default async function SuperAdminPage() {
@@ -97,7 +100,7 @@ export default async function SuperAdminPage() {
           <tbody>
             {rows.map(r => {
               const internal = r.subscription_tier === 'za3fran_internal'
-              const plan = PLAN_DISPLAY.find(p => p.tier === r.subscription_tier)?.name ?? (internal ? 'Internal' : '—')
+              const plan = planName(r.subscription_tier, 'en') ?? (internal ? 'Internal' : '—')
               const status = r.subscription_status ?? '—'
               const isTrial = status === 'trialing' && !r.stripe_subscription_id
               return (

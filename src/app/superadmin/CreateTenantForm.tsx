@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { PLAN_DISPLAY } from '@/lib/plans'
+import { PLAN_NAMES, type PlanTier } from '@/lib/plans'
 import styles from './superadmin.module.css'
 
 // Super admin: create a workspace by hand (direct sale or offered trial).
@@ -63,7 +63,7 @@ export default function CreateTenantForm() {
         </label>
         <label>Plan
           <select value={f.plan} onChange={e => set('plan', e.target.value)}>
-            {PLAN_DISPLAY.map(p => <option key={p.tier} value={p.tier}>{p.name}</option>)}
+            {(['starter', 'professional', 'enterprise'] as PlanTier[]).map(t => <option key={t} value={t}>{PLAN_NAMES[t].en}</option>)}
           </select>
         </label>
         <label>Billing

@@ -98,6 +98,14 @@ export function verifyStripeSignature(
   })
 }
 
+/** Active prices for a set of lookup keys (grid v2), as a map lookup_key → price id. */
+export async function pricesByLookupKey(keys: string[]): Promise<Map<string, string>> {
+  const res: any = await stripeRequest('/prices', 'GET', { lookup_keys: keys, active: true, limit: 20 })
+  const out = new Map<string, string>()
+  for (const p of res?.data ?? []) if (p.lookup_key) out.set(p.lookup_key, p.id)
+  return out
+}
+
 /** current_period_end moved onto subscription items in newer Stripe API versions. */
 export function subscriptionPeriodEnd(sub: any): string | null {
   const ts = sub?.current_period_end ?? sub?.items?.data?.[0]?.current_period_end

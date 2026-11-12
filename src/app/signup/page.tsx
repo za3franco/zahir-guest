@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { PLAN_DISPLAY, TRIAL_DAYS, type PlanTier } from '@/lib/plans'
+import { useEffect, useState } from 'react'
+import { PLAN_NAMES, PLAN_FEATURES, PRICE_GRID, TRIAL_DAYS, type PlanTier } from '@/lib/plans'
+import { currencyFromCookieString, formatMoney, type Currency } from '@/lib/currency'
 import styles from './signup.module.css'
 
 type Lang = 'en' | 'fr'
@@ -38,6 +39,11 @@ export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [plan, setPlan] = useState<PlanTier>('professional')
+  const [currency, setCurrency] = useState<Currency>('EUR')
+  useEffect(() => {
+    setCurrency(currencyFromCookieString(document.cookie))
+    if (navigator.language?.toLowerCase().startsWith('en')) setLang('en')
+  }, [])
   const [website, setWebsite] = useState('') // honeypot
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,7 +59,7 @@ export default function SignupPage() {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyName, name, email, plan, lang, website }),
+        body: JSON.stringify({ companyName, name, email, plan, lang, website, currency }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -124,18 +130,18 @@ export default function SignupPage() {
                 <div className="form-group">
                   <span className="form-label">{t(T.plan)}</span>
                   <div className={styles.plans} role="radiogroup" aria-label={t(T.plan)}>
-                    {PLAN_DISPLAY.map(p => (
+                    {(['starter', 'professional'] as PlanTier[]).map(tier => (
                       <button
-                        key={p.tier}
+                        key={tier}
                         type="button"
                         role="radio"
-                        aria-checked={plan === p.tier}
-                        onClick={() => setPlan(p.tier)}
-                        className={`${styles.planCard} ${plan === p.tier ? styles.planCardActive : ''}`}
+                        aria-checked={plan === tier}
+                        onClick={() => setPlan(tier)}
+                        className={`${styles.planCard} ${plan === tier ? styles.planCardActive : ''}`}
                       >
-                        <span className={styles.planName}>{p.name}</span>
-                        <span className={styles.planPrice}>€{p.monthlyEur}{t(T.perMonth)}</span>
-                        <span className={styles.planNote}>{(lang === 'en' ? p.featuresEn : p.featuresFr).slice(0, 2).join(' · ')}</span>
+                        <span className={styles.planName}>{PLAN_NAMES[tier][lang]}</span>
+                        <span className={styles.planPrice}>{formatMoney(PRICE_GRID[currency][tier].base, currency, lang)}{t(T.perMonth)}</span>
+                        <span className={styles.planNote}>{PLAN_FEATURES[tier][lang].slice(0, 2).join(' · ')}</span>
                       </button>
                     ))}
                   </div>

@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
 import { loadSales, type SalesData, type SubRow } from '@/lib/sales'
-import { PLAN_DISPLAY } from '@/lib/plans'
+import { listMonthlyValue, planName } from '@/lib/plans'
+import { EUR_PER_UNIT, isCurrency } from '@/lib/currency'
 import styles from '../superadmin.module.css'
 
 const eur = (cents: number) => `€${(cents / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`
@@ -55,7 +56,7 @@ export default async function SalesPage() {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: tenants } = await supabase
     .from('tenants')
-    .select('id, name, subscription_tier, subscription_status, stripe_customer_id, stripe_subscription_id, trial_ends_at, billing_mode, contract_mrr_eur, created_at')
+    .select('id, name, subscription_tier, subscription_status, stripe_customer_id, stripe_subscription_id, trial_ends_at, billing_mode, contract_mrr_eur, created_at, billing_currency, billing_interval, extra_properties, current_period_end')
   const all = tenants ?? []
   const byCustomer = new Map<string, { id: string; name: string }>()
   for (const t of all) if (t.stripe_customer_id) byCustomer.set(t.stripe_customer_id, { id: t.id, name: t.name })
@@ -63,7 +64,12 @@ export default async function SalesPage() {
   let sales: SalesData | null = null
   let error: string | null = null
   try {
-    sales = await loadSales(byCustomer)
+    const { data: ycp } = await supabase
+      .from('billing_payments')
+      .select('amount_minor, currency, paid_at')
+      .eq('status', 'paid')
+      .gte('paid_at', new Date(Date.now() - 366 * 86400_000).toISOString())
+    sales = await loadSales(byCustomer, (ycp ?? []) as any)
   } catch (e: any) {
     error = e?.message ?? 'Unknown error'
   }
@@ -71,21 +77,26 @@ export default async function SalesPage() {
   // Direct contracts (billed outside Stripe)
   const direct = all.filter(t => t.billing_mode === 'direct' && t.subscription_status === 'active')
   const directMrrCents = direct.reduce((n, t) => {
-    const v = t.contract_mrr_eur != null ? Number(t.contract_mrr_eur) : PLAN_DISPLAY.find(p => p.tier === t.subscription_tier)?.monthlyEur ?? 0
+    const cur = isCurrency(t.billing_currency) ? t.billing_currency : 'EUR'
+    const v = t.contract_mrr_eur != null ? Number(t.contract_mrr_eur) : listMonthlyValue(t.subscription_tier, t.billing_interval, t.extra_properties ?? 0, cur) * EUR_PER_UNIT[cur]
     return n + Math.round(v * 100)
   }, 0)
+
+  // MAD prepaid periods (YouCan Pay): list value of the running periods, converted to EUR
+  const youcan = all.filter(t => t.billing_mode === 'youcan' && t.subscription_status === 'active' && t.current_period_end && new Date(t.current_period_end).getTime() > Date.now())
+  const youcanMrrCents = youcan.reduce((n, t) => n + Math.round(listMonthlyValue(t.subscription_tier, t.billing_interval, t.extra_properties ?? 0, 'MAD') * EUR_PER_UNIT.MAD * 100), 0)
 
   // Trials (database): conversion over the last 90 days
   const since90 = Date.now() - 90 * 86400_000
   const trialCohort = all.filter(t => t.billing_mode !== 'direct' && t.subscription_tier !== 'za3fran_internal' && t.trial_ends_at && new Date(t.created_at).getTime() >= since90)
-  const converted = trialCohort.filter(t => t.stripe_subscription_id && ['active', 'past_due'].includes(t.subscription_status ?? ''))
+  const converted = trialCohort.filter(t => (t.stripe_subscription_id || t.billing_mode === 'youcan') && ['active', 'past_due'].includes(t.subscription_status ?? ''))
   const trialsRunning = all.filter(t => t.subscription_status === 'trialing' && !t.stripe_subscription_id)
   const trialsEnding7 = trialsRunning.filter(t => t.trial_ends_at && new Date(t.trial_ends_at).getTime() - Date.now() <= 7 * 86400_000)
 
   const thisMonth = sales?.months[sales.months.length - 1]
   const lastMonth = sales?.months[sales.months.length - 2]
   const churnRate = (m?: { churnMrrCents: number; mrrStartCents: number }) => (m && m.mrrStartCents ? m.churnMrrCents / m.mrrStartCents : 0)
-  const totalMrr = (sales?.mrrCents ?? 0) + directMrrCents
+  const totalMrr = (sales?.mrrCents ?? 0) + directMrrCents + youcanMrrCents
 
   return (
     <div>
@@ -96,17 +107,17 @@ export default async function SalesPage() {
         <div className={styles.stat}>
           <span className={styles.statValue}>{eur(totalMrr)}</span>
           <span className={styles.statLabel}>MRR</span>
-          <span className={styles.statNote}>Stripe {eur(sales?.mrrCents ?? 0)} + direct contracts {eur(directMrrCents)} · ARR ≈ {eur(totalMrr * 12)}</span>
+          <span className={styles.statNote}>Stripe {eur(sales?.mrrCents ?? 0)} + YouCan (MAD) {eur(youcanMrrCents)} + direct {eur(directMrrCents)} · ARR ≈ {eur(totalMrr * 12)}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{eur(sales?.revenue30Cents ?? 0)}</span>
           <span className={styles.statLabel}>Collected, last 30 days</span>
-          <span className={styles.statNote}>{eur(sales?.revenueYtdCents ?? 0)} this year · {eur(sales?.revenue12Cents ?? 0)} over 12 months (Stripe, excl. tax)</span>
+          <span className={styles.statNote}>{eur(sales?.revenueYtdCents ?? 0)} this year · {eur(sales?.revenue12Cents ?? 0)} over 12 months (Stripe + YouCan, excl. tax)</span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statValue}>{(sales?.activeCount ?? 0) + direct.length}</span>
+          <span className={styles.statValue}>{(sales?.activeCount ?? 0) + direct.length + youcan.length}</span>
           <span className={styles.statLabel}>Paying customers</span>
-          <span className={styles.statNote}>{sales?.activeCount ?? 0} Stripe + {direct.length} direct · avg {eur(sales?.arpaCents ?? 0)}/month (Stripe)</span>
+          <span className={styles.statNote}>{sales?.activeCount ?? 0} Stripe + {youcan.length} YouCan + {direct.length} direct · avg {eur(sales?.arpaCents ?? 0)}/month (Stripe)</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{thisMonth ? `${thisMonth.newCount} / ${thisMonth.churnCount}` : '—'}</span>
@@ -202,7 +213,7 @@ export default async function SalesPage() {
                     {direct.map(t => (
                       <tr key={t.id}>
                         <td className={styles.nameCell}>{t.name}</td>
-                        <td>{PLAN_DISPLAY.find(p => p.tier === t.subscription_tier)?.name ?? t.subscription_tier}</td>
+                        <td>{planName(t.subscription_tier, 'en') ?? t.subscription_tier}</td>
                         <td>{t.contract_mrr_eur != null ? `€${Number(t.contract_mrr_eur).toLocaleString('en-GB')}` : `list price`}</td>
                         <td>{day(new Date(t.created_at).getTime())}</td>
                       </tr>
@@ -238,7 +249,8 @@ export default async function SalesPage() {
 
           <p className={styles.footnote}>
             Source: Stripe (live), Zahir Guest prices only — the Stripe account is shared with Za3fran. Amounts in euros, after recurring discounts, excluding tax.
-            {sales.otherCurrencies.length > 0 && ` Subscriptions in other currencies (${sales.otherCurrencies.join(', ')}) are not included.`}
+            {` Amounts in USD and MAD are converted to EUR at fixed rates (1 $ = 0.90 €, 1 MAD = 0.10 €).`}
+            {sales.byCurrency.length > 0 && ` Stripe MRR by currency: ${sales.byCurrency.map(c => `${c.currency} ${(c.nativeMrrCents / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 })} (${c.count})`).join(' · ')}.`}
             {' '}Updated {new Date(sales.generatedAt).toLocaleString('en-GB')} — reload the page to refresh.
           </p>
         </>

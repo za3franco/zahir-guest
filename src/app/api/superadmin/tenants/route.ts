@@ -4,7 +4,7 @@ import { requireSuperAdmin } from '@/lib/auth'
 import { logAdminAction } from '@/lib/audit'
 import { createTenantWithAdmin } from '@/lib/tenants'
 import { sendWelcomeEmail } from '@/lib/billingEmails'
-import { isPlanTier, PLAN_DISPLAY, TRIAL_DAYS } from '@/lib/plans'
+import { isPlanTier, planName, TRIAL_DAYS } from '@/lib/plans'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         name: adminName,
         email,
         companyName,
-        planName: PLAN_DISPLAY.find(p => p.tier === plan)?.name ?? 'Zahir Guest',
+        planName: planName(plan, lang) ?? 'Zahir Guest',
         setPasswordLink: created.setPasswordLink,
         lang,
         trialDays: mode === 'trial' ? trialDays : undefined,

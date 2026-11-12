@@ -1,3 +1,6 @@
 {
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "crons": [
+    { "path": "/api/cron/billing-reminders", "schedule": "17 7 * * *" }
+  ]
 }

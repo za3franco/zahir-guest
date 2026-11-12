@@ -107,7 +107,6 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-full);
   padding: 3px;
-  margin-bottom: var(--space-5);
 }
 
 .toggleBtn {
@@ -229,3 +228,21 @@
 }
 .noticeDanger strong { display: block; color: #E8897E; margin-bottom: var(--space-2); }
 .noticeDanger p { margin: 0 0 var(--space-3); color: var(--color-ivory); opacity: 0.9; }
+
+/* Grid v2: controls row, property stepper, add-properties box */
+.controls { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-5); }
+.controls .muted { margin: 0; }
+
+.stepper { display: flex; align-items: center; justify-content: space-between; background: var(--color-deep-ink); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); padding: 6px 10px; font-size: 0.8125rem; color: var(--color-ivory); gap: var(--space-3); }
+.stepperCtl { display: inline-flex; align-items: center; gap: 10px; }
+.stepperCtl button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--color-border); background: var(--color-midnight-navy); color: var(--color-ivory); font-size: 1rem; line-height: 1; cursor: pointer; }
+.stepperCtl button:disabled { opacity: 0.35; cursor: default; }
+.stepperCtl button:not(:disabled):hover { border-color: var(--color-gold); }
+.stepperCtl output { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.addBox { margin-top: var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; background: var(--color-midnight-navy); border: 1px dashed var(--color-gold); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); }
+.addTitle { font-family: var(--font-display); font-size: 1.125rem; font-weight: 400; color: var(--color-ivory); margin: 0; }
+.success { color: #8FC2AF; font-size: 0.8125rem; margin: var(--space-3) 0 0; }
+.noticeWarn { background: rgba(212, 136, 42, 0.12); border-color: rgba(212, 136, 42, 0.5); }
+.noticeWarn strong { display: block; color: var(--color-warm-brass); margin-bottom: var(--space-2); }
+.noticeWarn p { margin: 0 0 var(--space-3); }

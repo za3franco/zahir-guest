@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
 import { calculateScores, type ReportScores } from '@/lib/scoring'
+import { checkPlanLimit, recordAiUsage } from '@/lib/limits'
 
 export const maxDuration = 120
 
@@ -54,6 +55,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (!['submitted', 'under_review', 'finalized', 'published'].includes(campaign.status)) {
     return NextResponse.json({ error: msg('The audit has not been submitted yet.', "L'audit n'a pas encore été soumis.") }, { status: 400 })
   }
+
+  // Monthly quota of AI summaries per plan (grid v2).
+  const quota = await checkPlanLimit(user.tenant_id, 'ai', ui)
+  if (!quota.allowed) return NextResponse.json({ error: quota.message, code: quota.code }, { status: 402 })
 
   const { data: domains } = await db.from('template_domains').select('*').eq('template_id', campaign.template_id).order('display_order')
   const { data: sections } = await db.from('template_sections').select('*').in('domain_id', (domains ?? []).map((d: any) => d.id)).order('display_order')
@@ -108,5 +113,6 @@ ${digest(scores, notes)}`,
   const text = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('').trim()
   if (!text) return NextResponse.json({ error: msg('Empty answer, please try again.', 'Réponse vide, veuillez réessayer.') }, { status: 502 })
   await db.from('audit_reports').update({ model_used: data.model ?? null }).eq('campaign_id', params.id)
+  await recordAiUsage(user.tenant_id, user.id, params.id)
   return NextResponse.json({ text })
 }

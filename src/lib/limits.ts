@@ -16,7 +16,11 @@ const RESOURCE_LABEL: Record<LimitedResource, { en: string; fr: string }> = {
   properties: { en: 'properties', fr: 'établissements' },
   users: { en: 'users', fr: 'utilisateurs' },
   audits: { en: 'audits this month', fr: 'audits ce mois-ci' },
+  ai: { en: 'AI summaries this month', fr: 'synthèses IA ce mois-ci' },
 }
+
+const DAY = 86400_000
+const GRACE_DAYS = 7
 
 export async function checkPlanLimit(
   tenantId: string,
@@ -30,7 +34,7 @@ export async function checkPlanLimit(
 
   const { data: tenant } = await supabase
     .from('tenants')
-    .select('subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id')
+    .select('subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, billing_mode, current_period_end, extra_properties')
     .eq('id', tenantId)
     .single()
 
@@ -45,7 +49,13 @@ export async function checkPlanLimit(
     !!tenant.trial_ends_at &&
     new Date(tenant.trial_ends_at).getTime() < Date.now()
 
-  if (trialOverdue || BLOCKED_STATUSES.includes(tenant.subscription_status ?? '')) {
+  // MAD prepaid period (YouCan Pay) over, grace period included: same as an ended subscription.
+  const prepaidOver =
+    tenant.billing_mode === 'youcan' &&
+    !!tenant.current_period_end &&
+    new Date(tenant.current_period_end).getTime() + GRACE_DAYS * DAY < Date.now()
+
+  if (trialOverdue || prepaidOver || BLOCKED_STATUSES.includes(tenant.subscription_status ?? '')) {
     return {
       allowed: false,
       code: 'subscription_inactive',
@@ -56,9 +66,15 @@ export async function checkPlanLimit(
     }
   }
 
-  const limits = limitsFor(tenant.subscription_tier, tenant.subscription_status)
+  const limits = limitsFor(tenant.subscription_tier, tenant.subscription_status, tenant.extra_properties ?? 0)
   const max =
-    resource === 'properties' ? limits.properties : resource === 'users' ? limits.users : limits.auditsPerMonth
+    resource === 'properties'
+      ? limits.properties
+      : resource === 'users'
+        ? limits.users
+        : resource === 'audits'
+          ? limits.auditsPerMonth
+          : limits.aiSummariesPerMonth
 
   if (max === null) return { allowed: true, limit: null }
 
@@ -73,8 +89,12 @@ export async function checkPlanLimit(
       current,
       message:
         lang === 'en'
-          ? `Your plan allows up to ${max} ${label}. Upgrade your plan in Billing to add more.`
-          : `Votre forfait permet jusqu'à ${max} ${label}. Passez à un forfait supérieur dans Facturation pour en ajouter.`,
+          ? resource === 'properties'
+            ? `Your plan covers ${max} ${label}. Add a property or change plan in Billing.`
+            : `Your plan allows up to ${max} ${label}. Change plan in Billing to add more.`
+          : resource === 'properties'
+            ? `Votre forfait couvre ${max} ${label}. Ajoutez un établissement ou changez de forfait dans Facturation.`
+            : `Votre forfait permet jusqu'à ${max} ${label}. Changez de forfait dans Facturation pour en ajouter.`,
     }
   }
 
@@ -103,13 +123,30 @@ export async function countUsage(
     return count ?? 0
   }
 
-  // audits: campaigns created this calendar month (UTC)
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+
+  if (resource === 'ai') {
+    const { count } = await supabase
+      .from('ai_usage')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+      .gte('created_at', monthStart)
+    return count ?? 0
+  }
+
+  // audits: campaigns created this calendar month (UTC)
   const { count } = await supabase
     .from('campaigns')
     .select('id', { count: 'exact', head: true })
     .eq('tenant_id', tenantId)
     .gte('created_at', monthStart)
   return count ?? 0
+}
+
+/** Record one AI summary for the monthly quota (best effort). */
+export async function recordAiUsage(tenantId: string, userId: string, campaignId: string) {
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const { error } = await supabase.from('ai_usage').insert({ tenant_id: tenantId, user_id: userId, campaign_id: campaignId, kind: 'summary' })
+  if (error) console.error('[ai usage] insert failed:', error.message)
 }
