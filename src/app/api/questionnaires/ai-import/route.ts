@@ -3,6 +3,9 @@ import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
 import { loadLibrary } from '@/lib/questionnaireLibrary'
 import { CLASSIFICATIONS, MAX_QUESTIONS } from '@/lib/questionnaireImport'
+import { readSpreadsheet, SPREADSHEET_EXT, type Sheet } from '@/lib/spreadsheet'
+import { convertSpreadsheet } from '@/lib/tableImport'
+import { AI_MODEL } from '@/lib/anthropic'
 
 export const maxDuration = 300
 export const runtime = 'nodejs'
@@ -34,22 +37,7 @@ async function toBlocks(file: File | null, pasted: string): Promise<Block[] | { 
     const { value } = await mammoth.extractRawText({ buffer: buf })
     return value.trim() ? [{ type: 'text', text: value.slice(0, MAX_CHARS) }] : { error: 'EMPTY' }
   }
-  if (name.endsWith('.xlsx')) {
-    const ExcelJS = (await import('exceljs')).default
-    const wb = new ExcelJS.Workbook()
-    await wb.xlsx.load(buf as any)
-    const parts: string[] = []
-    wb.eachSheet(ws => {
-      parts.push(`### Sheet: ${ws.name}`)
-      ws.eachRow(row => {
-        const cells = (row.values as any[]).slice(1).map(v => (v == null ? '' : typeof v === 'object' ? (v.text ?? v.result ?? (v.richText ? v.richText.map((r: any) => r.text).join('') : '')) : String(v)))
-        if (cells.some(c => String(c).trim())) parts.push(cells.join('\t'))
-      })
-    })
-    const text = parts.join('\n')
-    return text.trim() ? [{ type: 'text', text: text.slice(0, MAX_CHARS) }] : { error: 'EMPTY' }
-  }
-  if (/\.(csv|txt|tsv|md)$/.test(name) || file.type.startsWith('text/')) {
+  if (/\.(txt|md)$/.test(name) || file.type.startsWith('text/')) {
     const text = buf.toString('utf-8')
     return text.trim() ? [{ type: 'text', text: text.slice(0, MAX_CHARS) }] : { error: 'EMPTY' }
   }
@@ -111,12 +99,39 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null)
   const file = form?.get('file')
+
+  // Spreadsheets: column mapping + row copy + classification (any size, nothing rewritten)
+  if (file instanceof File && file.size && SPREADSHEET_EXT.test(file.name)) {
+    if (file.size > MAX_BYTES) return Response.json({ error: msg('File too large (4 MB maximum).', 'Fichier trop volumineux (4 Mo maximum).') }, { status: 400 })
+    let sheets: Sheet[]
+    try { sheets = readSpreadsheet(Buffer.from(await file.arrayBuffer())) } catch { sheets = [] }
+    if (!sheets.length) return Response.json({ error: msg('This spreadsheet could not be read.', 'Ce tableur est illisible.') }, { status: 400 })
+    const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const library = await loadLibrary(db, user.tenant_id)
+    const enc = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        const send = (o: unknown) => controller.enqueue(enc.encode(JSON.stringify(o) + '\n'))
+        try {
+          const out = await convertSpreadsheet(sheets, library, lang, send)
+          send({ type: 'done', mode: 'table', ...out })
+        } catch (err: any) {
+          console.error('[ai-import] spreadsheet failed', err)
+          send({ type: 'error', error: err?.message === 'NO_QUESTION_COLUMN' || err?.message === 'NO_ROWS'
+            ? msg('No column of standards was found in this spreadsheet.', "Aucune colonne de standards n'a été trouvée dans ce tableur.")
+            : msg('The conversion was interrupted. Please try again.', 'La conversion a été interrompue. Veuillez réessayer.') })
+        }
+        controller.close()
+      },
+    })
+    return new Response(stream, { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store' } })
+  }
   const blocks = await toBlocks(file instanceof File && file.size ? file : null, String(form?.get('text') ?? ''))
   if ('error' in blocks) {
     const e = {
       EMPTY: msg('The document is empty or could not be read.', 'Le document est vide ou illisible.'),
       TOO_BIG: msg('File too large (4 MB maximum). Split it or export it as PDF.', 'Fichier trop volumineux (4 Mo maximum). Découpez-le ou exportez-le en PDF.'),
-      FORMAT: msg('Unsupported format. Use PDF, Word (.docx), Excel (.xlsx), CSV, text or a photo.', 'Format non pris en charge. Utilisez PDF, Word (.docx), Excel (.xlsx), CSV, texte ou une photo.'),
+      FORMAT: msg('Unsupported format. Use PDF, Word (.docx), Excel (.xls, .xlsx), CSV, text or a photo.', 'Format non pris en charge. Utilisez PDF, Word (.docx), Excel (.xls, .xlsx), CSV, texte ou une photo.'),
     }[blocks.error]
     return Response.json({ error: e }, { status: 400 })
   }
@@ -144,7 +159,7 @@ ${names}
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: process.env.CLAUDE_MODEL_IMPORT ?? process.env.CLAUDE_MODEL_DEFAULT ?? 'claude-haiku-4-5-20251001',
+      model: AI_MODEL(),
       max_tokens: 32000,
       stream: true,
       system,

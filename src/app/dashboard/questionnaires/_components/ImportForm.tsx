@@ -31,7 +31,7 @@ const T = {
   },
   download: { en: 'Download a short example', fr: 'Télécharger un petit exemple' },
   name: { en: 'Questionnaire name', fr: 'Nom du questionnaire' },
-  file: { en: 'Excel (.xlsx) or CSV file', fr: 'Fichier Excel (.xlsx) ou CSV' },
+  file: { en: 'Excel (.xls, .xlsx) or CSV file', fr: 'Fichier Excel (.xls, .xlsx) ou CSV' },
   xlsxFailed: { en: 'Could not read this Excel file. Save it as CSV and try again.', fr: 'Impossible de lire ce fichier Excel. Enregistrez-le en CSV et réessayez.' },
   preview: { en: 'Preview', fr: 'Aperçu' },
   summary: (q: number, d: number, s: number, l: Lang) =>
@@ -79,7 +79,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
     const f = e.target.files?.[0]
     if (!f) return
     setError(null)
-    if (/\.xlsx$/i.test(f.name)) {
+    if (/\.xlsx?$/i.test(f.name)) {
       const fd = new FormData()
       fd.append('file', f)
       const res = await fetch('/api/questionnaires/xlsx-to-csv', { method: 'POST', body: fd })
@@ -147,7 +147,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
         </div>
         <div className={styles.field}>
           <label className={styles.label}>{t(T.file)} *</label>
-          <input className={styles.input} type="file" accept=".csv,.xlsx,text/csv,.txt" onChange={onFile} />
+          <input className={styles.input} type="file" accept=".csv,.xls,.xlsx,text/csv,.txt" onChange={onFile} />
         </div>
       </div>
 
