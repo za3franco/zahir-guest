@@ -7,7 +7,7 @@
 export const CLASSIFICATIONS = ['SERVICE', 'EFFICIENCY', 'PRODUCT', 'CLEANLINESS', 'EMOTIONAL_INTELLIGENCE', 'SALES_OPPORTUNITY'] as const
 export type Classification = (typeof CLASSIFICATIONS)[number]
 
-export const MAX_QUESTIONS = 1000
+export const MAX_QUESTIONS = 1500
 
 export interface ParsedRow {
   line: number
