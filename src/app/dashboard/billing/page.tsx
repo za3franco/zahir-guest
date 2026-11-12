@@ -4,8 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { countUsage } from '@/lib/limits'
-import { limitsFor, PLAN_DISPLAY } from '@/lib/plans'
-import { BillingPlans, ManageBillingButton } from './BillingActions'
+import { limitsFor, planName as tierName, TIER_RULES, isPlanTier } from '@/lib/plans'
+import { madEnabled, workspaceCurrency } from '@/lib/billing'
+import { extraHeadroom, GRACE_DAYS, youcanPeriodRunning } from '@/lib/youcanBilling'
+import { BillingPlans, ManageBillingButton, type BillingState } from './BillingActions'
 import styles from './billing.module.css'
 
 const T = {
@@ -22,6 +24,18 @@ const T = {
   properties: { en: 'Properties', fr: 'Établissements' },
   users: { en: 'Users', fr: 'Utilisateurs' },
   audits: { en: 'Audits this month', fr: 'Audits ce mois-ci' },
+  ai: { en: 'AI summaries this month', fr: 'Synthèses IA ce mois-ci' },
+  prepaidUntil: { en: 'Prepaid until', fr: 'Prépayé jusqu’au' },
+  youcan: { en: 'Paid in dirhams (YouCan Pay)', fr: 'Payé en dirhams (YouCan Pay)' },
+  pending: {
+    en: 'Your payment is being confirmed. This page updates within a few minutes; if it does not, contact us with the time of payment.',
+    fr: "Votre paiement est en cours de confirmation. Cette page se met à jour en quelques minutes ; sinon, contactez-nous en indiquant l'heure du paiement.",
+  },
+  prepaidEndedTitle: { en: 'Prepaid period ended', fr: 'Période prépayée terminée' },
+  prepaidEnded: {
+    en: 'Renew below to keep creating properties, users and campaigns. Without renewal, creation pauses on',
+    fr: 'Renouvelez ci-dessous pour continuer à créer établissements, utilisateurs et campagnes. Sans renouvellement, la création sera suspendue le',
+  },
   unlimited: { en: 'Unlimited', fr: 'Illimité' },
   success: {
     en: 'Thank you! Your subscription is being activated. This page updates within a minute.',
@@ -57,6 +71,7 @@ const STATUS: Record<string, { en: string; fr: string; badge: string }> = {
 }
 
 export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string } }) {
+  // checkout = success | cancelled | pending (YouCan Pay return not yet confirmed)
   const user = await requireUser()
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') redirect('/dashboard')
 
@@ -71,21 +86,44 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
   const isInternal = tenant?.subscription_tier === 'za3fran_internal'
   const isDirect = !isInternal && tenant?.billing_mode === 'direct'
-  const limits = limitsFor(tenant?.subscription_tier, tenant?.subscription_status)
+  const limits = limitsFor(tenant?.subscription_tier, tenant?.subscription_status, tenant?.extra_properties ?? 0)
 
-  const [properties, users, audits] = await Promise.all([
+  const [properties, users, audits, ai] = await Promise.all([
     countUsage(supabase, user.tenant_id, 'properties'),
     countUsage(supabase, user.tenant_id, 'users'),
     countUsage(supabase, user.tenant_id, 'audits'),
+    countUsage(supabase, user.tenant_id, 'ai'),
   ])
 
   const meters = [
     { label: t(T.properties), used: properties, max: limits.properties },
     { label: t(T.users), used: users, max: limits.users },
     { label: t(T.audits), used: audits, max: limits.auditsPerMonth },
+    { label: t(T.ai), used: ai, max: limits.aiSummariesPerMonth },
   ]
 
-  const planName = PLAN_DISPLAY.find(p => p.tier === tenant?.subscription_tier)?.name
+  const planName = tierName(tenant?.subscription_tier, lang)
+  const isYoucan = tenant?.billing_mode === 'youcan'
+  const youcanRunning = !!tenant && youcanPeriodRunning(tenant)
+  const prepaidEnded = isYoucan && !!tenant?.current_period_end && !youcanRunning
+  const graceEnd = tenant?.current_period_end ? new Date(new Date(tenant.current_period_end).getTime() + GRACE_DAYS * 86400_000).toISOString() : null
+  const currency = workspaceCurrency(tenant)
+  const currencyLocked = !!tenant?.stripe_customer_id || isYoucan
+  const tier = isPlanTier(tenant?.subscription_tier) ? tenant!.subscription_tier : null
+  const billingState: BillingState = {
+    mode: tenant?.stripe_subscription_id && ['active', 'trialing', 'past_due'].includes(tenant?.subscription_status ?? '')
+      ? 'stripe'
+      : isYoucan
+        ? 'youcan'
+        : 'none',
+    currentTier: tenant?.subscription_status === 'trialing' ? null : tier,
+    currentInterval: tenant?.billing_interval ?? null,
+    currentProperties: tier ? TIER_RULES[tier as keyof typeof TIER_RULES].includedProperties + (tenant?.extra_properties ?? 0) : 1,
+    propertiesUsed: properties,
+    periodEnd: tenant?.current_period_end ?? null,
+    youcanRunning,
+    extraHeadroom: tenant ? extraHeadroom(tenant) : 0,
+  }
   const status = tenant?.cancel_at_period_end && ['active', 'trialing', 'past_due'].includes(tenant?.subscription_status ?? '')
     ? { en: 'Cancelled — ends soon', fr: 'Annulé — fin prochaine', badge: 'badge-red' }
     : STATUS[tenant?.subscription_status ?? '']
@@ -101,6 +139,13 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
       {searchParams.checkout === 'success' && <div className={`${styles.notice} ${styles.noticeSuccess}`}>{t(T.success)}</div>}
       {searchParams.checkout === 'cancelled' && <div className={styles.notice}>{t(T.cancelled)}</div>}
+      {searchParams.checkout === 'pending' && <div className={styles.notice}>{t(T.pending)}</div>}
+      {!isInternal && !isDirect && prepaidEnded && tenant?.subscription_status === 'active' && (
+        <div className={`${styles.notice} ${styles.noticeWarn}`} role="alert">
+          <strong>{t(T.prepaidEndedTitle)}</strong>
+          <p>{t(T.prepaidEnded)} {fmt(graceEnd)}.</p>
+        </div>
+      )}
 
       {!isInternal && !isDirect && tenant?.cancel_at_period_end && hasActiveSubscription && (
         <div className={`${styles.notice} ${styles.noticeDanger}`} role="alert">
@@ -144,7 +189,8 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
             )}
             {tenant?.current_period_end && (
               <p className={styles.muted}>
-                {tenant.cancel_at_period_end ? t(T.cancelsOn) : t(T.renews)} {fmt(tenant.current_period_end)}
+                {isYoucan ? t(T.prepaidUntil) : tenant.cancel_at_period_end ? t(T.cancelsOn) : t(T.renews)} {fmt(tenant.current_period_end)}
+                {isYoucan ? ` · ${t(T.youcan)}` : ''}
               </p>
             )}
             {tenant?.stripe_customer_id && (
@@ -181,7 +227,13 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       {!isInternal && !isDirect && (
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>{t(T.plans)}</h2>
-          <BillingPlans lang={lang} currentTier={tenant?.subscription_tier ?? null} hasActiveSubscription={hasActiveSubscription} />
+          <BillingPlans
+            lang={lang}
+            initialCurrency={currency}
+            currencyLocked={currencyLocked}
+            madEnabled={madEnabled()}
+            state={billingState}
+          />
         </section>
       )}
     </div>

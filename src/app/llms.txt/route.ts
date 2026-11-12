@@ -1,5 +1,5 @@
 import { COPY, FAQS } from '@/lib/landingContent'
-import { PLAN_DISPLAY } from '@/lib/plans'
+import { PLAN_FEATURES, PLAN_NAMES, PRICE_GRID, type PlanTier } from '@/lib/plans'
 import { SITE_URL, SUPPORT_EMAIL } from '@/lib/site'
 
 export const dynamic = 'force-static'
@@ -7,7 +7,15 @@ export const dynamic = 'force-static'
 // llms.txt: a plain-text summary of the product for AI assistants and answer engines.
 export function GET() {
   const en = COPY.en
-  const plans = PLAN_DISPLAY.map(p => `- ${p.name}: €${p.monthlyEur}/month${p.annualEur ? ` (or €${p.annualEur}/year)` : ''}. ${p.featuresEn.join(', ')}.`).join('\n')
+  const tiers: PlanTier[] = ['starter', 'professional', 'enterprise']
+  const plans = tiers.map(t => {
+    const eur = PRICE_GRID.EUR[t]
+    const usd = PRICE_GRID.USD[t]
+    const mad = PRICE_GRID.MAD[t]
+    const from = t === 'enterprise' ? 'from ' : ''
+    const extra = eur.extra ? ` (+€${eur.extra} per extra property)` : ''
+    return `- ${PLAN_NAMES[t].en}: ${from}€${eur.base}/month${extra}; $${usd.base}/month; MAD ${mad.base}/month (prepaid). ${PLAN_FEATURES[t].en.join(', ')}.`
+  }).join('\n')
   const faq = FAQS.en.map(f => `### ${f.q}\n${f.a}`).join('\n\n')
 
   const body = `# Zahir Guest
@@ -22,7 +30,7 @@ ${en.audience.items.map(i => `- ${i.t}: ${i.d}`).join('\n')}
 ## Key features
 ${en.features.items.map(i => `- ${i.t}: ${i.d}`).join('\n')}
 
-## Pricing (14-day free trial, no credit card)
+## Pricing (per property; 14-day free trial, no credit card; annual = 2 months free)
 ${plans}
 
 ## Pages

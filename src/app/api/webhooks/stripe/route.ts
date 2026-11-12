@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { planFromPriceId, PLAN_DISPLAY } from '@/lib/plans'
+import { planFromPrice, planName } from '@/lib/plans'
 import { stripeRequest, subscriptionPeriodEnd, verifyStripeSignature } from '@/lib/stripe'
 import { sendWelcomeEmail } from '@/lib/billingEmails'
 import { createTenantWithAdmin } from '@/lib/tenants'
@@ -14,19 +14,30 @@ function admin() {
 }
 
 function subscriptionFields(sub: any) {
-  const priceId = sub?.items?.data?.[0]?.price?.id
-  const plan = planFromPriceId(priceId)
+  // Grid v2: one base item (the plan) and optionally one "extra property" item with a quantity.
+  let plan: { tier: any; interval: 'monthly' | 'annual' } | null = null
+  let extra = 0
+  for (const it of sub?.items?.data ?? []) {
+    const p = planFromPrice(it.price)
+    if (!p) continue
+    if (p.kind === 'base') plan = { tier: p.tier, interval: p.interval }
+    else extra += it.quantity ?? 0
+  }
   const fields: Record<string, unknown> = {
     subscription_status: sub.status,
     stripe_subscription_id: sub.id,
     current_period_end: subscriptionPeriodEnd(sub),
     cancel_at_period_end: !!sub.cancel_at_period_end,
+    billing_mode: 'stripe',
+    extra_properties: extra,
   }
+  const cur = String(sub?.currency ?? '').toUpperCase()
+  if (cur === 'EUR' || cur === 'USD') fields.billing_currency = cur
   if (plan) {
     fields.subscription_tier = plan.tier
     fields.billing_interval = plan.interval
   } else {
-    console.error('[stripe webhook] unknown price id, tier left unchanged:', priceId)
+    console.error('[stripe webhook] no Zahir Guest plan price on subscription, tier left unchanged:', sub?.id)
   }
   return { fields, plan }
 }
@@ -109,7 +120,7 @@ async function handleCheckoutCompleted(supabase: ReturnType<typeof admin>, sessi
         name: adminName,
         email,
         companyName,
-        planName: PLAN_DISPLAY.find(p => p.tier === plan?.tier)?.name ?? 'Zahir Guest',
+        planName: planName(plan?.tier, lang) ?? 'Zahir Guest',
         setPasswordLink: created.setPasswordLink,
         lang,
       })

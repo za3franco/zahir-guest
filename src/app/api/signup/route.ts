@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
-import { isPlanTier, PLAN_DISPLAY, TRIAL_DAYS } from '@/lib/plans'
+import { isPlanTier, planName, TRIAL_DAYS } from '@/lib/plans'
 import { createTenantWithAdmin } from '@/lib/tenants'
+import { isCurrency, madPaymentsEnabled } from '@/lib/currency'
 import { sendWelcomeEmail } from '@/lib/billingEmails'
 
 export const runtime = 'nodejs'
@@ -31,7 +32,9 @@ export async function POST(request: Request) {
   const companyName = String(body.companyName ?? '').trim().slice(0, 120)
   const adminName = String(body.name ?? '').trim().slice(0, 120)
   const email = String(body.email ?? '').trim().toLowerCase().slice(0, 200)
-  const plan = isPlanTier(body.plan) ? body.plan : 'professional'
+  const plan = isPlanTier(body.plan) && body.plan !== 'enterprise' ? body.plan : 'professional'
+  // Currency shown to the visitor; it can still change until the first payment.
+  const currency = isCurrency(body.currency) && (body.currency !== 'MAD' || madPaymentsEnabled()) ? body.currency : 'EUR'
 
   if (!companyName || !adminName || !EMAIL_RE.test(email)) {
     return NextResponse.json(
@@ -84,6 +87,7 @@ export async function POST(request: Request) {
         subscription_tier: plan, // explicit: the column default would be the unlimited internal tier
         subscription_status: 'trialing',
         trial_ends_at: trialEndsAt,
+        billing_currency: currency,
       },
     })
 
@@ -92,7 +96,7 @@ export async function POST(request: Request) {
         name: adminName,
         email,
         companyName,
-        planName: PLAN_DISPLAY.find(p => p.tier === plan)?.name ?? 'Zahir Guest',
+        planName: planName(plan, lang) ?? 'Zahir Guest',
         setPasswordLink: created.setPasswordLink,
         lang,
         trialDays: TRIAL_DAYS,

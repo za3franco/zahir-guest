@@ -3,9 +3,17 @@
 //
 // The Stripe account is shared with Za3fran: only Zahir Guest prices are counted
 // (prices whose metadata.app is "zahir-guest", plus the STRIPE_PRICE_* env prices).
+// Multi-currency (ZG-5): amounts in USD (Stripe) and MAD (YouCan Pay payments) are converted to EUR at the
+// fixed rates of lib/currency (EUR_PER_UNIT) so totals add up; the breakdown per currency keeps native amounts.
 
 import { stripeRequest } from '@/lib/stripe'
-import { PLAN_DISPLAY } from '@/lib/plans'
+import { planFromPrice, planName } from '@/lib/plans'
+import { EUR_PER_UNIT, isCurrency, type Currency } from '@/lib/currency'
+
+const toEur = (cents: number, cur: string | null | undefined) => {
+  const c = String(cur ?? 'eur').toUpperCase()
+  return Math.round(cents * (isCurrency(c) ? EUR_PER_UNIT[c as Currency] : 1))
+}
 
 const DAY = 86400_000
 
@@ -16,8 +24,10 @@ export interface SubRow {
   customerName: string
   plan: string
   interval: 'month' | 'year'
-  /** Net monthly value in cents (annual / 12), after recurring discounts */
+  /** Net monthly value in EUR cents (annual / 12), after recurring discounts */
   mrrCents: number
+  /** Same, in the subscription's own currency */
+  nativeMrrCents: number
   /** Amount billed each period in cents, after recurring discounts */
   periodCents: number
   currency: string
@@ -58,6 +68,8 @@ export interface SalesData {
   byPlan: { plan: string; count: number; mrrCents: number }[]
   byInterval: { interval: string; count: number; mrrCents: number }[]
   otherCurrencies: string[]
+  byCurrency: { currency: string; count: number; nativeMrrCents: number; mrrCents: number }[]
+  youcanRevenue12Cents: number
   generatedAt: number
 }
 
@@ -84,9 +96,8 @@ async function zahirPriceIds(): Promise<Set<string>> {
 }
 
 function planLabel(price: any): string {
-  const tier = price?.metadata?.tier
-  const name = PLAN_DISPLAY.find(p => p.tier === tier)?.name
-  return name ?? price?.nickname ?? 'Other'
+  const tier = planFromPrice(price)?.tier ?? price?.metadata?.tier
+  return planName(tier, 'en') ?? price?.nickname ?? 'Other'
 }
 
 /** Recurring discount on a subscription (percent or amount), applied to the period amount. */
@@ -109,7 +120,12 @@ function monthKey(ms: number) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
 }
 
-export async function loadSales(tenantsByCustomer: Map<string, { id: string; name: string }>): Promise<SalesData> {
+export interface YoucanPaymentRow { amount_minor: number; currency: string; paid_at: string }
+
+export async function loadSales(
+  tenantsByCustomer: Map<string, { id: string; name: string }>,
+  youcanPayments: YoucanPaymentRow[] = []
+): Promise<SalesData> {
   const priceIds = await zahirPriceIds()
   const now = Date.now()
 
@@ -124,7 +140,7 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
   for (const s of rawSubs) {
     const items = (s.items?.data ?? []).filter((it: any) => priceIds.has(it.price?.id))
     if (!items.length) continue
-    const price = items[0].price
+    const price = (items.find((it: any) => planFromPrice(it.price)?.kind === 'base') ?? items[0]).price
     const interval: 'month' | 'year' = price?.recurring?.interval === 'year' ? 'year' : 'month'
     const intervalCount = price?.recurring?.interval_count ?? 1
     const gross = items.reduce((sum: number, it: any) => sum + (it.price?.unit_amount ?? 0) * (it.quantity ?? 1), 0)
@@ -139,8 +155,9 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
       customerName: tenant?.name ?? s.customer?.name ?? s.customer?.email ?? customerId,
       plan: planLabel(price),
       interval,
-      mrrCents: Math.round(period / months),
-      periodCents: period,
+      mrrCents: toEur(Math.round(period / months), s.currency),
+      nativeMrrCents: Math.round(period / months),
+      periodCents: toEur(period, s.currency),
       currency: s.currency ?? 'eur',
       status: s.status,
       created: (s.start_date ?? s.created) * 1000,
@@ -151,9 +168,9 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
     })
   }
 
-  const currency = 'eur'
+  const currency = 'eur' // reporting currency: everything below is in EUR (converted)
   const otherCurrencies = Array.from(new Set(subs.map(s => s.currency).filter(c => c !== currency)))
-  const eurSubs = subs.filter(s => s.currency === currency)
+  const eurSubs = subs
   const live = eurSubs.filter(s => ['active', 'past_due', 'trialing'].includes(s.status))
   const mrrCents = live.filter(s => s.status !== 'trialing').reduce((n, s) => n + s.mrrCents, 0)
   const paying = live.filter(s => s.status !== 'trialing')
@@ -168,7 +185,6 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
   let revenueYtdCents = 0
   const yearStart = Date.UTC(new Date(now).getUTCFullYear(), 0, 1)
   for (const inv of invoices) {
-    if ((inv.currency ?? 'eur') !== currency) continue
     let net = 0
     for (const line of inv.lines?.data ?? []) {
       const pid = line.pricing?.price_details?.price ?? line.price?.id
@@ -176,8 +192,21 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
       const discount = (line.discount_amounts ?? []).reduce((n: number, d: any) => n + (d.amount ?? 0), 0)
       net += (line.amount ?? 0) - discount
     }
+    net = toEur(net, inv.currency)
     if (net <= 0) continue
     const paidAt = (inv.status_transitions?.paid_at ?? inv.created) * 1000
+    revenueByMonth.set(monthKey(paidAt), (revenueByMonth.get(monthKey(paidAt)) ?? 0) + net)
+    if (paidAt >= now - 30 * DAY) revenue30Cents += net
+    if (paidAt >= yearStart) revenueYtdCents += net
+  }
+
+  // ── YouCan Pay (MAD prepaid periods) ─────────────────
+  let youcanRevenue12Cents = 0
+  for (const p of youcanPayments) {
+    const paidAt = new Date(p.paid_at).getTime()
+    if (!Number.isFinite(paidAt) || paidAt < since.getTime()) continue
+    const net = toEur(Number(p.amount_minor) || 0, p.currency)
+    youcanRevenue12Cents += net
     revenueByMonth.set(monthKey(paidAt), (revenueByMonth.get(monthKey(paidAt)) ?? 0) + net)
     if (paidAt >= now - 30 * DAY) revenue30Cents += net
     if (paidAt >= yearStart) revenueYtdCents += net
@@ -189,9 +218,9 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
   let openInvoicesCount = 0
   for (const inv of open) {
     const zahir = (inv.lines?.data ?? []).some((l: any) => priceIds.has(l.pricing?.price_details?.price ?? l.price?.id))
-    if (!zahir || (inv.currency ?? 'eur') !== currency) continue
+    if (!zahir) continue
     openInvoicesCount++
-    openInvoicesCents += inv.amount_remaining ?? 0
+    openInvoicesCents += toEur(inv.amount_remaining ?? 0, inv.currency)
   }
 
   // ── Month series (12 months, oldest first) ────────────
@@ -251,6 +280,19 @@ export async function loadSales(tenantsByCustomer: Map<string, { id: string; nam
     byPlan: group('plan').map(g => ({ plan: g.name, count: g.count, mrrCents: g.mrrCents })),
     byInterval: group('interval').map(g => ({ interval: g.name, count: g.count, mrrCents: g.mrrCents })),
     otherCurrencies,
+    byCurrency: (() => {
+      const m = new Map<string, { count: number; nativeMrrCents: number; mrrCents: number }>()
+      for (const sub of paying) {
+        const k = sub.currency.toUpperCase()
+        const g = m.get(k) ?? { count: 0, nativeMrrCents: 0, mrrCents: 0 }
+        g.count++
+        g.nativeMrrCents += sub.nativeMrrCents
+        g.mrrCents += sub.mrrCents
+        m.set(k, g)
+      }
+      return Array.from(m.entries()).map(([c, g]) => ({ currency: c, ...g }))
+    })(),
+    youcanRevenue12Cents,
     generatedAt: now,
   }
 }
