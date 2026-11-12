@@ -13,6 +13,15 @@ const T = {
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   saved: { en: 'Saved ✓', fr: 'Enregistré ✓' },
   charCount: { en: 'characters', fr: 'caractères' },
+  ai: { en: 'Draft with AI', fr: "Rédiger avec l'IA" },
+  aiWorking: { en: 'Writing… (about 20 seconds)', fr: 'Rédaction… (environ 20 secondes)' },
+  aiLang: { en: 'Language', fr: 'Langue' },
+  both: { en: 'French + English', fr: 'Français + anglais' },
+  aiReplace: { en: 'Replace the current text with an AI draft?', fr: 'Remplacer le texte actuel par un brouillon IA ?' },
+  aiNote: {
+    en: 'AI draft based on the audit answers and auditor notes, with recommendations. Read and adjust it, then save.',
+    fr: "Brouillon rédigé par l'IA à partir des réponses et des notes de l'auditeur, avec des recommandations. Relisez-le, ajustez-le, puis enregistrez.",
+  },
   tips: {
     title: { en: 'Writing tips', fr: 'Conseils de rédaction' },
     items: {
@@ -45,6 +54,25 @@ export default function ExecutiveSummaryEditor({ campaignId, existingSummary, la
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [summary, setSummary] = useState(existingSummary)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [aiLang, setAiLang] = useState<'fr' | 'en' | 'both'>(lang === 'en' ? 'en' : 'fr')
+  const [aiBusy, setAiBusy] = useState(false)
+  const [aiDone, setAiDone] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  async function draftWithAi() {
+    if (summary.trim() && !window.confirm(t(T.aiReplace))) return
+    setAiBusy(true); setAiError(null)
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/ai-summary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: aiLang }) })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || 'Error')
+      setSummary(json.text); setAiDone(true); setStatus('idle')
+    } catch (e: any) {
+      setAiError(e.message)
+    } finally {
+      setAiBusy(false)
+    }
+  }
 
   async function handleSave() {
     setStatus('saving')
@@ -97,6 +125,19 @@ export default function ExecutiveSummaryEditor({ campaignId, existingSummary, la
           </div>
         </div>
 
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={draftWithAi} disabled={aiBusy}>
+            {aiBusy ? t(T.aiWorking) : `✦ ${t(T.ai)}`}
+          </button>
+          <select value={aiLang} onChange={e => setAiLang(e.target.value as 'fr' | 'en' | 'both')} disabled={aiBusy} aria-label={t(T.aiLang)}
+            style={{ background: 'var(--color-slate-navy)', border: '1px solid var(--color-border-subtle)', borderRadius: 8, color: 'var(--color-ivory)', fontSize: 16, padding: '6px 10px', width: 'auto' }}>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="both">{t(T.both)}</option>
+          </select>
+          {aiError && <span style={{ color: '#E8897E', fontSize: '0.875rem' }}>{aiError}</span>}
+        </div>
+        {aiDone && <p style={{ color: 'var(--color-gold)', fontSize: '0.8125rem', margin: '0 0 8px' }}>{t(T.aiNote)}</p>}
         <textarea
           className={styles.editor}
           value={summary}
