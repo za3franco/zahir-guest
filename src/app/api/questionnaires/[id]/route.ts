@@ -17,3 +17,24 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
+
+// Deletes a workspace questionnaire. Refused when campaigns use it (their reports depend on it): archive it instead.
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  const user = await requireUser()
+  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const { data: tpl } = await db.from('questionnaire_templates').select('id').eq('id', params.id).eq('tenant_id', user.tenant_id).maybeSingle()
+  if (!tpl) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const { count } = await db.from('campaigns').select('id', { count: 'exact', head: true }).eq('template_id', params.id)
+  if (count) {
+    return NextResponse.json({
+      error: lang === 'en'
+        ? `This questionnaire is used by ${count} campaign${count > 1 ? 's' : ''}, so it cannot be deleted. Archive it instead: it will no longer be offered for new campaigns.`
+        : `Ce questionnaire est utilisé par ${count} campagne${count > 1 ? 's' : ''} et ne peut pas être supprimé. Archivez-le plutôt : il ne sera plus proposé pour les nouvelles campagnes.`,
+    }, { status: 409 })
+  }
+  const { error } = await db.from('questionnaire_templates').delete().eq('id', params.id).eq('tenant_id', user.tenant_id) // cascades
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

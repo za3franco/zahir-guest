@@ -15,6 +15,16 @@ export default function QuestionnaireActions({ id, name, active, lang }: { id: s
     router.refresh()
   }
 
+  async function remove() {
+    if (!window.confirm(en ? `Delete “${name}” permanently?` : `Supprimer définitivement « ${name} » ?`)) return
+    setBusy(true)
+    const res = await fetch(`/api/questionnaires/${id}`, { method: 'DELETE' })
+    const json = await res.json().catch(() => ({}))
+    setBusy(false)
+    if (!res.ok) { window.alert(json.error || (en ? 'Could not delete.' : 'Suppression impossible.')); return }
+    router.refresh()
+  }
+
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       <button
@@ -30,6 +40,9 @@ export default function QuestionnaireActions({ id, name, active, lang }: { id: s
       </button>
       <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => patch({ is_active: !active })}>
         {active ? (en ? 'Archive' : 'Archiver') : (en ? 'Restore' : 'Restaurer')}
+      </button>
+      <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={remove} style={{ color: '#E8897E' }}>
+        {en ? 'Delete' : 'Supprimer'}
       </button>
     </div>
   )
