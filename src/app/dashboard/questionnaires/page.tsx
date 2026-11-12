@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
-import NewQuestionnaire from './_components/NewQuestionnaire'
 import QuestionnaireActions from './_components/QuestionnaireActions'
 import styles from './questionnaires.module.css'
 
@@ -14,12 +13,12 @@ const T = {
     en: 'The audit questionnaires you can use in campaigns: Zahir Guest standards and your own.',
     fr: "Les questionnaires d'audit utilisables dans vos campagnes : ceux de Zahir Guest et les vôtres.",
   },
-  import: { en: 'Import a file', fr: 'Importer un fichier' },
+  create: { en: 'New questionnaire', fr: 'Nouveau questionnaire' },
   mine: { en: 'Your questionnaires', fr: 'Vos questionnaires' },
   platform: { en: 'Zahir Guest standards', fr: 'Standards Zahir Guest' },
   emptyMine: {
-    en: 'No questionnaire of your own yet. Create one (blank or as a copy of the Zahir Guest standard), or import a file.',
-    fr: "Aucun questionnaire à vous pour l'instant. Créez-en un (vide ou copie du standard Zahir Guest), ou importez un fichier.",
+    en: 'No questionnaire of your own yet. Click “New questionnaire”: pick the departments to audit from our standards, or convert your own standards with AI.',
+    fr: "Aucun questionnaire à vous pour l'instant. Cliquez sur « Nouveau questionnaire » : choisissez les services à auditer dans nos standards, ou convertissez vos propres standards avec l'IA.",
   },
   questions: { en: 'questions', fr: 'questions' },
   edit: { en: 'Edit', fr: 'Modifier' },
@@ -68,10 +67,9 @@ export default async function QuestionnairesPage() {
           <p className={styles.subtitle}>{t(T.subtitle)}</p>
         </div>
         <div className={styles.actions}>
-          <a href="/dashboard/questionnaires/import" className="btn btn-ghost btn-sm">{t(T.import)}</a>
+          <a href="/dashboard/questionnaires/new" className="btn btn-primary btn-sm">+ {t(T.create)}</a>
         </div>
       </div>
-      <NewQuestionnaire lang={lang} templates={(templates ?? []).filter(x => x.is_active).map(x => ({ id: x.id, name: x.name }))} />
 
       <div className={styles.panel}>
         <h2 className={styles.panelTitle}>{t(T.mine)}</h2>

@@ -9,19 +9,19 @@ type Lang = 'en' | 'fr'
 
 const T = {
   title: { en: 'Import a questionnaire', fr: 'Importer un questionnaire' },
-  back: { en: '← Questionnaires', fr: '← Questionnaires' },
+  back: { en: '← New questionnaire', fr: '← Nouveau questionnaire' },
   how: { en: 'How it works', fr: 'Comment ça marche' },
   s1: {
     en: 'Download the full Zahir Guest questionnaire (all domains, sections and questions already filled in) or the short example, and open it in Excel.',
     fr: 'Téléchargez le questionnaire Zahir Guest complet (domaines, sections et questions déjà remplis) ou le petit exemple, et ouvrez-le dans Excel.',
   },
   s2: {
-    en: 'Edit, delete or add rows (one row = one question), then save as CSV: in Excel, File → Save as → “CSV (semicolon/comma delimited)”; in Google Sheets, File → Download → CSV.',
-    fr: 'Modifiez, supprimez ou ajoutez des lignes (une ligne = une question), puis enregistrez en CSV : dans Excel, Fichier → Enregistrer sous → « CSV (séparateur : point-virgule) » ; dans Google Sheets, Fichier → Télécharger → CSV.',
+    en: 'Delete the rows you do not need and add yours (one row = one question). Save it as Excel (.xlsx) or CSV — both are accepted.',
+    fr: 'Supprimez les lignes inutiles et ajoutez les vôtres (une ligne = une question). Enregistrez en Excel (.xlsx) ou en CSV : les deux sont acceptés.',
   },
   tip: {
-    en: 'Prefer working on screen? Use “Create a questionnaire” on the Questionnaires page instead: you can copy the Zahir Guest standard and edit it directly in the app.',
-    fr: "Vous préférez travailler à l'écran ? Utilisez plutôt « Créer un questionnaire » sur la page Questionnaires : vous pouvez copier le standard Zahir Guest et le modifier directement dans l'application.",
+    en: 'Your file has a different layout? Use “Convert your own standards”: the AI reformats any document for you.',
+    fr: "Votre fichier a une autre présentation ? Utilisez « Convertir vos propres standards » : l'IA remet n'importe quel document au bon format.",
   },
   downloadFull: { en: 'Download the full questionnaire', fr: 'Télécharger le questionnaire complet' },
   s3: { en: 'Choose the file below, check the preview, then import.', fr: "Choisissez le fichier ci-dessous, vérifiez l'aperçu, puis importez." },
@@ -31,7 +31,8 @@ const T = {
   },
   download: { en: 'Download a short example', fr: 'Télécharger un petit exemple' },
   name: { en: 'Questionnaire name', fr: 'Nom du questionnaire' },
-  file: { en: 'CSV file', fr: 'Fichier CSV' },
+  file: { en: 'Excel (.xlsx) or CSV file', fr: 'Fichier Excel (.xlsx) ou CSV' },
+  xlsxFailed: { en: 'Could not read this Excel file. Save it as CSV and try again.', fr: 'Impossible de lire ce fichier Excel. Enregistrez-le en CSV et réessayez.' },
   preview: { en: 'Preview', fr: 'Aperçu' },
   summary: (q: number, d: number, s: number, l: Lang) =>
     l === 'en' ? `${q} questions, ${d} domains, ${s} sections` : `${q} questions, ${d} domaines, ${s} sections`,
@@ -77,7 +78,14 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    setCsv(await f.text())
+    setError(null)
+    if (/\.xlsx$/i.test(f.name)) {
+      const fd = new FormData()
+      fd.append('file', f)
+      const res = await fetch('/api/questionnaires/xlsx-to-csv', { method: 'POST', body: fd })
+      if (!res.ok) { setError(t(T.xlsxFailed)); return }
+      setCsv(await res.text())
+    } else setCsv(await f.text())
     if (!name) setName(f.name.replace(/\.[^.]+$/, ''))
   }
 
@@ -109,7 +117,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
   return (
     <div className={styles.page}>
       <div>
-        <a href="/dashboard/questionnaires" className={styles.muted}>{t(T.back)}</a>
+        <a href="/dashboard/questionnaires/new" className={styles.muted}>{t(T.back)}</a>
         <h1 className={styles.title}>{t(T.title)}</h1>
       </div>
 
@@ -129,7 +137,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
           ))}
           <button type="button" className="btn btn-ghost btn-sm" onClick={downloadTemplate}>{t(T.download)}</button>
         </div>
-        <p className={styles.muted} style={{ margin: 0 }}>{t(T.tip)}</p>
+        <p className={styles.muted} style={{ margin: 0 }}>{t(T.tip)} <a href="/dashboard/questionnaires/ai-import" style={{ color: 'var(--color-gold)' }}>→</a></p>
       </div>
 
       <div className={styles.panel}>
@@ -139,7 +147,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
         </div>
         <div className={styles.field}>
           <label className={styles.label}>{t(T.file)} *</label>
-          <input className={styles.input} type="file" accept=".csv,text/csv,.txt" onChange={onFile} />
+          <input className={styles.input} type="file" accept=".csv,.xlsx,text/csv,.txt" onChange={onFile} />
         </div>
       </div>
 
