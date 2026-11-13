@@ -4,11 +4,15 @@ import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
 import { toCsv } from '@/lib/questionnaireImport'
 import { loadTemplateTree } from '@/lib/questionnaireTree'
+import { libraryLockedResponse } from '@/lib/limits'
 
 // Downloads a questionnaire (platform standard or your own) as a CSV you can edit and re-import.
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
   if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  // Exports (the library above all) are for paying plans and pilots only.
+  const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
+  if (locked) return locked
   const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const tree = await loadTemplateTree(db, params.id, user.tenant_id)
   if (!tree) return NextResponse.json({ error: 'Not found' }, { status: 404 })

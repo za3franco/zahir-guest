@@ -3,6 +3,8 @@ import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
 import { checkPlanLimit } from '@/lib/limits'
+import { isAdminRole } from '@/lib/access'
+import { checkCampaignRefs } from '@/lib/campaignRefs'
 
 export async function POST(request: Request) {
   const user = await requireUser()
@@ -13,12 +15,22 @@ export async function POST(request: Request) {
   )
 
   const lang = user.default_language === 'en' ? 'en' : 'fr'
+  if (!isAdminRole(user.role)) {
+    return NextResponse.json({ error: lang === 'en' ? 'Not allowed' : 'Non autorisé' }, { status: 403 })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  const refError = await checkCampaignRefs(
+    user.tenant_id,
+    { property_id: body.property_id, auditor_user_id: body.auditor_user_id ?? null, template_id: body.template_id },
+    lang
+  )
+  if (refError) return NextResponse.json({ error: refError }, { status: 400 })
+
   const limit = await checkPlanLimit(user.tenant_id, 'audits', lang)
   if (!limit.allowed) {
     return NextResponse.json({ error: limit.message, code: limit.code }, { status: 402 })
   }
-
-  const body = await request.json()
 
   const { data, error } = await supabaseAdmin
     .from('campaigns')

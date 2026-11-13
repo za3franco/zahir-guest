@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
+import { libraryLockedResponse } from '@/lib/limits'
 import { parseQuestionnaire } from '@/lib/questionnaireImport'
 
 // Creates a questionnaire template owned by the workspace from the text of a CSV file.
@@ -9,6 +10,10 @@ import { parseQuestionnaire } from '@/lib/questionnaireImport'
 export async function POST(request: Request) {
   const user = await requireUser()
   if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  {
+    const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
+    if (locked) return locked
+  }
   const lang = user.default_language === 'en' ? 'en' : 'fr'
 
   const body = await request.json().catch(() => null)

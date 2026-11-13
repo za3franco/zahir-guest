@@ -68,7 +68,8 @@ export default function CreateTenantForm() {
         </label>
         <label>Billing
           <select value={f.mode} onChange={e => set('mode', e.target.value)}>
-            <option value="trial">Free trial, then Stripe (self-serve)</option>
+            <option value="trial">Pilot (plan features for N days, then free Discovery plan)</option>
+            <option value="free">Free Discovery plan</option>
             <option value="direct">Direct contract (active now, billed outside Stripe)</option>
           </select>
         </label>
@@ -85,7 +86,9 @@ export default function CreateTenantForm() {
       <p className={styles.note}>
         {f.mode === 'direct'
           ? 'Direct contract: the workspace is active immediately with the plan limits, has no trial and no Stripe checkout. Suspend it yourself if the contract ends.'
-          : 'Trial: same as a public signup. At the end of the trial the admin is asked to subscribe through Stripe.'}
+          : f.mode === 'free'
+            ? 'Discovery: same as a public sign-up (1 property, 2 users, 1 audit per quarter, Essential questionnaire).'
+            : 'Pilot: the chosen plan for N days (usually Professional, 14 days). Afterwards the workspace falls back to the free Discovery plan unless the admin subscribes.'}
       </p>
       {error && <p className={styles.error}>{error}</p>}
       {done && <p className={styles.success}>{done}</p>}

@@ -43,7 +43,15 @@
 
 .fine { text-align: center; color: #5E5A52; font-size: 0.8125rem; margin-top: var(--space-6); line-height: 1.6; }
 
+.freeBand { margin-top: var(--space-6); background: #FFFFFF; border: 1px dashed #CDBF9F; border-radius: 14px; padding: var(--space-6); display: grid; grid-template-columns: 1.1fr 2fr auto; gap: var(--space-6); align-items: center; color: var(--color-deep-ink); }
+.freeHead .planFor { min-height: 0; }
+.freePrice { font-family: var(--font-display); font-size: 1.5rem; color: var(--color-deep-ink); margin-top: 2px; }
+.freeList { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.875rem; color: #3E3A33; }
+.freeList li::before { content: '✓'; color: var(--color-gold); font-weight: 700; margin-right: 6px; }
+.freeBand > a { white-space: nowrap; }
+
 @media (max-width: 900px) {
+  .freeBand { grid-template-columns: 1fr; max-width: 460px; margin-left: auto; margin-right: auto; margin-top: var(--space-8); }
   .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; gap: var(--space-8); }
   .planFor { min-height: 0; }
 }

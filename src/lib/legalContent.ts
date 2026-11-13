@@ -128,8 +128,8 @@ export const TERMS: Record<Lang, LegalDoc> = {
         "Vous devez fournir des informations exactes et protéger vos identifiants. Vous êtes responsable des actions réalisées depuis votre espace et des utilisateurs que vous invitez, dont vous garantissez qu'ils sont autorisés à utiliser le service pour votre compte.",
         "Le service est réservé aux personnes majeures agissant à titre professionnel.",
       ] },
-      { h: '3. Essai gratuit', p: [
-        "Un essai gratuit de 14 jours, sans carte bancaire, est proposé aux nouveaux espaces. À l'issue de l'essai, l'accès aux fonctions de création est suspendu tant qu'un forfait n'a pas été choisi. Vos données sont conservées pendant cette période.",
+      { h: '3. Offre gratuite et pilote', p: [
+        "Les nouveaux espaces démarrent avec l'offre Découverte, gratuite et sans carte bancaire, dont les limites sont indiquées sur le site et dans la page Facturation. Nous pouvons ouvrir, sur demande, un pilote temporaire d'une offre payante ; à son terme, ou à la fin d'un abonnement, l'espace revient à l'offre Découverte et vos données sont conservées.",
       ] },
       { h: '4. Forfaits, prix et paiement', p: [
         "Les forfaits, leurs limites et leurs prix en euros sont ceux affichés sur le site et dans la page Facturation. Les taxes applicables peuvent s'ajouter selon votre situation. Le paiement est traité par Stripe.",
@@ -184,8 +184,8 @@ export const TERMS: Record<Lang, LegalDoc> = {
         'You must provide accurate information and protect your credentials. You are responsible for actions taken from your workspace and for the users you invite, who you warrant are authorised to use the service on your behalf.',
         'The service is reserved for adults acting in a professional capacity.',
       ] },
-      { h: '3. Free trial', p: [
-        'A 14-day free trial, with no credit card, is offered to new workspaces. When the trial ends, creation features are suspended until a plan is chosen. Your data is kept during this period.',
+      { h: '3. Free plan and pilot', p: [
+        'New workspaces start on the Discovery plan, free and with no credit card, whose limits are shown on the website and on the Billing page. On request we may open a temporary pilot of a paid plan; when it ends, or when a subscription ends, the workspace returns to the Discovery plan and your data is kept.',
       ] },
       { h: '4. Plans, prices and payment', p: [
         'Plans, their limits and their euro prices are those shown on the website and on the Billing page. Applicable taxes may be added depending on your situation. Payment is processed by Stripe.',

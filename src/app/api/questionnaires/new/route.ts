@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
+import { libraryLockedResponse } from '@/lib/limits'
 import { loadTemplateTree, type TreeDomain } from '@/lib/questionnaireTree'
 import { CLASSIFICATIONS, MAX_QUESTIONS } from '@/lib/questionnaireImport'
 
@@ -35,6 +36,10 @@ function sanitize(input: unknown): TreeDomain[] {
 export async function POST(request: Request) {
   const user = await requireUser()
   if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  {
+    const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
+    if (locked) return locked
+  }
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const body = await request.json().catch(() => null)
   const name = txt(body?.name, 120)

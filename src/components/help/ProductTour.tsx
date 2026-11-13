@@ -41,7 +41,7 @@ const STEPS: Record<string, Step[]> = {
     { target: '/dashboard/campaigns', title: { en: 'Campaigns', fr: 'Campagnes' }, text: { en: 'Create audits, assign them to auditors, then review, finalize and publish the reports.', fr: 'Créez des audits, assignez-les aux auditeurs, puis révisez, finalisez et publiez les rapports.' } },
     { target: '/dashboard/properties', title: { en: 'Properties', fr: 'Établissements' }, text: { en: 'The hotels and restaurants you audit. Start by adding your first one.', fr: 'Les hôtels et restaurants que vous auditez. Commencez par ajouter le premier.' } },
     { target: '/dashboard/users', title: { en: 'Users', fr: 'Utilisateurs' }, text: { en: 'Invite auditors and property managers by email and manage their roles.', fr: 'Invitez des auditeurs et des directeurs par email et gérez leurs rôles.' } },
-    { target: '/dashboard/billing', title: { en: 'Billing', fr: 'Facturation' }, text: { en: 'Your plan, trial, usage against limits, and the secure customer portal.', fr: 'Votre forfait, votre essai, votre utilisation par rapport aux limites et le portail client sécurisé.' } },
+    { target: '/dashboard/billing', title: { en: 'Billing', fr: 'Facturation' }, text: { en: 'Your plan, usage against limits, and the secure customer portal.', fr: 'Votre forfait, votre utilisation par rapport aux limites et le portail client sécurisé.' } },
     { target: '/dashboard/branding', title: { en: 'Branding', fr: 'Marque' }, text: { en: 'Your logo, name and colour on the app, reports and emails (Professional and Enterprise).', fr: "Votre logo, votre nom et votre couleur sur l'application, les rapports et les emails (Professional et Enterprise)." } },
     HELP, FEEDBACK, DONE,
   ],

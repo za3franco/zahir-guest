@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { loadTemplateTree, type TreeDomain, type TreeStandard } from '@/lib/questionnaireTree'
+import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 
 export interface LibQuestion { question_en: string; question_fr: string; classification: string; critical: boolean; guidance_en: string; guidance_fr: string }
 export interface LibSection { key: string; name_en: string; name_fr: string; optional: boolean; questions: LibQuestion[] }
@@ -42,7 +43,8 @@ const toQ = (q: TreeStandard): LibQuestion => ({
 
 /** Builds the library from the active platform questionnaires (merged by domain/section name). */
 export async function loadLibrary(db: SupabaseClient<any, any, any>, tenantId: string): Promise<Library> {
-  const { data: tpls } = await db.from('questionnaire_templates').select('id').is('tenant_id', null).eq('is_active', true).order('created_at')
+  // The "Essentiel" questionnaire is a subset of the library: leave it out so questions are not offered twice.
+  const { data: tpls } = await db.from('questionnaire_templates').select('id').is('tenant_id', null).eq('is_active', true).neq('id', ESSENTIAL_TEMPLATE_ID).order('created_at')
   const domains: LibDomain[] = []
   for (const t of tpls ?? []) {
     const tree = await loadTemplateTree(db, t.id, tenantId)

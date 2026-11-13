@@ -147,7 +147,7 @@ export default function LoginPage() {
             </a>
 
             <a href="/signup" className={styles.signupLink}>
-              Pas encore de compte ? Essai gratuit 14 jours / No account yet? Start a free 14-day trial
+              Pas encore de compte ? Commencez gratuitement / No account yet? Start for free
             </a>
           </form>
         </div>

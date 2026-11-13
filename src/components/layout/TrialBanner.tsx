@@ -19,15 +19,15 @@ interface Props {
 
 const T = {
   daysLeft: (n: number, l: Lang) =>
-    l === 'en' ? `Free trial: ${n} day${n > 1 ? 's' : ''} left` : `Essai gratuit : ${n} jour${n > 1 ? 's' : ''} restant${n > 1 ? 's' : ''}`,
-  lastDay: { en: 'Free trial: last day', fr: 'Essai gratuit : dernier jour' },
+    l === 'en' ? `Professional pilot: ${n} day${n > 1 ? 's' : ''} left` : `Pilote Professional : ${n} jour${n > 1 ? 's' : ''} restant${n > 1 ? 's' : ''}`,
+  lastDay: { en: 'Professional pilot: last day', fr: 'Pilote Professional : dernier jour' },
   expiredAdmin: {
-    en: 'Your free trial has ended. Choose a plan to keep using Zahir Guest.',
-    fr: 'Votre essai gratuit est terminé. Choisissez un forfait pour continuer à utiliser Zahir Guest.',
+    en: 'Your pilot has ended: the workspace is now on the free Discovery plan (your data is kept). Choose a plan to keep everything unlocked.',
+    fr: "Votre pilote est terminé : l'espace est passé à l'offre gratuite Découverte (vos données sont conservées). Choisissez une offre pour tout garder débloqué.",
   },
   expiredUser: {
-    en: "This workspace's free trial has ended. Creating new items is paused until your administrator chooses a plan.",
-    fr: "L'essai gratuit de cet espace est terminé. La création est suspendue jusqu'à ce que votre administrateur choisisse un forfait.",
+    en: "This workspace's pilot has ended and it is now on the free Discovery plan. Your administrator can choose a plan in Billing.",
+    fr: "Le pilote de cet espace est terminé ; il est passé à l'offre gratuite Découverte. Votre administrateur peut choisir une offre dans Facturation.",
   },
   pastDueAdmin: {
     en: 'Your last payment failed. Please update your payment method to avoid an interruption.',
@@ -38,17 +38,17 @@ const T = {
     fr: "Un problème de paiement concerne l'abonnement de cet espace. Votre administrateur en est informé dans Facturation.",
   },
   endedAdmin: {
-    en: 'Your subscription has ended. Creating new items is paused: choose a plan to resume.',
-    fr: 'Votre abonnement est terminé. La création est suspendue : choisissez un forfait pour reprendre.',
+    en: 'Your subscription has ended: the workspace is back on the free Discovery plan (your data is kept). Choose a plan to unlock everything again.',
+    fr: "Votre abonnement est terminé : l'espace est revenu à l'offre gratuite Découverte (vos données sont conservées). Choisissez une offre pour tout débloquer à nouveau.",
   },
   endedUser: {
-    en: "This workspace's subscription has ended. Creating new items is paused until your administrator renews it.",
-    fr: "L'abonnement de cet espace est terminé. La création est suspendue jusqu'à ce que votre administrateur le renouvelle.",
+    en: "This workspace's subscription has ended and it is back on the free Discovery plan. Your administrator can renew it in Billing.",
+    fr: "L'abonnement de cet espace est terminé ; il est revenu à l'offre gratuite Découverte. Votre administrateur peut le renouveler dans Facturation.",
   },
   endsOnAdmin: (d: string, l: Lang) =>
     l === 'en'
-      ? `Your subscription is cancelled and ends on ${d}. After that date, creating new items will be paused.`
-      : `Votre abonnement est annulé et se termine le ${d}. Après cette date, la création sera suspendue.`,
+      ? `Your subscription is cancelled and ends on ${d}. After that date, the workspace moves to the free Discovery plan.`
+      : `Votre abonnement est annulé et se termine le ${d}. Après cette date, l'espace passera à l'offre gratuite Découverte.`,
   endsOnUser: (d: string, l: Lang) =>
     l === 'en'
       ? `This workspace's subscription ends on ${d}. Contact your administrator if you need to keep working after that date.`
@@ -61,7 +61,7 @@ const T = {
 const ENDED = ['canceled', 'unpaid', 'incomplete_expired']
 
 // Subscription status banner, shown on every dashboard page to everyone in the workspace.
-// Also handles the lazy trial-expiry flip and sends an expired tenant admin to Billing.
+// Also handles the lazy end of a Professional pilot (falls back to the free plan).
 export default function TrialBanner({ lang, status, trialEndsAt, hasSubscription, isAdmin, cancelAtPeriodEnd, periodEnd }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -75,9 +75,8 @@ export default function TrialBanner({ lang, status, trialEndsAt, hasSubscription
     if (trialOverdue) fetch('/api/billing/sync-trial', { method: 'POST' }).catch(() => {})
   }, [trialOverdue])
 
-  useEffect(() => {
-    if (expired && isAdmin && !onBilling) router.replace('/dashboard/billing')
-  }, [expired, isAdmin, onBilling, router])
+  // An ended pilot is no longer a dead end (the workspace falls back to Découverte): no forced redirect.
+  void router
 
   const cta = (label: { en: string; fr: string }) =>
     isAdmin && !onBilling ? <a href="/dashboard/billing" className={styles.cta}>{label[lang]}</a> : null

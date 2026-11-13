@@ -12,13 +12,19 @@ export async function sendWelcomeEmail(opts: {
   lang: 'en' | 'fr'
   /** When set, the workspace is a free trial of this many days (no plan sentence, trial wording). */
   trialDays?: number
+  /** Free "Discovery" plan: free-forever wording. */
+  freePlan?: boolean
 }): Promise<boolean> {
-  const { name, email, companyName, planName, setPasswordLink, lang, trialDays } = opts
+  const { name, email, companyName, planName, setPasswordLink, lang, trialDays, freePlan } = opts
   const en = lang === 'en'
 
   const subject = en ? 'Welcome to Zahir Guest' : 'Bienvenue sur Zahir Guest'
   const title = en ? 'Welcome aboard' : 'Bienvenue à bord'
-  const intro = trialDays
+  const intro = freePlan
+    ? en
+      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready on the free <strong style="color:#C8A45A;">Discovery</strong> plan: one property, one audit per quarter with our Essential questionnaire, free for as long as you like. Upgrade whenever you need more.`
+      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt avec l'offre gratuite <strong style="color:#C8A45A;">Découverte</strong> : un établissement, un audit par trimestre avec notre questionnaire Essentiel, gratuit aussi longtemps que vous le souhaitez. Passez à une offre supérieure quand vous en avez besoin.`
+    : trialDays
     ? en
       ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready. You have <strong style="color:#C8A45A;">${trialDays} days</strong> to try Zahir Guest for free, with no card required.`
       : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt. Vous disposez de <strong style="color:#C8A45A;">${trialDays} jours</strong> pour essayer Zahir Guest gratuitement, sans carte bancaire.`

@@ -1,4 +1,10 @@
-// Plan catalogue (grid v2, ZG-5 — validated 12 Nov 2026), limits and price lookup.
+// Plan catalogue (grid v2, ZG-5 — validated 12 Nov 2026; free plan added 13 Nov 2026), limits and price lookup.
+//
+// Découverte / Discovery (tier 'free') : free forever, 1 property, 2 users, 1 audit per quarter, the
+//                                       "Essentiel" questionnaire only (~60 standards), no AI, no import,
+//                                       no own questionnaires, no export. Every new sign-up starts here, and
+//                                       an ended subscription or pilot falls back here (data kept).
+// Pilot (status 'trialing', set by the super admin after a demo): Professional features for 14 days.
 //
 // Unit of price = active property (archived properties do not count).
 //   Hotel (internal key 'starter')  : 1 property (+1 optional), 6 users, 6 audits/month, 2 AI summaries/month
@@ -20,8 +26,12 @@ export interface PlanLimits {
   properties: number | null // null = unlimited
   users: number | null
   auditsPerMonth: number | null
+  /** Free plan only: audits allowed per calendar quarter (null = not limited per quarter). */
+  auditsPerQuarter: number | null
   aiSummariesPerMonth: number | null
   whiteLabel: boolean
+  /** Full Zahir Guest library, own questionnaires, import and export. */
+  fullLibrary: boolean
 }
 
 interface TierRule {
@@ -41,9 +51,21 @@ export const TIER_RULES: Record<PlanTier, TierRule> = {
   enterprise: { includedProperties: 50, maxExtraProperties: 450, users: null, auditsPerMonth: null, aiBase: null, aiPerExtra: 0, whiteLabel: true, selfServe: false },
 }
 
-const INTERNAL: PlanLimits = { properties: null, users: null, auditsPerMonth: null, aiSummariesPerMonth: null, whiteLabel: true }
-/** 14-day free trial: enough to judge the product, not to run a portfolio for free. */
-export const TRIAL_LIMITS: PlanLimits = { properties: 3, users: 10, auditsPerMonth: null, aiSummariesPerMonth: 5, whiteLabel: false }
+const INTERNAL: PlanLimits = { properties: null, users: null, auditsPerMonth: null, auditsPerQuarter: null, aiSummariesPerMonth: null, whiteLabel: true, fullLibrary: true }
+/** 14-day Professional pilot, opened by the super admin after a demo. */
+export const TRIAL_LIMITS: PlanLimits = { properties: 3, users: 10, auditsPerMonth: null, auditsPerQuarter: null, aiSummariesPerMonth: 5, whiteLabel: true, fullLibrary: true }
+/** Découverte: free forever, calibrated below what the Hotel plan offers. */
+export const FREE_LIMITS: PlanLimits = { properties: 1, users: 2, auditsPerMonth: null, auditsPerQuarter: 1, aiSummariesPerMonth: 0, whiteLabel: false, fullLibrary: false }
+
+/** The platform "Essentiel" questionnaire (~60 standards), the only one available on the free plan. */
+export const ESSENTIAL_TEMPLATE_ID = 'b0000000-0000-0000-0000-000000000002'
+/** The full Zahir Guest library (luxury 5-star, 573 standards). */
+export const FULL_LIBRARY_TEMPLATE_ID = 'b0000000-0000-0000-0000-000000000001'
+
+export const FREE_FEATURES = {
+  en: ['1 property', '2 users', '1 audit per quarter', 'Essential questionnaire (60 standards)', 'Scored report'],
+  fr: ['1 établissement', '2 utilisateurs', '1 audit par trimestre', 'Questionnaire Essentiel (60 standards)', 'Rapport avec score'],
+}
 
 /** Monthly prices per currency: base (included properties) and price of each extra property. */
 export const PRICE_GRID: Record<Currency, Record<PlanTier, { base: number; extra: number | null }>> = {
@@ -62,7 +84,10 @@ export const PLAN_NAMES: Record<PlanTier, { en: string; fr: string }> = {
   enterprise: { en: 'Enterprise', fr: 'Enterprise' },
 }
 
+export const FREE_NAME = { en: 'Discovery', fr: 'Découverte' }
+
 export function planName(tier: string | null | undefined, lang: 'en' | 'fr' = 'fr'): string | null {
+  if (tier === 'free') return FREE_NAME[lang]
   return isPlanTier(tier) ? PLAN_NAMES[tier][lang] : null
 }
 
@@ -125,12 +150,11 @@ export function quote(tier: PlanTier, currency: Currency, interval: BillingInter
   }
 }
 
-/** Effective limits for a workspace given its tier, subscription status and paid extra properties. */
+/** Limits for a tier as sold (no status logic). Use limitsForTenant() for a real workspace. */
 export function limitsFor(tier: string | null | undefined, status: string | null | undefined, extraProperties = 0): PlanLimits {
   if (tier === 'za3fran_internal') return INTERNAL
-  // 'trialing' is always the in-app 14-day trial (no Stripe trials are configured), whatever plan was picked.
-  if (status === 'trialing' || status === 'trial_expired') return TRIAL_LIMITS
-  if (!isPlanTier(tier)) return TRIAL_LIMITS
+  if (status === 'trialing') return TRIAL_LIMITS // pilot
+  if (!isPlanTier(tier)) return FREE_LIMITS
   const r = TIER_RULES[tier]
   const extra = Math.max(0, Math.min(r.maxExtraProperties, Math.floor(extraProperties || 0)))
   return {
@@ -138,14 +162,58 @@ export function limitsFor(tier: string | null | undefined, status: string | null
     users: r.users,
     auditsPerMonth: r.auditsPerMonth,
     aiSummariesPerMonth: r.aiBase === null ? null : r.aiBase + extra * r.aiPerExtra,
+    auditsPerQuarter: null,
     whiteLabel: r.whiteLabel,
+    fullLibrary: true,
   }
+}
+
+export interface TenantBilling {
+  subscription_tier?: string | null
+  subscription_status?: string | null
+  trial_ends_at?: string | null
+  stripe_subscription_id?: string | null
+  billing_mode?: string | null
+  current_period_end?: string | null
+  extra_properties?: number | null
+}
+
+const DAY_MS = 86400_000
+export const PREPAID_GRACE_DAYS = 7
+const ENDED_STATUSES = ['canceled', 'unpaid', 'incomplete_expired', 'trial_expired']
+
+/**
+ * What a workspace is actually entitled to right now.
+ *   - suspended (super admin action) → blocked;
+ *   - free plan, an ended subscription, an ended pilot or a MAD prepaid period over (+ grace) → Découverte;
+ *   - running pilot → Professional features (TRIAL_LIMITS);
+ *   - otherwise the paid tier with its extra properties.
+ */
+export function effectivePlan(t: TenantBilling | null | undefined): { kind: 'internal' | 'free' | 'pilot' | 'paid' | 'suspended'; tier: string; limits: PlanLimits } {
+  const tier = t?.subscription_tier ?? 'free'
+  const status = t?.subscription_status ?? 'active'
+  if (tier === 'za3fran_internal') return { kind: 'internal', tier, limits: INTERNAL }
+  if (status === 'suspended') return { kind: 'suspended', tier, limits: FREE_LIMITS }
+  if (tier === 'free' || !isPlanTier(tier)) return { kind: 'free', tier: 'free', limits: FREE_LIMITS }
+  if (status === 'trialing' && !t?.stripe_subscription_id) {
+    const over = !!t?.trial_ends_at && new Date(t.trial_ends_at).getTime() < Date.now()
+    return over ? { kind: 'free', tier: 'free', limits: FREE_LIMITS } : { kind: 'pilot', tier, limits: TRIAL_LIMITS }
+  }
+  if (ENDED_STATUSES.includes(status)) return { kind: 'free', tier: 'free', limits: FREE_LIMITS }
+  if (t?.billing_mode === 'youcan' && t.current_period_end && new Date(t.current_period_end).getTime() + PREPAID_GRACE_DAYS * DAY_MS < Date.now()) {
+    return { kind: 'free', tier: 'free', limits: FREE_LIMITS }
+  }
+  return { kind: 'paid', tier, limits: limitsFor(tier, 'active', t?.extra_properties ?? 0) }
+}
+
+export function limitsForTenant(t: TenantBilling | null | undefined): PlanLimits {
+  return effectivePlan(t).limits
 }
 
 export const TRIAL_DAYS = 14
 
-/** Statuses in which creating new properties/users/campaigns is blocked. */
-export const BLOCKED_STATUSES = ['canceled', 'trial_expired', 'unpaid', 'incomplete_expired', 'suspended']
+/** Statuses in which creating new properties/users/campaigns is blocked (others fall back to the free plan). */
+export const BLOCKED_STATUSES = ['suspended']
 
 // ── Stripe prices (EUR, with a USD currency option on the same price) ─────────────────
 // Found by lookup key, so no extra environment variables are needed. Keys created in Stripe:
@@ -183,7 +251,7 @@ export function planFromPrice(price: { id?: string; lookup_key?: string | null }
  * over 3). Used by the super admin console when no contract value is entered.
  */
 export function listMonthlyValue(tier: string | null | undefined, interval: string | null | undefined, extraProperties: number, currency: Currency): number {
-  if (!isPlanTier(tier)) return 0
+  if (!isPlanTier(tier)) return 0 // free plan and internal workspaces bring no revenue
   const iv: BillingInterval = isBillingInterval(interval) ? interval : 'monthly'
   const q = quote(tier, currency, iv, TIER_RULES[tier].includedProperties + (extraProperties || 0))
   return q.total / INTERVAL_MONTHS[iv]
