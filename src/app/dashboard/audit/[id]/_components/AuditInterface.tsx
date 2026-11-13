@@ -9,7 +9,6 @@ import styles from './AuditInterface.module.css'
 import SectionAudit from './SectionAudit'
 import AuditOverview from './AuditOverview'
 import AuditSubmit from './AuditSubmit'
-import type { PhotoRef } from './StandardPhotos'
 
 export interface Domain {
   id: string
@@ -107,7 +106,9 @@ export default function AuditInterface({
     existingResponses.forEach((r: any) => { responses[r.standard_id] = { response: r.response ?? null, note: r.auditor_note ?? '' } })
     const ratings: SyncView['ratings'] = {}
     existingEmotionalRatings.forEach((r: any) => { ratings[r.section_id] = r.rating })
-    return { responses, ratings, pending: 0, rejected: 0, state: 'idle', sending: false, lastSyncAt: null, conflicts: 0, persistent: offlineEnabled, ready: false }
+    const photos: SyncView['photos'] = {}
+    existingPhotos.forEach(p => { if (p.standard_id) (photos[p.standard_id] ??= []).push({ id: p.id, src: `/api/photos/${p.id}`, pending: false }) })
+    return { responses, ratings, photos, rejectedReasons: [], pending: 0, rejected: 0, state: 'idle', sending: false, lastSyncAt: null, conflicts: 0, persistent: offlineEnabled, ready: false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const view = useSyncExternalStore(
@@ -118,11 +119,6 @@ export default function AuditInterface({
   const responses: ResponseMap = view.responses
   const emotionalRatings: EmotionalRatingMap = view.ratings
 
-  const initialPhotos: Record<string, PhotoRef[]> = {}
-  existingPhotos.forEach(p => {
-    if (p.standard_id) (initialPhotos[p.standard_id] ??= []).push({ id: p.id })
-  })
-  const [photos, setPhotos] = useState<Record<string, PhotoRef[]>>(initialPhotos)
   const [currentView, setCurrentView] = useState<'overview' | 'section' | 'submit'>('overview')
   const [currentSectionId, setCurrentSectionId] = useState<string | null>(null)
 
@@ -233,8 +229,9 @@ export default function AuditInterface({
         domain={currentDomain}
         standards={currentStandards}
         responses={responses}
-        photos={photos}
-        onPhotosChange={(standardId, list) => setPhotos(prev => ({ ...prev, [standardId]: list }))}
+        photos={view.photos}
+        onAddPhoto={(standardId, blob) => engine ? engine.addPhoto(standardId, blob) : Promise.resolve(null)}
+        onRemovePhoto={id => { void engine?.removePhoto(id) }}
         emotionalRating={emotionalRatings[currentSection.id] ?? null}
         onResponseChange={handleResponseChange}
         onEmotionalRatingChange={handleEmotionalRatingChange}

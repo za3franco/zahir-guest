@@ -80,6 +80,19 @@ export default function SyncStatus({ lang, view, onRetry, inline }: {
   )
 }
 
+/** Plain-language reason for a refused change (codes from /sync, or the server's own message for photos). */
+function reasonText(code: string, lang: Lang): string {
+  const en = lang === 'en'
+  switch (code) {
+    case 'unknown_standard':
+    case 'unknown_section': return en ? 'the question no longer exists in the questionnaire' : "la question n'existe plus dans le questionnaire"
+    case 'invalid': return en ? 'invalid data' : 'données invalides'
+    case 'missing': return en ? 'the photo file was lost on the phone' : 'le fichier de la photo a été perdu sur le téléphone'
+    case 'error': return en ? 'server error' : 'erreur du serveur'
+    default: return code
+  }
+}
+
 /** Messages that need the auditor's attention (overview and submit screens). */
 export function SyncNotices({ lang, view, onDismissConflicts, onDiscardRejected, now = Date.now() }: {
   lang: Lang
@@ -101,11 +114,12 @@ export function SyncNotices({ lang, view, onDismissConflicts, onDiscardRejected,
     )
   }
   if (view.rejected > 0) {
+    const reasons = Array.from(new Set(view.rejectedReasons.map(r => reasonText(r, lang))))
     items.push(
       <div key="r" className={styles.notice} role="alert">
         <span>{en
-          ? `${n(view.rejected, lang, CHANGE, CHANGES)} could not be saved (the question no longer exists in the questionnaire).`
-          : `${n(view.rejected, lang, CHANGE, CHANGES)} n'${view.rejected > 1 ? 'ont' : 'a'} pas pu être enregistrée${view.rejected > 1 ? 's' : ''} (la question n'existe plus dans le questionnaire).`}</span>
+          ? `${n(view.rejected, lang, CHANGE, CHANGES)} could not be saved: ${reasons.join(' · ')}`
+          : `${n(view.rejected, lang, CHANGE, CHANGES)} n'${view.rejected > 1 ? 'ont' : 'a'} pas pu être enregistrée${view.rejected > 1 ? 's' : ''} : ${reasons.join(' · ')}`}</span>
         <button type="button" className={styles.retry} onClick={onDiscardRejected}>{en ? 'Remove' : 'Retirer'}</button>
       </div>,
     )

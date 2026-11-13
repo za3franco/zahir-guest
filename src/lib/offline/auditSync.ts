@@ -8,6 +8,7 @@
 // every 30 s). When the same standard was changed more recently elsewhere, the server keeps the most recent
 // change and the phone takes it (the auditor is told).
 
+import { MAX_PHOTOS_PER_CAMPAIGN, MAX_PHOTOS_PER_STANDARD } from '@/lib/photos'
 import {
   auditKey, newId, opKey,
   type AuditRecord, type LocalResponse, type OfflineStore, type OpRecord, type ResponseValue,
@@ -18,9 +19,23 @@ export type SyncState = 'idle' | 'syncing' | 'offline' | 'error' | 'auth' | 'clo
 export interface ServerResponseRow { standard_id: string; response: ResponseValue; auditor_note?: string | null; note?: string | null; client_updated_at?: string | null; updated_at?: string | null }
 export interface ServerRatingRow { section_id: string; rating: number; client_updated_at?: string | null; updated_at?: string | null; created_at?: string | null }
 
+export interface PhotoView {
+  id: string
+  /** Server photo: /api/photos/<id>; photo still on the phone: a local blob: URL */
+  src: string
+  /** Taken on the phone, not uploaded yet */
+  pending: boolean
+  /** Refused by the server (reason shown to the auditor) */
+  rejected?: string
+}
+
 export interface SyncView {
   responses: Record<string, { response: ResponseValue; note: string }>
   ratings: Record<string, number>
+  /** Photos per standard: on the server (minus deletions waiting to be sent) and on the phone */
+  photos: Record<string, PhotoView[]>
+  /** Why changes were refused (codes from /sync or messages from the photo upload) */
+  rejectedReasons: string[]
   /** Changes not yet accepted by the server (rejected ones excluded) */
   pending: number
   /** Changes the server refused for good (kept on the phone, shown to the auditor) */
@@ -51,6 +66,8 @@ export class AuditSync {
   private responses: Record<string, LocalResponse> = {}
   private ratings: Record<string, { rating: number; ts: number }> = {}
   private photos: { id: string; standard_id: string | null }[] = []
+  /** Photos taken on the phone and not uploaded yet: id -> standard and local preview URL */
+  private localPhotos = new Map<string, { standardId: string; url: string }>()
   private ops = new Map<string, OpRecord>() // by key
   private state: SyncState = 'idle'
   private sending = false
@@ -106,6 +123,13 @@ export class AuditSync {
         this.ops.set(op.key, op)
         this.applyOpLocally(op)
       }
+      for (const b of await this.store.listBlobs(this.userId, this.campaignId)) {
+        if (this.ops.get(`p:${b.id}`)?.kind === 'photo_add') {
+          this.localPhotos.set(b.id, { standardId: b.standardId, url: URL.createObjectURL(b.blob) })
+        } else {
+          await this.store.deleteBlob(b.id).catch(() => {}) // uploaded or removed: the copy is no longer needed
+        }
+      }
     } catch {
       // device storage unreadable: carry on with what the page brought
     }
@@ -133,6 +157,7 @@ export class AuditSync {
       window.removeEventListener('pagehide', this.onPageHide)
     }
     this.listeners.clear()
+    this.localPhotos.forEach(p => URL.revokeObjectURL(p.url))
   }
 
   private onOnline = () => { this.failures = 0; if (this.isBlocked()) return; this.setState('idle'); void this.push().then(() => this.pull()) }
@@ -170,9 +195,25 @@ export class AuditSync {
     const ratings: SyncView['ratings'] = {}
     for (const [id, r] of Object.entries(this.ratings)) ratings[id] = r.rating
     let pending = 0, rejected = 0
-    this.ops.forEach(o => { if (o.rejected) rejected++; else pending++ })
+    const rejectedReasons: string[] = []
+    const deleting = new Set<string>()
+    this.ops.forEach(o => {
+      if (o.rejected) { rejected++; rejectedReasons.push(o.rejected) } else pending++
+      if (o.kind === 'photo_delete' && !o.rejected) deleting.add(o.payload.photo_id)
+    })
+    const photos: SyncView['photos'] = {}
+    const onServer = new Set<string>()
+    for (const p of this.photos) {
+      onServer.add(p.id)
+      if (!p.standard_id || deleting.has(p.id)) continue
+      ;(photos[p.standard_id] ??= []).push({ id: p.id, src: `/api/photos/${p.id}`, pending: false })
+    }
+    this.localPhotos.forEach((lp, id) => {
+      if (onServer.has(id)) return
+      ;(photos[lp.standardId] ??= []).push({ id, src: lp.url, pending: true, rejected: this.ops.get(`p:${id}`)?.rejected })
+    })
     return {
-      responses, ratings, pending, rejected,
+      responses, ratings, photos, rejectedReasons, pending, rejected,
       state: this.state, sending: this.sending, lastSyncAt: this.lastSyncAt, conflicts: this.conflicts,
       persistent: this.store.persistent, ready: this.ready,
     }
@@ -237,7 +278,117 @@ export class AuditSync {
       if (!op.rejected) continue
       this.ops.delete(key)
       await this.store.deleteOp(op.id).catch(() => {})
+      if (op.kind === 'photo_add') this.dropLocalPhoto(op.payload.photo_id)
     }
+    this.emit()
+  }
+
+  // ── Photos ──────────────────────────────────────────────────────────────────────────────────
+  /** Keeps a (compressed) photo on the phone and queues its upload. Returns an error message key when a limit is reached. */
+  async addPhoto(standardId: string, blob: Blob): Promise<'limit_standard' | 'limit_total' | null> {
+    const view = this.buildView()
+    const forStandard = (view.photos[standardId] ?? []).length
+    const total = Object.values(view.photos).reduce((n, l) => n + l.length, 0)
+    if (forStandard >= MAX_PHOTOS_PER_STANDARD) return 'limit_standard'
+    if (total >= MAX_PHOTOS_PER_CAMPAIGN) return 'limit_total'
+    const id = newId()
+    const ts = Date.now()
+    await this.store.putBlob({ id, userId: this.userId, campaignId: this.campaignId, standardId, blob, createdAt: ts })
+    this.localPhotos.set(id, { standardId, url: URL.createObjectURL(blob) })
+    this.queue({ key: `p:${id}`, kind: 'photo_add', ts, payload: { photo_id: id, standard_id: standardId } })
+    this.schedulePush(0)
+    return null
+  }
+
+  /** Removes a photo: a photo still on the phone is simply dropped; one on the server gets a queued deletion. */
+  async removePhoto(photoId: string) {
+    const op = this.ops.get(`p:${photoId}`)
+    if (op?.kind === 'photo_add') {
+      this.ops.delete(op.key)
+      await this.store.deleteOp(op.id).catch(() => {})
+      this.dropLocalPhoto(photoId)
+      this.emit()
+      return
+    }
+    this.queue({ key: `p:${photoId}`, kind: 'photo_delete', ts: Date.now(), payload: { photo_id: photoId } })
+    this.schedulePush(0)
+  }
+
+  private dropLocalPhoto(id: string) {
+    const lp = this.localPhotos.get(id)
+    if (lp) URL.revokeObjectURL(lp.url)
+    this.localPhotos.delete(id)
+    this.store.deleteBlob(id).catch(() => {})
+  }
+
+  /** Uploads and deletions of photos, one at a time, oldest first. False when sending must stop for now. */
+  private async pushPhotos(): Promise<boolean> {
+    const queued = Array.from(this.ops.values())
+      .filter(o => !o.rejected && (o.kind === 'photo_add' || o.kind === 'photo_delete'))
+      .sort((a, b) => a.ts - b.ts)
+    for (const sent of queued) {
+      if (this.isBlocked()) return false
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) { this.setState('offline'); this.scheduleRetry(); return false }
+      const photoId: string = sent.payload.photo_id
+      this.setState('syncing')
+      let res: Response
+      try {
+        if (sent.kind === 'photo_add') {
+          const rec = await this.store.getBlob(photoId)
+          if (!rec) { await this.settle(sent, 'missing'); continue } // the photo file was lost on the phone
+          const fd = new FormData()
+          fd.set('standard_id', sent.payload.standard_id)
+          fd.set('photo_id', photoId)
+          fd.set('file', new File([rec.blob], 'photo.jpg', { type: rec.blob.type || 'image/jpeg' }))
+          res = await fetch(`/api/audit/${this.campaignId}/photos`, { method: 'POST', body: fd })
+        } else {
+          res = await fetch(`/api/audit/${this.campaignId}/photos?photo_id=${encodeURIComponent(photoId)}`, { method: 'DELETE' })
+        }
+      } catch {
+        this.setState('offline')
+        this.scheduleRetry()
+        return false
+      }
+      // Refused for good (format, size, limit reached from another device): kept and shown with the reason
+      if (!res.redirected && (res.status === 400 || res.status === 413)) {
+        const data = await res.json().catch(() => ({}))
+        await this.settle(sent, typeof data.error === 'string' ? data.error : 'invalid')
+        continue
+      }
+      if (!(await this.handleHttp(res))) return false
+
+      const current = this.ops.get(sent.key)
+      const unchanged = current && current.opId === sent.opId
+      if (sent.kind === 'photo_add') {
+        if (!this.photos.some(p => p.id === photoId)) this.photos = [...this.photos, { id: photoId, standard_id: sent.payload.standard_id }]
+        if (unchanged) {
+          this.ops.delete(sent.key)
+          await this.store.deleteOp(sent.id).catch(() => {})
+          this.dropLocalPhoto(photoId)
+        } else if (!current) {
+          // removed by the auditor while it was uploading: delete it on the server too
+          this.queue({ key: `p:${photoId}`, kind: 'photo_delete', ts: Date.now(), payload: { photo_id: photoId } })
+          this.dropLocalPhoto(photoId)
+        }
+      } else if (unchanged) {
+        this.photos = this.photos.filter(p => p.id !== photoId)
+        this.ops.delete(sent.key)
+        await this.store.deleteOp(sent.id).catch(() => {})
+      }
+      this.failures = 0
+      this.lastSyncAt = Date.now()
+      this.scheduleSave()
+      this.emit()
+    }
+    return true
+  }
+
+  /** Marks a change as refused for good, if it was not edited again meanwhile. */
+  private async settle(sent: OpRecord, reason: string) {
+    const current = this.ops.get(sent.key)
+    if (!current || current.opId !== sent.opId) return
+    current.rejected = reason
+    await this.store.putOp(current).catch(() => {})
     this.emit()
   }
 
@@ -257,6 +408,7 @@ export class AuditSync {
 
   /** After a successful submission: nothing of this audit needs to stay on the phone. */
   async forget() {
+    for (const b of await this.store.listBlobs(this.userId, this.campaignId).catch(() => [])) await this.store.deleteBlob(b.id).catch(() => {})
     for (const op of Array.from(this.ops.values())) await this.store.deleteOp(op.id).catch(() => {})
     this.ops.clear()
     await this.store.deleteAudit(this.userId, this.campaignId).catch(() => {})
@@ -294,9 +446,8 @@ export class AuditSync {
     try {
       do {
         this.again = false
-        const ok = await this.pushOnce()
-        if (!ok) return
-        await this.pushExtra()
+        if (!(await this.pushOnce())) return
+        if (!(await this.pushPhotos())) return
       } while (this.again || this.sendable().length > 0)
       if (!this.isBlocked()) this.setState('idle')
     } finally {
@@ -305,8 +456,6 @@ export class AuditSync {
     }
   }
 
-  /** Hook for kinds that are not sent through /sync (photos, PR 2). */
-  protected async pushExtra(): Promise<void> {}
 
   /** One batch. Returns false when sending must stop for now (offline, error, blocked). */
   private async pushOnce(): Promise<boolean> {
@@ -412,7 +561,7 @@ export class AuditSync {
     this.emit()
   }
 
-  /** Hook: photos currently on the server (PR 2). */
+  /** Photos currently on the server (deletions and uploads still waiting are applied on top in the view). */
   protected onServerPhotos(photos: { id: string; standard_id: string | null }[]) { this.photos = photos }
 
   /** Sends now and waits (before submitting). */

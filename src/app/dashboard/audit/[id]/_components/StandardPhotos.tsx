@@ -2,25 +2,29 @@
 
 import { useRef, useState } from 'react'
 import { compressImage } from '@/lib/imageCompress'
-import { MAX_PHOTOS_PER_STANDARD } from '@/lib/photos'
+import { MAX_PHOTOS_PER_STANDARD, MAX_PHOTOS_PER_CAMPAIGN } from '@/lib/photos'
+import type { PhotoView } from '@/lib/offline/auditSync'
 import styles from './StandardPhotos.module.css'
-
-export interface PhotoRef { id: string }
 
 const T = {
   add: { en: 'Add photo', fr: 'Ajouter une photo' },
-  uploading: { en: 'Uploading…', fr: 'Envoi…' },
+  preparing: { en: 'Preparing…', fr: 'Préparation…' },
   remove: { en: 'Remove photo', fr: 'Retirer la photo' },
   confirm: { en: 'Remove this photo?', fr: 'Retirer cette photo ?' },
   failed: { en: 'Photo could not be added.', fr: "La photo n'a pas pu être ajoutée." },
+  pending: { en: 'On the phone', fr: 'Sur le téléphone' },
+  rejected: { en: 'Refused', fr: 'Refusée' },
+  limitStandard: { en: `Maximum ${MAX_PHOTOS_PER_STANDARD} photos per standard.`, fr: `Maximum ${MAX_PHOTOS_PER_STANDARD} photos par standard.` },
+  limitTotal: { en: `Maximum ${MAX_PHOTOS_PER_CAMPAIGN} photos per audit.`, fr: `Maximum ${MAX_PHOTOS_PER_CAMPAIGN} photos par audit.` },
 }
 
-export default function StandardPhotos({ campaignId, standardId, photos, lang, onChange }: {
-  campaignId: string
-  standardId: string
-  photos: PhotoRef[]
+// Photos of one standard. A new photo is shrunk, kept on the phone and shown at once; it is uploaded in the
+// background by the synchronisation (works offline). The "On the phone" badge stays until the server has it.
+export default function StandardPhotos({ photos, lang, onAdd, onRemove }: {
+  photos: PhotoView[]
   lang: 'en' | 'fr'
-  onChange: (photos: PhotoRef[]) => void
+  onAdd: (blob: Blob) => Promise<'limit_standard' | 'limit_total' | null>
+  onRemove: (photoId: string) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -33,18 +37,11 @@ export default function StandardPhotos({ campaignId, standardId, photos, lang, o
     if (!files.length) return
     setBusy(true)
     setError(null)
-    let current = photos
-    for (const f of files.slice(0, MAX_PHOTOS_PER_STANDARD - photos.length)) {
+    for (const f of files.slice(0, Math.max(0, MAX_PHOTOS_PER_STANDARD - photos.length))) {
       try {
         const small = await compressImage(f)
-        const fd = new FormData()
-        fd.set('standard_id', standardId)
-        fd.set('file', small)
-        const res = await fetch(`/api/audit/${campaignId}/photos`, { method: 'POST', body: fd })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) { setError(data.error ?? t(T.failed)); break }
-        current = [...current, { id: data.id }]
-        onChange(current)
+        const limit = await onAdd(small)
+        if (limit) { setError(t(limit === 'limit_standard' ? T.limitStandard : T.limitTotal)); break }
       } catch {
         setError(t(T.failed))
         break
@@ -53,10 +50,9 @@ export default function StandardPhotos({ campaignId, standardId, photos, lang, o
     setBusy(false)
   }
 
-  async function remove(id: string) {
+  function remove(id: string) {
     if (!window.confirm(t(T.confirm))) return
-    const res = await fetch(`/api/audit/${campaignId}/photos?photo_id=${id}`, { method: 'DELETE' })
-    if (res.ok) onChange(photos.filter(p => p.id !== id))
+    onRemove(id)
   }
 
   return (
@@ -64,11 +60,16 @@ export default function StandardPhotos({ campaignId, standardId, photos, lang, o
       {photos.length > 0 && (
         <div className={styles.thumbs}>
           {photos.map(p => (
-            <div key={p.id} className={styles.thumb}>
-              <a href={`/api/photos/${p.id}`} target="_blank" rel="noreferrer">
+            <div key={p.id} className={`${styles.thumb} ${p.rejected ? styles.thumbRejected : ''}`} title={p.rejected ?? undefined}>
+              <a href={p.src} target="_blank" rel="noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/photos/${p.id}`} alt="" loading="lazy" />
+                <img src={p.src} alt="" loading="lazy" />
               </a>
+              {p.pending && (
+                <span className={`${styles.badge} ${p.rejected ? styles.badgeError : ''}`}>
+                  {p.rejected ? `⚠ ${t(T.rejected)}` : t(T.pending)}
+                </span>
+              )}
               <button type="button" onClick={() => remove(p.id)} aria-label={t(T.remove)} className={styles.del}>×</button>
             </div>
           ))}
@@ -77,7 +78,7 @@ export default function StandardPhotos({ campaignId, standardId, photos, lang, o
       {photos.length < MAX_PHOTOS_PER_STANDARD && (
         <>
           <button type="button" className={styles.addBtn} onClick={() => inputRef.current?.click()} disabled={busy}>
-            📷 {busy ? t(T.uploading) : t(T.add)}
+            📷 {busy ? t(T.preparing) : t(T.add)}
           </button>
           <input ref={inputRef} type="file" accept="image/*" multiple onChange={onPick} className={styles.hidden} />
         </>
