@@ -1,4 +1,4 @@
-# Zahir Guest — ZG-6 brief (mis à jour le 13 nov. 2026, après la PR n°19)
+# Zahir Guest — ZG-6 brief (mis à jour le 13 nov. 2026, après la PR n°21)
 
 À lire en premier au début d'une session ZG. Les documents détaillés ZG-5 (statut, grille tarifaire) restent dans le projet claude.ai « Zahir Guest App ».
 
@@ -16,7 +16,7 @@ Tests d'Arnaud : check-list partagée https://claude.ai/artifact/YPsqEFpS7z3wM2h
 - Boutons « Passer à Hôtel » : page Questionnaires verrouillée, Nouvelle campagne (bandeau + erreur 402) → `/dashboard/billing#plans`.
 - Reste à vérifier : un parcours réel avec un espace Découverte de test (quota atteint → email immédiat).
 
-### 2. Mode hors ligne de l'audit — EN COURS (PR 0 et PR 1 en production, PR 2 et PR 3 restantes)
+### 2. Mode hors ligne de l'audit — EN COURS (PR 0, 1 et 2 en production ; PR 3 restante)
 Objectif : les auditeurs perdent le réseau dans les sous-sols et les couloirs d'hôtels ; réponses, notes et photos restent sur le téléphone et partent au retour du réseau.
 
 **Décisions validées par Arnaud (13 nov.)**
@@ -31,8 +31,9 @@ Objectif : les auditeurs perdent le réseau dans les sous-sols et les couloirs d
 - PR 0 — n°17 : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`, clés ES256) ; écritures d'audit refusées après soumission (409 `audit_closed`) ; critère / section contrôlés contre le questionnaire ; soumission bloquée tant que tout n'est pas enregistré. Protection Vercel activée sur les versions de test (`*.vercel.app`, domaines personnalisés publics).
 - PR 1 — n°19 : migration `sql/014_offline_audit.sql` appliquée (`offline_audit_enabled`, `client_updated_at`, `updated_by`, fonctions `zg_apply_audit_response` / `zg_apply_audit_rating` réservées au rôle de service) ; route `/api/audit/[id]/sync` (POST lot de modifications, GET état serveur) ; `src/lib/offline/store.ts` (IndexedDB, repli en mémoire si l'espace n'a pas le mode hors ligne) et `src/lib/offline/auditSync.ts` (file en série, relances, états hors ligne / reconnexion / audit fermé / réattribué, conflits) ; indicateur « ✓ Synchronisé / Synchronisation… / Hors ligne · N modifications sur le téléphone / action requise » ; fonctions Vercel déplacées en `fra1` (Francfort, à côté de la base : une synchronisation passe de 1,9 s à 0,8 s, toutes les pages en profitent).
 
+- PR 2 — n°21 : photos hors ligne. La photo est réduite, gardée sur le téléphone (badge « Sur le téléphone ») et envoyée en arrière-plan ; identifiant créé sur le téléphone, donc un envoi répété ne crée pas de doublon ; suppression d'une photo du serveur mise en file (DELETE sans erreur si déjà supprimée) ; limites 4 par critère / 40 par audit vérifiées sur le téléphone ; photo refusée gardée avec la raison. Routes photos : 409 `audit_closed` pour un audit soumis.
+
 **Reste**
-- PR 2 : photos hors ligne (photo gardée sur le téléphone avec un identifiant créé sur place, envoi sans doublon, suppressions en file, limites 4 par critère / 40 par audit vérifiées sur le téléphone).
 - PR 3 : service worker (HTML des pages d'audit, fichiers `/_next/static`, polices, photos déjà vues ; jamais `/api`), manifeste et icônes, préparation automatique des audits du tableau de bord, session (pas de déconnexion automatique hors ligne ou avec des envois en attente ; effacement à la déconnexion), interrupteur d'arrêt. Relecture de sécurité, puis **fusion à demander à Arnaud**.
 - Après PR 3 : test réel d'Arnaud sur iPhone et Android (sous-sol), puis ouverture aux autres espaces.
 
