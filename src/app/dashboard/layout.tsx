@@ -98,7 +98,7 @@ export default async function DashboardLayout({
         <HelpCoach lang={user.default_language === 'en' ? 'en' : 'fr'} />
         <ProductTour lang={user.default_language === 'en' ? 'en' : 'fr'} group={helpRoleFor(user.role)} autoStart={!user.tour_completed && !user.impersonating_tenant_id} />
         <SessionTimeout role={user.role} userId={user.id} />
-        <OfflineApp enabled={offlineEnabled} />
+        <OfflineApp enabled={offlineEnabled} userId={user.id} />
         <div className={styles.content}>
           {children}
         </div>

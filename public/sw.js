@@ -12,7 +12,7 @@
  * When offline, any other app page shows a small page listing the audits available offline.
  * Message 'clear' (logout, offline mode switched off) deletes everything.
  */
-const VERSION = 'zg-sw-1';
+const VERSION = 'zg-sw-2';
 const STATIC = 'zg-static';
 const PAGES = 'zg-pages';
 const PHOTOS = 'zg-photos';
@@ -87,13 +87,15 @@ async function storePage(key, res) {
   await (await caches.open(PAGES)).put(key, new Response(body, { status: 200, headers }));
 }
 
-async function auditPage(request) {
+async function auditPage(event) {
+  const request = event.request;
   const url = new URL(request.url);
   const key = pageKey(url);
   try {
     const res = await withTimeout(fetch(request), PAGE_TIMEOUT);
-    if (cacheable(res)) await storePage(key, res);
-    else if (res.redirected || res.status === 404 || res.status === 403) await (await caches.open(PAGES)).delete(key); // closed or no longer accessible
+    // Kept in the background: the page shows without waiting for the copy
+    if (cacheable(res)) event.waitUntil(storePage(key, res.clone()).catch(() => {}));
+    else if (res.type === 'opaqueredirect' || res.redirected || res.status === 404 || res.status === 403) event.waitUntil(caches.open(PAGES).then((c) => c.delete(key))); // closed or no longer accessible
     return res;
   } catch {
     const cached = await (await caches.open(PAGES)).match(key);
@@ -193,7 +195,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.mode === 'navigate') {
-    if (isAuditPage(url)) { event.respondWith(auditPage(request)); return; }
+    if (isAuditPage(url)) { event.respondWith(auditPage(event)); return; }
     // Other app pages: normal network; when it fails, the list of audits available offline
     if (url.origin === self.location.origin && url.pathname.startsWith('/dashboard')) {
       event.respondWith(fetch(request).catch(() => offlinePage()));

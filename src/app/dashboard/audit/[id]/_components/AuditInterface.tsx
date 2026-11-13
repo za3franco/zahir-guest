@@ -255,7 +255,7 @@ export default function AuditInterface({
   return (
     <>{status}<AuditOverview
       notices={notices}
-      offlineReady={view.persistent && view.ready}
+      offlineReady={offlineEnabled && view.persistent && view.ready}
       campaign={campaign}
       domains={domains}
       sections={sections}
