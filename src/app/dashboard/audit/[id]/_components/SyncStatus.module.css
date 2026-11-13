@@ -40,3 +40,23 @@
   cursor: pointer;
   white-space: nowrap;
 }
+.offline { color: var(--color-amber, #D4882A); border-color: rgba(212, 136, 42, 0.5); background: rgba(40, 30, 14, 0.95); pointer-events: auto; }
+.pill a { color: inherit; text-decoration: underline; }
+
+/* Notices shown above the overview / submit screens */
+.notices { display: flex; flex-direction: column; gap: var(--space-2, 8px); margin: 0 0 var(--space-4, 16px); }
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  background: rgba(212, 136, 42, 0.1);
+  border: 1px solid rgba(212, 136, 42, 0.3);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-amber, #D4882A);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 10px 14px;
+}
+.noticeInfo { background: rgba(74, 124, 107, 0.12); border-color: rgba(74, 124, 107, 0.4); color: #7fc4a8; }
+.notice .retry { font-size: 0.75rem; }

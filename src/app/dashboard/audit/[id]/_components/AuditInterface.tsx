@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import SaveStatus from './SaveStatus'
+import { useState, useEffect, useMemo, useSyncExternalStore } from 'react'
+import SyncStatus, { SyncNotices } from './SyncStatus'
+import { AuditSync, type SyncView } from '@/lib/offline/auditSync'
+import { auditStore, purgeOld, requestPersistentStorage } from '@/lib/offline/store'
 import type { User } from '@/types'
 import styles from './AuditInterface.module.css'
 import SectionAudit from './SectionAudit'
@@ -57,6 +59,8 @@ interface Props {
   existingEmotionalRatings: any[]
   existingPhotos: { id: string; standard_id: string | null }[]
   user: User
+  /** The workspace has the offline mode: changes are kept on the phone until the server has them */
+  offlineEnabled: boolean
 }
 
 export default function AuditInterface({
@@ -68,31 +72,57 @@ export default function AuditInterface({
   existingEmotionalRatings,
   existingPhotos,
   user,
+  offlineEnabled,
 }: Props) {
   const lang = user.default_language === 'en' ? 'en' : 'fr'
 
-  // Build response map from existing responses
-  const initialResponses: ResponseMap = {}
-  existingResponses.forEach((r: any) => {
-    initialResponses[r.standard_id] = {
-      response: r.response ?? null,
-      note: r.auditor_note ?? '',
+  // ── Synchronisation ──────────────────────────────────────
+  // Every answer, note and rating is applied at once, kept on the phone and sent in the background
+  // (src/lib/offline/auditSync.ts). There is no "save" button.
+  const [engine, setEngine] = useState<AuditSync | null>(null)
+  useEffect(() => {
+    const store = auditStore(offlineEnabled)
+    const e = new AuditSync({
+      campaignId: campaign.id,
+      userId: user.id,
+      campaignName: campaign.name,
+      store,
+      serverResponses: existingResponses,
+      serverRatings: existingEmotionalRatings,
+      serverPhotos: existingPhotos,
+    })
+    setEngine(e)
+    void e.init()
+    if (store.persistent) {
+      void requestPersistentStorage()
+      void purgeOld(store)
     }
-  })
+    return () => e.dispose()
+    // the engine lives as long as the page; props are only its starting point
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign.id, user.id, offlineEnabled])
 
-  // Build emotional rating map
-  const initialEmotional: EmotionalRatingMap = {}
-  existingEmotionalRatings.forEach((r: any) => {
-    initialEmotional[r.section_id] = r.rating
-  })
+  const initialView = useMemo<SyncView>(() => {
+    const responses: SyncView['responses'] = {}
+    existingResponses.forEach((r: any) => { responses[r.standard_id] = { response: r.response ?? null, note: r.auditor_note ?? '' } })
+    const ratings: SyncView['ratings'] = {}
+    existingEmotionalRatings.forEach((r: any) => { ratings[r.section_id] = r.rating })
+    return { responses, ratings, pending: 0, rejected: 0, state: 'idle', sending: false, lastSyncAt: null, conflicts: 0, persistent: offlineEnabled, ready: false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const view = useSyncExternalStore(
+    cb => (engine ? engine.subscribe(cb) : () => {}),
+    () => (engine ? engine.getView() : initialView),
+    () => initialView,
+  )
+  const responses: ResponseMap = view.responses
+  const emotionalRatings: EmotionalRatingMap = view.ratings
 
   const initialPhotos: Record<string, PhotoRef[]> = {}
   existingPhotos.forEach(p => {
     if (p.standard_id) (initialPhotos[p.standard_id] ??= []).push({ id: p.id })
   })
   const [photos, setPhotos] = useState<Record<string, PhotoRef[]>>(initialPhotos)
-  const [responses, setResponses] = useState<ResponseMap>(initialResponses)
-  const [emotionalRatings, setEmotionalRatings] = useState<EmotionalRatingMap>(initialEmotional)
   const [currentView, setCurrentView] = useState<'overview' | 'section' | 'submit'>('overview')
   const [currentSectionId, setCurrentSectionId] = useState<string | null>(null)
 
@@ -116,124 +146,19 @@ export default function AuditInterface({
   const answeredStandards = standards.filter(s => responses[s.id]?.response != null).length
   const overallPercent = totalStandards > 0 ? Math.round((answeredStandards / totalStandards) * 100) : 0
 
-  // ── Autosave ─────────────────────────────────────────────
-  // Every answer, note and rating is saved as it changes; there is no "save" button.
-  // Notes are saved 700 ms after the auditor stops typing (one request instead of one per key).
-  // Failed saves are kept and retried when the auditor taps "Retry" or when the next save succeeds.
-  type Job = { url: string; body: unknown }
-  const [pending, setPending] = useState(0)
-  const [typing, setTyping] = useState(0)
-  const [failedCount, setFailedCount] = useState(0)
-  const failed = useRef(new Map<string, Job>())
-  const noteTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
-  const noteJobs = useRef(new Map<string, Job>())
-
-  // Saves of the same standard / section go out one after the other, and only the latest value is sent:
-  // an older request can never arrive after a newer one and overwrite it.
-  const latest = useRef(new Map<string, Job>())
-  const chains = useRef(new Map<string, Promise<void>>())
-
-  const send = useCallback((key: string, job: Job, keepalive = false) => {
-    latest.current.set(key, job)
-    failed.current.delete(key) // superseded by this newer value
-    setFailedCount(failed.current.size)
-    setPending(n => n + 1)
-    const run = async () => {
-      if (latest.current.get(key) !== job) return // a newer value is queued behind us
-      try {
-        const res = await fetch(job.url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(job.body),
-          keepalive,
-        })
-        // A redirect means the session expired (sent to /login): not saved
-        if (!res.ok || res.redirected) throw new Error(String(res.status))
-        if (latest.current.get(key) === job) latest.current.delete(key)
-      } catch {
-        if (latest.current.get(key) === job) failed.current.set(key, job)
-      }
-    }
-    const p = (chains.current.get(key) ?? Promise.resolve()).then(run).finally(() => {
-      if (chains.current.get(key) === p) chains.current.delete(key)
-      setFailedCount(failed.current.size)
-      setPending(n => n - 1)
-    })
-    chains.current.set(key, p)
-    return p
-  }, [])
-
-  const retryFailed = useCallback(() => {
-    for (const [key, job] of Array.from(failed.current.entries())) send(key, job)
-  }, [send])
-
-  const flushNotes = useCallback((keepalive = false) => {
-    for (const [id, timer] of Array.from(noteTimers.current.entries())) {
-      clearTimeout(timer)
-      const job = noteJobs.current.get(id)
-      if (job) send(`r:${id}`, job, keepalive)
-    }
-    noteTimers.current.clear()
-    noteJobs.current.clear()
-    setTyping(0)
-  }, [send])
-
-  // Leaving the page or switching app: send any note still being typed
-  useEffect(() => {
-    const onHide = () => { if (document.visibilityState === 'hidden') flushNotes(true) }
-    const onPageHide = () => flushNotes(true)
-    document.addEventListener('visibilitychange', onHide)
-    window.addEventListener('pagehide', onPageHide)
-    return () => {
-      document.removeEventListener('visibilitychange', onHide)
-      window.removeEventListener('pagehide', onPageHide)
-    }
-  }, [flushNotes])
-
-  // Coming back online: retry what failed
-  useEffect(() => {
-    window.addEventListener('online', retryFailed)
-    return () => window.removeEventListener('online', retryFailed)
-  }, [retryFailed])
-
-  const responseJob = (standardId: string, response: 'meet' | 'below' | 'na' | null, note: string): Job => ({
-    url: `/api/audit/${campaign.id}/response`,
-    body: { standard_id: standardId, response, auditor_note: note },
-  })
-
   function handleResponseChange(standardId: string, response: 'meet' | 'below' | 'na' | null, note: string) {
     const prev = responses[standardId]
-    setResponses(p => ({ ...p, [standardId]: { response, note } }))
-    const job = responseJob(standardId, response, note)
-    const onlyNote = (prev?.response ?? null) === response && (prev?.note ?? '') !== note
-
-    const existing = noteTimers.current.get(standardId)
-    if (existing) clearTimeout(existing)
-
-    if (onlyNote) {
-      noteJobs.current.set(standardId, job)
-      noteTimers.current.set(standardId, setTimeout(() => {
-        noteTimers.current.delete(standardId)
-        noteJobs.current.delete(standardId)
-        setTyping(noteTimers.current.size)
-        send(`r:${standardId}`, job)
-      }, 700))
-      setTyping(noteTimers.current.size)
-    } else {
-      noteTimers.current.delete(standardId)
-      noteJobs.current.delete(standardId)
-      setTyping(noteTimers.current.size)
-      send(`r:${standardId}`, job)
-    }
-    if (failed.current.size > 0) retryFailed()
+    // Only the note changed: wait until the auditor stops typing before sending
+    const typing = (prev?.response ?? null) === response && (prev?.note ?? '') !== note
+    engine?.setResponse(standardId, response, note, { typing })
   }
 
   function handleEmotionalRatingChange(sectionId: string, rating: number) {
-    setEmotionalRatings(prev => ({ ...prev, [sectionId]: rating }))
-    send(`e:${sectionId}`, { url: `/api/audit/${campaign.id}/emotional-rating`, body: { section_id: sectionId, rating } })
+    engine?.setRating(sectionId, rating)
   }
 
-  const saving = pending > 0 || typing > 0
+  const retry = () => { void engine?.retry() }
+  const saving = view.sending || view.pending > 0
 
   function openSection(sectionId: string) {
     setCurrentSectionId(sectionId)
@@ -248,7 +173,7 @@ export default function AuditInterface({
   }
 
   function goToSubmit() {
-    flushNotes()
+    void engine?.flush()
     setCurrentView('submit')
     window.scrollTo(0, 0)
   }
@@ -269,14 +194,23 @@ export default function AuditInterface({
     ? sections[currentSectionIndex + 1]
     : null
 
-  const status = <SaveStatus lang={lang} saving={saving} failed={failedCount} onRetry={retryFailed} />
+  const status = <SyncStatus lang={lang} view={view} onRetry={retry} />
+  const notices = (
+    <SyncNotices
+      lang={lang}
+      view={view}
+      onDismissConflicts={() => engine?.dismissConflicts()}
+      onDiscardRejected={() => { void engine?.discardRejected() }}
+    />
+  )
 
   if (currentView === 'submit') {
     return (
       <>{status}<AuditSubmit
-        unsaved={failedCount}
-        saving={saving}
-        onRetry={retryFailed}
+        sync={view}
+        notices={notices}
+        onSync={retry}
+        onSubmitted={() => { void engine?.forget() }}
         campaign={campaign}
         sections={sections}
         domains={domains}
@@ -293,7 +227,7 @@ export default function AuditInterface({
   if (currentView === 'section' && currentSection) {
     return (
       <SectionAudit
-        saveStatus={<SaveStatus lang={lang} saving={saving} failed={failedCount} onRetry={retryFailed} inline />}
+        saveStatus={<SyncStatus lang={lang} view={view} onRetry={retry} inline />}
         campaign={campaign}
         section={currentSection}
         domain={currentDomain}
@@ -317,6 +251,8 @@ export default function AuditInterface({
 
   return (
     <>{status}<AuditOverview
+      notices={notices}
+      offlineReady={view.persistent && view.ready}
       campaign={campaign}
       domains={domains}
       sections={sections}

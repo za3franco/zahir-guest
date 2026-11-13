@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { canWorkOnAudit, isAuditOpen, sectionInTemplate } from '@/lib/auditAccess'
+import { applyRating } from '@/lib/auditSync'
 
 export async function POST(
   request: Request,
@@ -52,18 +53,10 @@ export async function POST(
     await supabaseAdmin.from('campaigns').update({ status: 'in_progress' }).eq('id', params.id).eq('status', 'assigned')
   }
 
-  const { error } = await supabaseAdmin
-    .from('audit_emotional_ratings')
-    .upsert({
-      campaign_id: params.id,
-      section_id,
-      rating,
-    }, {
-      onConflict: 'campaign_id,section_id',
-    })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    await applyRating(supabaseAdmin, params.id, user.id, section_id, rating, null)
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

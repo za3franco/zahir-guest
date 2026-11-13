@@ -208,3 +208,13 @@
 .submitBtn:hover {
   opacity: 0.9;
 }
+
+.offlineBadge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: #7fc4a8;
+  border: 1px solid rgba(74, 124, 107, 0.5);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}

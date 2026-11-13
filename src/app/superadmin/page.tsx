@@ -118,7 +118,7 @@ export default async function SuperAdminPage() {
                   <td>{r.campaigns_month} / {r.campaigns_count}</td>
                   <td>{day(r.created_at)}</td>
                   <td>{isTrial ? day(r.trial_ends_at) : day(r.current_period_end)}</td>
-                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} pilot={isTrial} free={effectivePlan(r as any).kind === 'free'} /></td>
+                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} pilot={isTrial} free={effectivePlan(r as any).kind === 'free'} offline={!!(r as any).offline_audit_enabled} /></td>
                 </tr>
               )
             })}

@@ -71,6 +71,28 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Conflict' }, { status: 409 })
   }
 
+  // A questionnaire used by an audit in progress keeps its structure (auditors may be working offline on it):
+  // texts can be corrected, but questions, sections and domains cannot be added, removed or moved.
+  const { count: openAudits } = await db.from('campaigns').select('id', { count: 'exact', head: true })
+    .eq('template_id', params.id).in('status', ['assigned', 'in_progress'])
+  if (openAudits) {
+    const shape = (ds: { id: string; sections: { id: string; standards: { id: string }[] }[] }[]) =>
+      JSON.stringify(ds.map(d => [d.id, d.sections.map(s => [s.id, s.standards.map(q => q.id).sort()]).sort()]).sort())
+    const before = shape(current.domains)
+    const after = shape(domains.map(d => ({
+      id: d.id,
+      sections: sections.filter(s => s.domain_id === d.id).map(s => ({ id: s.id, standards: standards.filter(q => q.section_id === s.id).map(q => ({ id: q.id })) })),
+    })))
+    if (before !== after) {
+      return NextResponse.json({
+        code: 'structure_locked',
+        error: lang === 'en'
+          ? `This questionnaire is used by ${openAudits} audit${openAudits > 1 ? 's' : ''} in progress: you can correct its texts, but not add, remove or move questions until ${openAudits > 1 ? 'they are' : 'it is'} submitted. To change the structure now, create a new questionnaire for the next audits.`
+          : `Ce questionnaire est utilisé par ${openAudits} audit${openAudits > 1 ? 's' : ''} en cours : vous pouvez corriger ses textes, mais pas ajouter, retirer ou déplacer des questions avant ${openAudits > 1 ? 'leur' : 'sa'} soumission. Pour changer la structure maintenant, créez un nouveau questionnaire pour les prochains audits.`,
+      }, { status: 409 })
+    }
+  }
+
   // Removed questions: refuse when they already have answers
   const keptStd = new Set(standards.map(q => q.id))
   const removedStd = Array.from(known.standards).filter(id => !keptStd.has(id))
