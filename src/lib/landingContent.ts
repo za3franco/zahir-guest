@@ -8,15 +8,15 @@ export const COPY = {
   fr: {
     metaTitle: "Zahir Guest — Logiciel d'audit mystère pour l'hôtellerie",
     metaDescription:
-      "Plateforme d'audit client mystère pour hôtels, cabinets d'audit et programmes de classification : audits sur mobile, scores automatiques, rapports PDF en marque blanche et portail pour les directeurs d'établissement. Essai gratuit 14 jours.",
-    nav: { features: 'Fonctionnalités', how: 'Comment ça marche', pricing: 'Tarifs', faq: 'FAQ', login: 'Connexion', dashboard: 'Mon espace', cta: "Essai gratuit", menu: 'Menu' },
+      "Plateforme d'audit client mystère pour hôtels, cabinets d'audit et programmes de classification : audits sur mobile, scores automatiques, rapports PDF en marque blanche et portail pour les directeurs d'établissement. Offre Découverte gratuite.",
+    nav: { features: 'Fonctionnalités', how: 'Comment ça marche', pricing: 'Tarifs', faq: 'FAQ', login: 'Connexion', dashboard: 'Mon espace', cta: 'Commencer gratuitement', menu: 'Menu' },
     hero: {
       eyebrow: "Plateforme d'audit client mystère",
       title: 'Révélez ce qui ne peut plus être ignoré.',
       sub: "Zahir Guest transforme chaque visite mystère en rapport prêt pour la direction : audit sur mobile, scores calculés automatiquement, rapports PDF à votre image et suivi dans le temps pour chaque établissement.",
-      cta: "Démarrer l'essai gratuit",
+      cta: 'Commencer gratuitement',
       cta2: 'Réserver une démo',
-      note: '14 jours gratuits · sans carte bancaire · FR / EN',
+      note: 'Offre Découverte gratuite · sans carte bancaire · FR / EN',
     },
     audience: {
       title: 'Conçu pour ceux qui mesurent la qualité de service',
@@ -61,24 +61,24 @@ export const COPY = {
     preview: { label: 'Exemple de rapport', score: 'Score global', domains: ['Réception', 'Hébergement', 'Restauration', 'Espaces'], caption: 'Exemple illustratif' },
     pricing: {
       title: 'Un prix par établissement, rien de caché',
-      sub: "Vous payez pour les établissements que vous suivez, pas pour le nombre de personnes qui travaillent dessus. 14 jours gratuits, sans carte.",
+      sub: "Vous payez pour les établissements que vous suivez, pas pour le nombre de personnes qui travaillent dessus. Commencez gratuitement avec l'offre Découverte, sans carte.",
     },
     faqTitle: 'Questions fréquentes',
-    finalCta: { title: "Prêt à voir ce que vos clients voient ?", sub: "Créez votre espace en deux minutes. Aucune carte bancaire requise.", cta: "Démarrer l'essai gratuit", cta2: 'Réserver une démo' },
+    finalCta: { title: "Prêt à voir ce que vos clients voient ?", sub: "Créez votre espace en deux minutes. Aucune carte bancaire requise.", cta: 'Commencer gratuitement', cta2: 'Réserver une démo' },
     footer: { tagline: 'Ce qui est révélé ne peut plus être ignoré.', product: 'Produit', contact: 'Contact', by: 'Un produit Za3fran Consulting', rights: 'Tous droits réservés.' },
   },
   en: {
     metaTitle: 'Zahir Guest — Mystery guest audit software for hospitality',
     metaDescription:
-      'Mystery guest audit platform for hotels, audit firms and classification programmes: mobile audits, automatic scoring, white-label PDF reports and a portal for property managers. 14-day free trial.',
-    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', login: 'Sign in', dashboard: 'My workspace', cta: 'Free trial', menu: 'Menu' },
+      'Mystery guest audit platform for hotels, audit firms and classification programmes: mobile audits, automatic scoring, white-label PDF reports and a portal for property managers. Free Discovery plan.',
+    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', login: 'Sign in', dashboard: 'My workspace', cta: 'Start for free', menu: 'Menu' },
     hero: {
       eyebrow: 'Mystery guest audit platform',
       title: 'Reveal what cannot be unseen.',
       sub: 'Zahir Guest turns every mystery visit into a board-ready report: mobile audits, automatic scoring, PDF reports in your own brand, and score tracking over time for every property.',
-      cta: 'Start your free trial',
+      cta: 'Start for free',
       cta2: 'Book a demo',
-      note: '14 days free · no credit card · EN / FR',
+      note: 'Free Discovery plan · no credit card · EN / FR',
     },
     audience: {
       title: 'Built for people who measure service quality',
@@ -123,10 +123,10 @@ export const COPY = {
     preview: { label: 'Sample report', score: 'Overall score', domains: ['Front office', 'Housekeeping', 'Food & Beverage', 'Public areas'], caption: 'Illustrative example' },
     pricing: {
       title: 'Priced per property, nothing hidden',
-      sub: 'You pay for the properties you track, not for the number of people working on them. 14 days free, no card needed.',
+      sub: 'You pay for the properties you track, not for the number of people working on them. Start free on the Discovery plan, no card needed.',
     },
     faqTitle: 'Frequently asked questions',
-    finalCta: { title: 'Ready to see what your guests see?', sub: 'Create your workspace in two minutes. No credit card required.', cta: 'Start your free trial', cta2: 'Book a demo' },
+    finalCta: { title: 'Ready to see what your guests see?', sub: 'Create your workspace in two minutes. No credit card required.', cta: 'Start for free', cta2: 'Book a demo' },
     footer: { tagline: 'Reveal what cannot be unseen.', product: 'Product', contact: 'Contact', by: 'A Za3fran Consulting product', rights: 'All rights reserved.' },
   },
 } as const
@@ -135,7 +135,7 @@ export const FAQS: Record<Lang, Faq[]> = {
   fr: [
     { q: "Qu'est-ce qu'un audit client mystère ?", a: "Un audit mystère (ou visite mystère) consiste à envoyer un auditeur qui se comporte comme un client ordinaire pour évaluer la qualité réelle du service, par rapport à des standards définis. Zahir Guest organise cette démarche de bout en bout : missions, audit sur mobile, scores et rapports." },
     { q: "À qui s'adresse Zahir Guest ?", a: "Aux cabinets d'audit mystère, aux groupes hôteliers et restaurateurs qui auditent leurs propres établissements, et aux programmes institutionnels de classification ou de contrôle qualité." },
-    { q: "Comment fonctionne l'essai gratuit ?", a: "Vous créez votre espace en deux minutes, sans carte bancaire, et disposez de 14 jours pour tester le produit. À la fin de l'essai, vous choisissez un forfait pour continuer." },
+    { q: "Peut-on essayer Zahir Guest gratuitement ?", a: "Oui. L'offre Découverte est gratuite, sans carte bancaire et sans limite de durée : 1 établissement, 2 utilisateurs, 1 audit par trimestre avec le questionnaire Essentiel (environ 60 standards) et un rapport avec score. Vous passez à l'offre Hôtel ou Professional depuis Facturation quand vous voulez, sans perdre vos données. Pour un groupe hôtelier ou un cabinet d'audit, nous ouvrons un pilote Professional de 14 jours après une démo." },
     { q: "Combien coûte Zahir Guest ?", a: "Hôtel à 79 €/mois pour un établissement. Professional à 249 €/mois avec 5 établissements inclus, puis 39 € par établissement supplémentaire jusqu'à 30, avec utilisateurs et audits illimités et rapports en marque blanche. Enterprise à partir de 1 490 €/mois pour 50 établissements et plus. En annuel, deux mois sont offerts. Les prix sont aussi proposés en dollars et, au Maroc, en dirhams." },
     { q: "Comment payer en dirhams ?", a: "Au Maroc, vous payez par carte en dirhams via YouCan Pay, pour un trimestre ou une année à l'avance. Nous vous envoyons un rappel avant la fin de chaque période." },
     { q: "Puis-je utiliser mon propre logo et mes couleurs ?", a: "Oui, avec les formules Professional et Enterprise : votre logo, votre nom et votre couleur apparaissent dans l'application, sur les rapports et comme nom d'expéditeur des emails." },
@@ -148,7 +148,7 @@ export const FAQS: Record<Lang, Faq[]> = {
   en: [
     { q: 'What is a mystery guest audit?', a: 'A mystery guest (or mystery shopper) audit sends an auditor who behaves like an ordinary guest to assess the real quality of service against defined standards. Zahir Guest runs the whole process: assignments, mobile audit, scoring and reports.' },
     { q: 'Who is Zahir Guest for?', a: 'Mystery audit firms, hotel and restaurant groups auditing their own properties, and institutional classification or quality-control programmes.' },
-    { q: 'How does the free trial work?', a: 'You create your workspace in two minutes, with no credit card, and have 14 days to try the product. At the end of the trial you choose a plan to continue.' },
+    { q: 'Can I try Zahir Guest for free?', a: 'Yes. The Discovery plan is free, with no credit card and no time limit: 1 property, 2 users, 1 audit per quarter with the Essential questionnaire (about 60 standards) and a scored report. Upgrade to the Hotel or Professional plan from Billing whenever you like, without losing your data. For hotel groups and audit firms, we open a 14-day Professional pilot after a demo.' },
     { q: 'How much does Zahir Guest cost?', a: 'Hotel at €79/month for one property. Professional at €249/month with 5 properties included, then €39 per extra property up to 30, with unlimited users and audits and white-label reports. Enterprise from €1,490/month for 50 properties and more. Annual billing gives two months free. Prices are also offered in US dollars and, in Morocco, in dirhams.' },
     { q: 'Can I pay in Moroccan dirhams?', a: 'Yes. In Morocco you pay by card in dirhams through YouCan Pay, for a quarter or a year in advance. We send a reminder before each period ends.' },
     { q: 'Can I use my own logo and colours?', a: 'Yes, on the Professional and Enterprise plans: your logo, name and colour appear in the app, on reports and as the sender name of emails.' },

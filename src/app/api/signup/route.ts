@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
-import { isPlanTier, planName, TRIAL_DAYS } from '@/lib/plans'
+import { planName } from '@/lib/plans'
 import { createTenantWithAdmin } from '@/lib/tenants'
 import { isCurrency, madPaymentsEnabled } from '@/lib/currency'
 import { sendWelcomeEmail } from '@/lib/billingEmails'
@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const MAX_PER_IP_PER_HOUR = 5
 
-// Public endpoint: starts a 14-day free trial (no card). Creates tenant + first admin + welcome email.
+// Public endpoint: creates a free "Découverte" workspace (no card, no time limit) + first admin + welcome email.
+// Paid plans are bought afterwards from Billing; Professional pilots are opened by the super admin after a demo.
 export async function POST(request: Request) {
   let body: any
   try {
@@ -32,7 +33,6 @@ export async function POST(request: Request) {
   const companyName = String(body.companyName ?? '').trim().slice(0, 120)
   const adminName = String(body.name ?? '').trim().slice(0, 120)
   const email = String(body.email ?? '').trim().toLowerCase().slice(0, 200)
-  const plan = isPlanTier(body.plan) && body.plan !== 'enterprise' ? body.plan : 'professional'
   // Currency shown to the visitor; it can still change until the first payment.
   const currency = isCurrency(body.currency) && (body.currency !== 'MAD' || madPaymentsEnabled()) ? body.currency : 'EUR'
 
@@ -77,16 +77,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 86400_000).toISOString()
     const created = await createTenantWithAdmin(supabase, {
       companyName,
       adminName,
       email,
       lang,
       tenantFields: {
-        subscription_tier: plan, // explicit: the column default would be the unlimited internal tier
-        subscription_status: 'trialing',
-        trial_ends_at: trialEndsAt,
+        subscription_tier: 'free', // explicit: the column default would be the unlimited internal tier
+        subscription_status: 'active',
+        trial_ends_at: null,
         billing_currency: currency,
       },
     })
@@ -96,10 +95,10 @@ export async function POST(request: Request) {
         name: adminName,
         email,
         companyName,
-        planName: planName(plan, lang) ?? 'Zahir Guest',
+        planName: planName('free', lang) ?? 'Zahir Guest',
         setPasswordLink: created.setPasswordLink,
         lang,
-        trialDays: TRIAL_DAYS,
+        freePlan: true,
       })
     }
     return NextResponse.json({ ok: true })

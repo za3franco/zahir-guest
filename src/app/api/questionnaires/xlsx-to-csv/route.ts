@@ -1,5 +1,6 @@
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
+import { libraryLockedResponse } from '@/lib/limits'
 import { readSpreadsheet } from '@/lib/spreadsheet'
 
 export const runtime = 'nodejs'
@@ -8,6 +9,10 @@ export const runtime = 'nodejs'
 export async function POST(request: Request) {
   const user = await requireUser()
   if (!isAdminRole(user.role)) return Response.json({ error: 'Unauthorized' }, { status: 403 })
+  {
+    const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
+    if (locked) return locked
+  }
   const form = await request.formData().catch(() => null)
   const file = form?.get('file')
   if (!(file instanceof File) || !file.size || file.size > 4 * 1024 * 1024) return Response.json({ error: 'FILE' }, { status: 400 })

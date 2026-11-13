@@ -25,7 +25,8 @@ export async function POST(request: Request) {
   const email = String(body.email ?? '').trim().toLowerCase().slice(0, 200)
   const lang: 'en' | 'fr' = body.lang === 'en' ? 'en' : 'fr'
   const plan = isPlanTier(body.plan) ? body.plan : null
-  const mode = body.mode === 'direct' ? 'direct' : 'trial'
+  // direct = contract; trial = Professional-level pilot of N days (falls back to Découverte); free = Découverte
+  const mode = body.mode === 'direct' ? 'direct' : body.mode === 'free' ? 'free' : 'trial'
   const trialDays = Math.min(90, Math.max(1, Number(body.trialDays) || TRIAL_DAYS))
   const contractMrr = body.contractMrrEur === '' || body.contractMrrEur == null ? null : Number(body.contractMrrEur)
 
@@ -41,7 +42,9 @@ export async function POST(request: Request) {
   if (existing) return NextResponse.json({ error: 'A user with this email already exists.' }, { status: 409 })
 
   const tenantFields: Record<string, unknown> =
-    mode === 'direct'
+    mode === 'free'
+      ? { subscription_tier: 'free', subscription_status: 'active', billing_mode: 'stripe' }
+      : mode === 'direct'
       ? { subscription_tier: plan, subscription_status: 'active', billing_mode: 'direct', contract_mrr_eur: contractMrr }
       : {
           subscription_tier: plan,
@@ -59,10 +62,11 @@ export async function POST(request: Request) {
         name: adminName,
         email,
         companyName,
-        planName: planName(plan, lang) ?? 'Zahir Guest',
+        planName: planName(mode === 'free' ? 'free' : plan, lang) ?? 'Zahir Guest',
         setPasswordLink: created.setPasswordLink,
         lang,
         trialDays: mode === 'trial' ? trialDays : undefined,
+        freePlan: mode === 'free',
       })
     }
 

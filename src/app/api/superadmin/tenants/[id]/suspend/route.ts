@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ ok: true, emailed })
   } else {
     if (tenant.subscription_status !== 'suspended') return NextResponse.json({ ok: true })
-    const restored = tenant.suspended_prev_status || (tenant.stripe_subscription_id ? 'active' : 'trialing')
+    const restored = tenant.suspended_prev_status || 'active'
     const { error } = await supabase
       .from('tenants')
       .update({ subscription_status: restored, suspended_prev_status: null })

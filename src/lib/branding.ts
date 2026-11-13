@@ -3,7 +3,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import { limitsFor } from '@/lib/plans'
+import { limitsForTenant } from '@/lib/plans'
 
 export const DEFAULT_ACCENT = '#C8A45A'
 
@@ -23,7 +23,7 @@ export function hexToRgba(hex: string, alpha: number): string {
 }
 
 export function brandingFromTenant(tenant: any): TenantBranding {
-  const limits = limitsFor(tenant?.subscription_tier, tenant?.subscription_status)
+  const limits = limitsForTenant(tenant)
   const cfg = tenant?.branding_config ?? {}
   const whiteLabel = limits.whiteLabel
   const accent = HEX_RE.test(cfg.primary_color ?? '') ? cfg.primary_color : DEFAULT_ACCENT

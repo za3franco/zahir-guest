@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
+import { isAdminRole } from '@/lib/access'
+import { checkCampaignRefs } from '@/lib/campaignRefs'
 
 export async function PATCH(
   request: Request,
@@ -14,15 +16,33 @@ export async function PATCH(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const body = await request.json()
+  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  if (!isAdminRole(user.role)) {
+    return NextResponse.json({ error: lang === 'en' ? 'Not allowed' : 'Non autorisé' }, { status: 403 })
+  }
+
+  const body = await request.json().catch(() => ({}))
 
   // Get current campaign to detect auditor change
   const { data: currentCampaign } = await supabaseAdmin
     .from('campaigns')
-    .select('auditor_user_id, name, property_id, visit_window_start, visit_window_end')
+    .select('auditor_user_id, name, property_id, template_id, visit_window_start, visit_window_end')
     .eq('id', params.id)
     .eq('tenant_id', user.tenant_id)
     .single()
+  if (!currentCampaign) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Only a changed questionnaire is checked against the plan (an existing campaign keeps its own).
+  const refError = await checkCampaignRefs(
+    user.tenant_id,
+    {
+      property_id: body.property_id,
+      auditor_user_id: body.auditor_user_id,
+      template_id: body.template_id !== undefined && body.template_id !== currentCampaign.template_id ? body.template_id : undefined,
+    },
+    lang
+  )
+  if (refError) return NextResponse.json({ error: refError }, { status: 400 })
 
   const campaignUpdate: Record<string, any> = {}
   if (body.name !== undefined) campaignUpdate.name = body.name

@@ -1,27 +1,27 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { PLAN_NAMES, PLAN_FEATURES, PRICE_GRID, TRIAL_DAYS, type PlanTier } from '@/lib/plans'
-import { currencyFromCookieString, formatMoney, type Currency } from '@/lib/currency'
+import { FREE_FEATURES } from '@/lib/plans'
+import { currencyFromCookieString, type Currency } from '@/lib/currency'
 import styles from './signup.module.css'
 
 type Lang = 'en' | 'fr'
 
 const T = {
-  title: { en: 'Start your free trial', fr: 'Démarrez votre essai gratuit' },
+  title: { en: 'Start for free', fr: 'Commencez gratuitement' },
   sub: {
-    en: `${TRIAL_DAYS} days, no credit card required. Set up your first audit in minutes.`,
-    fr: `${TRIAL_DAYS} jours, sans carte bancaire. Lancez votre premier audit en quelques minutes.`,
+    en: 'The Discovery plan is free with no time limit and no credit card. Run your first audit in minutes.',
+    fr: "L'offre Découverte est gratuite, sans limite de durée et sans carte bancaire. Lancez votre premier audit en quelques minutes.",
   },
   company: { en: 'Company / hotel group', fr: 'Société / groupe hôtelier' },
   name: { en: 'Your name', fr: 'Votre nom' },
   email: { en: 'Work email', fr: 'Email professionnel' },
-  plan: { en: 'Plan you are most interested in', fr: 'Forfait qui vous intéresse le plus' },
+  included: { en: 'Included, free', fr: 'Inclus gratuitement' },
   planNote: {
-    en: 'You can change or choose later. The trial includes the full product.',
-    fr: "Vous pourrez changer ou choisir plus tard. L'essai inclut tout le produit.",
+    en: 'Need more properties, the full library or your own questionnaires? Upgrade any time from Billing. Hotel group or audit firm: ask us for a 14-day guided pilot.',
+    fr: "Besoin de plus d'établissements, de la bibliothèque complète ou de vos propres questionnaires ? Passez à une offre supérieure à tout moment depuis Facturation. Groupe hôtelier ou cabinet d'audit : demandez-nous un pilote accompagné de 14 jours.",
   },
-  submit: { en: 'Start free trial', fr: "Démarrer l'essai gratuit" },
+  submit: { en: 'Create my free workspace', fr: 'Créer mon espace gratuit' },
   sending: { en: 'Creating your workspace…', fr: 'Création de votre espace…' },
   haveAccount: { en: 'Already have an account? Sign in', fr: 'Déjà un compte ? Se connecter' },
   doneTitle: { en: 'Check your inbox', fr: 'Vérifiez votre boîte mail' },
@@ -29,7 +29,6 @@ const T = {
     en: 'We sent you a link to set your password and open your workspace. If you do not see it within a few minutes, check your spam folder.',
     fr: "Nous vous avons envoyé un lien pour définir votre mot de passe et ouvrir votre espace. Si vous ne le voyez pas d'ici quelques minutes, vérifiez vos courriers indésirables.",
   },
-  perMonth: { en: '/month', fr: '/mois' },
   generic: { en: 'Something went wrong. Please try again.', fr: 'Une erreur est survenue. Veuillez réessayer.' },
 }
 
@@ -38,7 +37,6 @@ export default function SignupPage() {
   const [companyName, setCompanyName] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [plan, setPlan] = useState<PlanTier>('professional')
   const [currency, setCurrency] = useState<Currency>('EUR')
   useEffect(() => {
     setCurrency(currencyFromCookieString(document.cookie))
@@ -59,7 +57,7 @@ export default function SignupPage() {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyName, name, email, plan, lang, website, currency }),
+        body: JSON.stringify({ companyName, name, email, lang, website, currency }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -127,24 +125,11 @@ export default function SignupPage() {
                     onChange={e => setEmail(e.target.value)} required autoComplete="email" />
                 </div>
 
-                <div className="form-group">
-                  <span className="form-label">{t(T.plan)}</span>
-                  <div className={styles.plans} role="radiogroup" aria-label={t(T.plan)}>
-                    {(['starter', 'professional'] as PlanTier[]).map(tier => (
-                      <button
-                        key={tier}
-                        type="button"
-                        role="radio"
-                        aria-checked={plan === tier}
-                        onClick={() => setPlan(tier)}
-                        className={`${styles.planCard} ${plan === tier ? styles.planCardActive : ''}`}
-                      >
-                        <span className={styles.planName}>{PLAN_NAMES[tier][lang]}</span>
-                        <span className={styles.planPrice}>{formatMoney(PRICE_GRID[currency][tier].base, currency, lang)}{t(T.perMonth)}</span>
-                        <span className={styles.planNote}>{PLAN_FEATURES[tier][lang].slice(0, 2).join(' · ')}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div className={styles.freeBox}>
+                  <span className="form-label">{t(T.included)}</span>
+                  <ul className={styles.freeList}>
+                    {FREE_FEATURES[lang].map(f => <li key={f}>{f}</li>)}
+                  </ul>
                   <p className={styles.fine} style={{ marginTop: 'var(--space-2)' }}>{t(T.planNote)}</p>
                 </div>
 

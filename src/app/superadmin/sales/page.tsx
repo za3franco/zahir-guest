@@ -86,9 +86,9 @@ export default async function SalesPage() {
   const youcan = all.filter(t => t.billing_mode === 'youcan' && t.subscription_status === 'active' && t.current_period_end && new Date(t.current_period_end).getTime() > Date.now())
   const youcanMrrCents = youcan.reduce((n, t) => n + Math.round(listMonthlyValue(t.subscription_tier, t.billing_interval, t.extra_properties ?? 0, 'MAD') * EUR_PER_UNIT.MAD * 100), 0)
 
-  // Trials (database): conversion over the last 90 days
+  // Sign-ups (database): free or pilot → paid over the last 90 days
   const since90 = Date.now() - 90 * 86400_000
-  const trialCohort = all.filter(t => t.billing_mode !== 'direct' && t.subscription_tier !== 'za3fran_internal' && t.trial_ends_at && new Date(t.created_at).getTime() >= since90)
+  const trialCohort = all.filter(t => t.billing_mode !== 'direct' && t.subscription_tier !== 'za3fran_internal' && new Date(t.created_at).getTime() >= since90)
   const converted = trialCohort.filter(t => (t.stripe_subscription_id || t.billing_mode === 'youcan') && ['active', 'past_due'].includes(t.subscription_status ?? ''))
   const trialsRunning = all.filter(t => t.subscription_status === 'trialing' && !t.stripe_subscription_id)
   const trialsEnding7 = trialsRunning.filter(t => t.trial_ends_at && new Date(t.trial_ends_at).getTime() - Date.now() <= 7 * 86400_000)
@@ -126,8 +126,8 @@ export default async function SalesPage() {
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{trialCohort.length ? pct(converted.length / trialCohort.length) : '—'}</span>
-          <span className={styles.statLabel}>Trial → paid (90 days)</span>
-          <span className={styles.statNote}>{converted.length} of {trialCohort.length} trials · {trialsRunning.length} running, {trialsEnding7.length} ending within 7 days</span>
+          <span className={styles.statLabel}>Sign-up → paid (90 days)</span>
+          <span className={styles.statNote}>{converted.length} of {trialCohort.length} sign-ups · {trialsRunning.length} pilots running, {trialsEnding7.length} ending within 7 days</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{(sales?.paymentIssues.length ?? 0) + (sales?.openInvoicesCount ?? 0)}</span>

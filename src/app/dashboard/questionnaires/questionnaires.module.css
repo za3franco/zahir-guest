@@ -24,3 +24,11 @@
 .table th { text-align: left; color: var(--color-sand); font-weight: 400; padding: 6px 8px; border-bottom: 1px solid var(--color-border-subtle); white-space: nowrap; }
 .table td { color: var(--color-ivory); padding: 6px 8px; border-bottom: 1px solid var(--color-border-subtle); vertical-align: top; }
 .actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* Free plan: locked outline of the full library */
+.lockedPanel { border-style: dashed; border-color: rgba(200,164,90,0.45); }
+.lockedHead { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); flex-wrap: wrap; }
+.outline { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+.outlineDomain { font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-sand); margin: 0 0 var(--space-2); font-weight: 500; }
+.outline ul { list-style: none; margin: 0; padding: 0; }
+.outline li { display: flex; justify-content: space-between; gap: var(--space-2); color: var(--color-ivory); font-size: 0.875rem; padding: 4px 0; border-bottom: 1px solid var(--color-border-subtle); }

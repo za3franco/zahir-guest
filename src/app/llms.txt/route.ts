@@ -30,13 +30,13 @@ ${en.audience.items.map(i => `- ${i.t}: ${i.d}`).join('\n')}
 ## Key features
 ${en.features.items.map(i => `- ${i.t}: ${i.d}`).join('\n')}
 
-## Pricing (per property; 14-day free trial, no credit card; annual = 2 months free)
+## Pricing (per property; free Discovery plan with no credit card: 1 property, 2 users, 1 audit per quarter; annual = 2 months free; 14-day Professional pilot on request)
 ${plans}
 
 ## Pages
 - [Home (English)](${SITE_URL}/en)
 - [Accueil (français)](${SITE_URL}/)
-- [Start a free trial](${SITE_URL}/signup)
+- [Start for free](${SITE_URL}/signup)
 - [Sign in](${SITE_URL}/login)
 
 ## Contact

@@ -3,11 +3,15 @@
 import { useState } from 'react'
 import styles from './superadmin.module.css'
 
-export default function TenantActions({ tenantId, name, suspended, internal }: {
+export default function TenantActions({ tenantId, name, suspended, internal, pilot, free }: {
   tenantId: string
   name: string
   suspended: boolean
   internal: boolean
+  /** A Professional pilot is running */
+  pilot?: boolean
+  /** The workspace is on the free plan (pilot can be opened) */
+  free?: boolean
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,6 +50,41 @@ export default function TenantActions({ tenantId, name, suspended, internal }: {
     }
   }
 
+  async function togglePilot() {
+    if (pilot) {
+      if (!window.confirm(`End the pilot of ${name} now? The workspace goes back to the free Discovery plan.`)) return
+    } else {
+      const d = window.prompt(`Open a Professional pilot for ${name}.\n\nNumber of days (1–30):`, '14')
+      if (d === null) return
+      setBusy(true)
+      setError(null)
+      const res = await fetch(`/api/superadmin/tenants/${tenantId}/pilot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days: Number(d) }),
+      })
+      if (res.ok) window.location.reload()
+      else {
+        const j = await res.json().catch(() => ({}))
+        setError(j.error ?? 'Failed')
+        setBusy(false)
+      }
+      return
+    }
+    setBusy(true)
+    setError(null)
+    const res = await fetch(`/api/superadmin/tenants/${tenantId}/pilot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ end: true }),
+    })
+    if (res.ok) window.location.reload()
+    else {
+      setError('Failed')
+      setBusy(false)
+    }
+  }
+
   async function remove() {
     const typed = window.prompt(
       `PERMANENTLY delete "${name}"?\n\nThis deletes its users, properties, campaigns, reports, photos and logo, and cancels any running Stripe subscription immediately (no refund). It cannot be undone.\n\nType the workspace name to confirm:`
@@ -73,6 +112,11 @@ export default function TenantActions({ tenantId, name, suspended, internal }: {
   return (
     <div className={styles.actions}>
       <button type="button" className={styles.btn} disabled={busy} onClick={viewAs}>View as</button>
+      {!internal && !suspended && (pilot || free) && (
+        <button type="button" className={styles.btn} disabled={busy} onClick={togglePilot}>
+          {pilot ? 'End pilot' : 'Open pilot'}
+        </button>
+      )}
       {!internal && (
         <button type="button" className={`${styles.btn} ${suspended ? '' : styles.btnDanger}`} disabled={busy} onClick={toggleSuspend}>
           {suspended ? 'Reactivate' : 'Suspend'}

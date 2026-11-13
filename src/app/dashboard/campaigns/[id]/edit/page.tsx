@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { hasFullLibrary } from '@/lib/limits'
+import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 import { notFound } from 'next/navigation'
 import CampaignForm from '../../_components/CampaignForm'
 
@@ -42,13 +44,17 @@ export default async function EditCampaignPage({ params }: { params: { id: strin
 
   if (!campaign) notFound()
 
+  // Free plan: the "Essentiel" questionnaire, plus the one this campaign already uses.
+  const full = await hasFullLibrary(user.tenant_id)
+  const usable = (templates ?? []).filter((x: any) => full || x.id === ESSENTIAL_TEMPLATE_ID || x.id === (campaign as any).template_id)
+
   return (
     <CampaignForm
       user={user}
       campaign={campaign}
       properties={properties ?? []}
       auditors={auditors ?? []}
-      templates={templates ?? []}
+      templates={usable}
       mode="edit"
     />
   )

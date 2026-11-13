@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { countUsage } from '@/lib/limits'
-import { limitsFor, planName as tierName, TIER_RULES, isPlanTier } from '@/lib/plans'
+import { effectivePlan, planName as tierName, TIER_RULES, isPlanTier } from '@/lib/plans'
 import { madEnabled, workspaceCurrency } from '@/lib/billing'
 import { extraHeadroom, GRACE_DAYS, youcanPeriodRunning } from '@/lib/youcanBilling'
 import { BillingPlans, ManageBillingButton, type BillingState } from './BillingActions'
@@ -20,7 +20,12 @@ const T = {
   noPlan: { en: 'No plan yet', fr: 'Aucun forfait' },
   renews: { en: 'Renews on', fr: 'Renouvellement le' },
   cancelsOn: { en: 'Ends on', fr: 'Se termine le' },
-  trialEnds: { en: 'Trial ends on', fr: "L'essai se termine le" },
+  trialEnds: { en: 'Pilot ends on', fr: 'Le pilote se termine le' },
+  auditsQuarter: { en: 'Audits this quarter', fr: 'Audits ce trimestre' },
+  freeNote: {
+    en: 'Free plan, no time limit. Upgrade below to unlock more properties, the full library (573 standards), your own questionnaires and AI summaries.',
+    fr: "Offre gratuite, sans limite de durée. Passez à une offre ci-dessous pour débloquer plus d'établissements, la bibliothèque complète (573 standards), vos propres questionnaires et les synthèses IA.",
+  },
   properties: { en: 'Properties', fr: 'Établissements' },
   users: { en: 'Users', fr: 'Utilisateurs' },
   audits: { en: 'Audits this month', fr: 'Audits ce mois-ci' },
@@ -62,7 +67,7 @@ const T = {
 
 const STATUS: Record<string, { en: string; fr: string; badge: string }> = {
   active: { en: 'Active', fr: 'Actif', badge: 'badge-sage' },
-  trialing: { en: 'Trial', fr: 'Essai', badge: 'badge-gold' },
+  trialing: { en: 'Pilot', fr: 'Pilote', badge: 'badge-gold' },
   past_due: { en: 'Payment overdue', fr: 'Paiement en retard', badge: 'badge-amber' },
   unpaid: { en: 'Unpaid', fr: 'Impayé', badge: 'badge-amber' },
   canceled: { en: 'Ended', fr: 'Terminé', badge: 'badge-red' },
@@ -86,23 +91,26 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
 
   const isInternal = tenant?.subscription_tier === 'za3fran_internal'
   const isDirect = !isInternal && tenant?.billing_mode === 'direct'
-  const limits = limitsFor(tenant?.subscription_tier, tenant?.subscription_status, tenant?.extra_properties ?? 0)
+  const plan = effectivePlan(tenant)
+  const limits = plan.limits
 
+  const perQuarter = limits.auditsPerQuarter !== null
   const [properties, users, audits, ai] = await Promise.all([
     countUsage(supabase, user.tenant_id, 'properties'),
     countUsage(supabase, user.tenant_id, 'users'),
-    countUsage(supabase, user.tenant_id, 'audits'),
+    countUsage(supabase, user.tenant_id, 'audits', perQuarter ? 'quarter' : 'month'),
     countUsage(supabase, user.tenant_id, 'ai'),
   ])
 
   const meters = [
     { label: t(T.properties), used: properties, max: limits.properties },
     { label: t(T.users), used: users, max: limits.users },
-    { label: t(T.audits), used: audits, max: limits.auditsPerMonth },
+    { label: perQuarter ? t(T.auditsQuarter) : t(T.audits), used: audits, max: perQuarter ? limits.auditsPerQuarter : limits.auditsPerMonth },
     { label: t(T.ai), used: ai, max: limits.aiSummariesPerMonth },
   ]
 
-  const planName = tierName(tenant?.subscription_tier, lang)
+  // An ended pilot or subscription shows as the free plan it fell back to.
+  const planName = tierName(plan.kind === 'free' ? 'free' : tenant?.subscription_tier, lang)
   const isYoucan = tenant?.billing_mode === 'youcan'
   const youcanRunning = !!tenant && youcanPeriodRunning(tenant)
   const prepaidEnded = isYoucan && !!tenant?.current_period_end && !youcanRunning
@@ -180,8 +188,9 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
           <>
             <div className={styles.planRow}>
               <p className={styles.planBig}>{planName ?? t(T.noPlan)}</p>
-              {status && <span className={`badge ${status.badge}`}>{status[lang]}</span>}
+              {status && plan.kind !== 'free' && <span className={`badge ${status.badge}`}>{status[lang]}</span>}
             </div>
+            {plan.kind === 'free' && <p className={styles.muted}>{t(T.freeNote)}</p>}
             {tenant?.subscription_status === 'trialing' && tenant?.trial_ends_at && !tenant?.stripe_subscription_id && (
               <p className={styles.muted}>
                 {t(T.trialEnds)} {fmt(tenant.trial_ends_at)}

@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { hasFullLibrary } from '@/lib/limits'
+import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 import CampaignForm from '../_components/CampaignForm'
 
 export default async function NewCampaignPage({
@@ -37,12 +39,16 @@ export default async function NewCampaignPage({
       .order('name'),
   ])
 
+  // Free plan: only its own questionnaires (none) and the platform "Essentiel" one.
+  const full = await hasFullLibrary(user.tenant_id)
+  const usable = (templates ?? []).filter((x: any) => full || x.id === ESSENTIAL_TEMPLATE_ID)
+
   return (
     <CampaignForm
       user={user}
       properties={properties ?? []}
       auditors={auditors ?? []}
-      templates={templates ?? []}
+      templates={usable}
       mode="create"
       defaultPropertyId={searchParams.property_id}
     />

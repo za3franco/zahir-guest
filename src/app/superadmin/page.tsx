@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@supabase/supabase-js'
-import { listMonthlyValue, planName } from '@/lib/plans'
+import { effectivePlan, listMonthlyValue, planName } from '@/lib/plans'
 import { EUR_PER_UNIT, isCurrency } from '@/lib/currency'
 import TenantActions from './TenantActions'
 import CreateTenantForm from './CreateTenantForm'
@@ -64,7 +64,7 @@ export default async function SuperAdminPage() {
   const stats = [
     { label: 'MRR (estimated)', value: eur(mrr), note: `ARR ≈ ${eur(mrr * 12)}` },
     { label: 'Paying customers', value: String(paying), note: `${customers.length} customers in total` },
-    { label: 'Active trials', value: String(trialing.length), note: `${soon.length} ending within 3 days` },
+    { label: 'Active pilots', value: String(trialing.length), note: `${soon.length} ending within 3 days` },
     { label: 'New (30 days)', value: String(newThisMonth), note: 'signups + paid checkouts' },
     { label: 'Audits this month', value: String(auditsMonth), note: 'campaigns created, all tenants' },
     { label: 'Payment issues', value: String(atRisk), note: 'past due / unpaid' },
@@ -118,7 +118,7 @@ export default async function SuperAdminPage() {
                   <td>{r.campaigns_month} / {r.campaigns_count}</td>
                   <td>{day(r.created_at)}</td>
                   <td>{isTrial ? day(r.trial_ends_at) : day(r.current_period_end)}</td>
-                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} /></td>
+                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} pilot={isTrial} free={effectivePlan(r as any).kind === 'free'} /></td>
                 </tr>
               )
             })}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { currencyFromCookieString, formatMoney, rememberCurrency, type Currency } from '@/lib/currency'
-import { PLAN_FEATURES, PLAN_NAMES, PRICE_GRID, quote, TIER_RULES, type PlanTier } from '@/lib/plans'
+import { FREE_FEATURES, FREE_NAME, PLAN_FEATURES, PLAN_NAMES, PRICE_GRID, quote, TIER_RULES, type PlanTier } from '@/lib/plans'
 import CurrencySwitcher from './CurrencySwitcher'
 import styles from './pricing.module.css'
 
@@ -17,7 +17,10 @@ const T = {
   billedYear: { en: 'billed yearly', fr: 'facturés par an' },
   from: { en: 'From', fr: 'À partir de' },
   popular: { en: 'Most popular', fr: 'Le plus choisi' },
-  cta: { en: 'Start free trial', fr: "Démarrer l'essai" },
+  cta: { en: 'Create my workspace', fr: 'Créer mon espace' },
+  freeCta: { en: 'Start for free', fr: 'Commencer gratuitement' },
+  freeFor: { en: 'To try Zahir Guest on your property, for as long as you like', fr: 'Pour essayer Zahir Guest sur votre établissement, sans limite de durée' },
+  freePrice: { en: 'Free', fr: 'Gratuit' },
   talk: { en: 'Talk to us', fr: 'Parlons-en' },
   hotelFor: { en: 'For an independent hotel, riad or boutique hotel', fr: 'Pour un hôtel indépendant, un riad ou un boutique-hôtel' },
   proFor: { en: 'For hotel groups and mystery audit firms', fr: "Pour les groupes hôteliers et les cabinets d'audit" },
@@ -30,8 +33,8 @@ const T = {
     fr: 'En dirhams : prépayé au trimestre ou à l’année, par carte via YouCan Pay.',
   },
   trialNote: {
-    en: '14-day free trial on every plan, no card needed. Prices excl. VAT.',
-    fr: 'Essai gratuit de 14 jours sur chaque formule, sans carte. Prix hors taxes.',
+    en: 'Every workspace starts on the free Discovery plan, no card needed; upgrade from Billing when you are ready. Hotel groups and audit firms: 14-day Professional pilot on request, after a demo. Prices excl. VAT.',
+    fr: "Chaque espace démarre avec l'offre Découverte gratuite, sans carte ; passez à l'offre supérieure depuis Facturation quand vous voulez. Groupes hôteliers et cabinets d'audit : pilote Professional de 14 jours sur demande, après une démo. Prix hors taxes.",
   },
 }
 
@@ -116,6 +119,17 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
         <CurrencySwitcher value={currency} onChange={pick} madEnabled={madEnabled} lang={lang} tone="light" />
       </div>
       <div className={styles.grid}>{(['starter', 'professional', 'enterprise'] as PlanTier[]).map(card)}</div>
+      <div className={styles.freeBand}>
+        <div className={styles.freeHead}>
+          <h3 className={styles.planName}>{t(FREE_NAME)}</h3>
+          <p className={styles.freePrice}>{t(T.freePrice)}</p>
+          <p className={styles.planFor}>{t(T.freeFor)}</p>
+        </div>
+        <ul className={styles.freeList}>
+          {FREE_FEATURES[lang].map(f => <li key={f}>{f}</li>)}
+        </ul>
+        <Link href="/signup" className={styles.btnPrimary}>{t(T.freeCta)}</Link>
+      </div>
       <p className={styles.fine}>
         {t(T.trialNote)}
         {currency === 'MAD' ? ` ${t(T.madNote)}` : ''}
