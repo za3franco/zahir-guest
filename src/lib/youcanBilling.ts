@@ -63,6 +63,14 @@ export async function startYoucanCheckout(opts: {
 }) {
   const { tenant, user, order, lang, customerIp } = opts
   const priced = priceYoucanOrder(tenant, order)
+  // Live test (same mechanism as za3fran.io): the buyer email YOUCANPAY_TEST_EMAIL pays
+  // YOUCANPAY_TEST_AMOUNT_MAD instead of the real price. Set the amount to 0 to switch it off.
+  const testEmail = String(process.env.YOUCANPAY_TEST_EMAIL || '').trim().toLowerCase()
+  const testAmount = Math.floor(Number(process.env.YOUCANPAY_TEST_AMOUNT_MAD) || 0)
+  if (testEmail && testAmount > 0 && user.email.trim().toLowerCase() === testEmail) {
+    console.warn('[youcan] test price applied for', user.email, testAmount, 'MAD')
+    priced.amount = testAmount
+  }
   const supabase = db()
   const { data: row, error } = await supabase
     .from('billing_payments')
