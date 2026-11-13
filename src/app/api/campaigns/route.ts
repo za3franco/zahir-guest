@@ -5,6 +5,7 @@ import { sendAuditorAssignedEmail } from '@/lib/emailNotifications'
 import { checkPlanLimit } from '@/lib/limits'
 import { isAdminRole } from '@/lib/access'
 import { checkCampaignRefs } from '@/lib/campaignRefs'
+import { onFreeQuotaReached } from '@/lib/nurtureEmails'
 
 export async function POST(request: Request) {
   const user = await requireUser()
@@ -29,6 +30,8 @@ export async function POST(request: Request) {
 
   const limit = await checkPlanLimit(user.tenant_id, 'audits', lang)
   if (!limit.allowed) {
+    // Free plan, quarterly audit used: offer the Hotel plan by email (once per quarter, best effort).
+    if (limit.code === 'plan_limit') await onFreeQuotaReached(user.tenant_id)
     return NextResponse.json({ error: limit.message, code: limit.code }, { status: 402 })
   }
 

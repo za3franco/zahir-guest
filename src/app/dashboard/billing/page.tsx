@@ -234,7 +234,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       </section>
 
       {!isInternal && !isDirect && (
-        <section className={styles.card}>
+        <section id="plans" className={styles.card}>
           <h2 className={styles.cardTitle}>{t(T.plans)}</h2>
           <BillingPlans
             lang={lang}

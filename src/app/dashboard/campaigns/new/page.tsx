@@ -2,7 +2,9 @@ export const dynamic = 'force-dynamic'
 
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
-import { hasFullLibrary } from '@/lib/limits'
+import { checkPlanLimit, hasFullLibrary } from '@/lib/limits'
+import { isAdminRole } from '@/lib/access'
+import { onFreeQuotaReached } from '@/lib/nurtureEmails'
 import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 import CampaignForm from '../_components/CampaignForm'
 
@@ -43,6 +45,18 @@ export default async function NewCampaignPage({
   const full = await hasFullLibrary(user.tenant_id)
   const usable = (templates ?? []).filter((x: any) => full || x.id === ESSENTIAL_TEMPLATE_ID)
 
+  // Audit quota already used (free plan: 1 per quarter): say so before the form is filled in, with an
+  // upgrade button, and send the "quota reached" email (once per quarter, same as a refused creation).
+  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  let limitMessage: string | null = null
+  if (isAdminRole(user.role)) {
+    const limit = await checkPlanLimit(user.tenant_id, 'audits', lang)
+    if (!limit.allowed) {
+      limitMessage = limit.message ?? null
+      if (limit.code === 'plan_limit') await onFreeQuotaReached(user.tenant_id)
+    }
+  }
+
   return (
     <CampaignForm
       user={user}
@@ -51,6 +65,7 @@ export default async function NewCampaignPage({
       templates={usable}
       mode="create"
       defaultPropertyId={searchParams.property_id}
+      limitMessage={limitMessage}
     />
   )
 }

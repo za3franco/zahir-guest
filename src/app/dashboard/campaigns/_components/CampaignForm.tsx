@@ -30,6 +30,7 @@ const T = {
   save: { en: 'Save campaign', fr: 'Enregistrer' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   cancel: { en: 'Cancel', fr: 'Annuler' },
+  upgrade: { en: 'Upgrade to Hotel →', fr: 'Passer à Hôtel →' },
   errors: {
     nameRequired: { en: 'Campaign name is required.', fr: 'Le nom de la campagne est requis.' },
     propertyRequired: { en: 'Please select a property.', fr: 'Veuillez sélectionner un établissement.' },
@@ -48,6 +49,8 @@ interface CampaignFormProps {
   templates: { id: string; name: string; tier: string }[]
   mode: 'create' | 'edit'
   defaultPropertyId?: string
+  /** Plan limit already reached (checked by the page): shown above the form with an upgrade button. */
+  limitMessage?: string | null
 }
 
 export default function CampaignForm({
@@ -58,6 +61,7 @@ export default function CampaignForm({
   templates,
   mode,
   defaultPropertyId,
+  limitMessage,
 }: CampaignFormProps) {
   const router = useRouter()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
@@ -65,6 +69,7 @@ export default function CampaignForm({
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [planLimited, setPlanLimited] = useState(false)
 
   const [form, setForm] = useState({
     name: campaign?.name ?? '',
@@ -82,6 +87,7 @@ export default function CampaignForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setPlanLimited(false)
 
     if (!form.name.trim()) { setError(t(T.errors.nameRequired)); return }
     if (!form.property_id) { setError(t(T.errors.propertyRequired)); return }
@@ -109,8 +115,9 @@ export default function CampaignForm({
       })
 
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => ({}))
         setError(data.error ?? t(T.errors.saveFailed))
+        setPlanLimited(res.status === 402 && (data.code === 'plan_limit' || data.code === 'not_in_plan'))
         setSaving(false)
         return
       }
@@ -150,6 +157,13 @@ export default function CampaignForm({
         <h1 className={styles.title}>{t(mode === 'create' ? T.createTitle : T.editTitle)}</h1>
         <p className={styles.subtitle}>{t(mode === 'create' ? T.createSubtitle : T.editSubtitle)}</p>
       </div>
+
+      {limitMessage && (
+        <div className={styles.limitBanner}>
+          <span>{limitMessage}</span>
+          <a href="/dashboard/billing#plans" className="btn btn-primary btn-sm">{t(T.upgrade)}</a>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
 
@@ -236,7 +250,16 @@ export default function CampaignForm({
           </div>
         </div>
 
-        {error && <div className={styles.errorBanner}>{error}</div>}
+        {error && (
+          <div className={styles.errorBanner}>
+            {error}
+            {planLimited && (
+              <div className={styles.errorAction}>
+                <a href="/dashboard/billing#plans" className="btn btn-primary btn-sm">{t(T.upgrade)}</a>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.formActions}>
           <button type="button" onClick={() => router.back()} className="btn btn-ghost" disabled={saving}>

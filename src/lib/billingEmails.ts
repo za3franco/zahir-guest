@@ -106,7 +106,7 @@ export async function sendWelcomeEmail(opts: {
 }
 
 /**
- * Short billing notice (payment received, renewal reminders for prepaid MAD periods).
+ * Short notice (payment received, renewal reminders for prepaid MAD periods, Discovery follow-ups).
  * Paragraphs are trusted strings built by our code (values inside must already be escaped).
  */
 export async function sendBillingNotice(opts: {
@@ -116,8 +116,10 @@ export async function sendBillingNotice(opts: {
   paragraphs: string[]
   cta?: { href: string; label: string }
   lang: 'en' | 'fr'
+  /** Marketing follow-ups only: unsubscribe link in the footer and List-Unsubscribe headers (one click). */
+  unsubscribeUrl?: string
 }): Promise<boolean> {
-  const { to, subject, title, paragraphs, cta, lang } = opts
+  const { to, subject, title, paragraphs, cta, lang, unsubscribeUrl } = opts
   const en = lang === 'en'
   const body = paragraphs.map(p => `<p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 20px;">${p}</p>`).join('')
   const button = cta
@@ -138,7 +140,7 @@ export async function sendBillingNotice(opts: {
       </td></tr>
       <tr><td style="padding:24px 48px;border-top:1px solid #253549;">
         <p style="margin:0;font-size:12px;color:#9B9488;line-height:1.6;">Zahir Guest — ${en ? 'Mystery Guest Audit Platform' : "Plateforme d'audit mystère"}<br>
-        <a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a></p>
+        <a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a>${unsubscribeUrl ? `<br><a href="${unsubscribeUrl}" style="color:#9B9488;text-decoration:underline;">${en ? 'Stop these tips' : 'Ne plus recevoir ces conseils'}</a>` : ''}</p>
       </td></tr>
     </table>
   </td></tr></table>
@@ -152,6 +154,9 @@ export async function sendBillingNotice(opts: {
         to: [to],
         subject,
         htmlContent,
+        ...(unsubscribeUrl
+          ? { headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+          : {}),
       }),
     })
     if (!res.ok) console.error('Billing notice failed:', res.status, await res.text().catch(() => ''))

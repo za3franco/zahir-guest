@@ -33,7 +33,7 @@ const T = {
     fr: "L'offre Découverte utilise le questionnaire Essentiel (environ 60 standards clés). La bibliothèque complète, vos propres questionnaires et l'import se débloquent à partir de l'offre Hôtel.",
   },
   sections: { en: 'sections', fr: 'sections' },
-  unlock: { en: 'See plans', fr: 'Voir les offres' },
+  unlock: { en: 'Upgrade to Hotel', fr: 'Passer à Hôtel' },
 }
 
 export default async function QuestionnairesPage() {
@@ -97,9 +97,13 @@ export default async function QuestionnairesPage() {
           <h1 className={styles.title}>{t(T.title)}</h1>
           <p className={styles.subtitle}>{t(T.subtitle)}</p>
         </div>
-        {full && (
+        {full ? (
           <div className={styles.actions}>
             <a href="/dashboard/questionnaires/new" className="btn btn-primary btn-sm">+ {t(T.create)}</a>
+          </div>
+        ) : (
+          <div className={styles.actions}>
+            <a href="/dashboard/billing#plans" className="btn btn-primary btn-sm">{t(T.unlock)} →</a>
           </div>
         )}
       </div>
@@ -132,7 +136,7 @@ export default async function QuestionnairesPage() {
                     {outline.reduce((n, d) => n + d.sections.reduce((m, x) => m + x.n, 0), 0)} {t(T.questions)} · {outline.reduce((n, d) => n + d.sections.length, 0)} {t(T.sections)} · <span aria-hidden="true">🔒</span> {t(T.locked)}
                   </div>
                 </div>
-                <a href="/dashboard/billing" className="btn btn-primary btn-sm">{t(T.unlock)}</a>
+                <a href="/dashboard/billing#plans" className="btn btn-primary btn-sm">{t(T.unlock)}</a>
               </div>
               <div className={styles.outline}>
                 {outline.map(d => (
