@@ -55,7 +55,30 @@ async function withTimeout(promise, ms) {
 }
 
 // ── Audit pages ─────────────────────────────────────────────────────────────────────────────────
+/** The code and styles an audit page needs (script / style tags and chunks named in the page's own data). */
+function staticRefs(html) {
+  const out = new Set();
+  const re = /(?:\/_next\/)?(static\/(?:chunks|css|media)\/[^"'\\\s)<>]+)/g;
+  let m;
+  while ((m = re.exec(html))) out.add(self.location.origin + '/_next/' + m[1]);
+  return Array.from(out);
+}
+
+async function cacheStatics(urls) {
+  const cache = await caches.open(STATIC);
+  for (const u of urls) {
+    try {
+      if (await cache.match(u)) continue;
+      const res = await fetch(u, { credentials: 'same-origin' });
+      if (cacheable(res)) await cache.put(u, res);
+    } catch { /* offline: next time */ }
+  }
+  await trim(STATIC, MAX_STATIC);
+}
+
 async function storePage(key, res) {
+  const html = await res.clone().text();
+  await cacheStatics(staticRefs(html));
   const body = await res.clone().blob();
   const headers = new Headers(res.headers);
   headers.set('x-zg-cached-at', String(Date.now()));
