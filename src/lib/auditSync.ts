@@ -35,15 +35,13 @@ export function parseOp(o: any): SyncOp | null {
   return null
 }
 
-/** Ids of the sections and standards of a questionnaire (one round trip per level). */
+/** Ids of the sections and standards of a questionnaire (two queries, run together). */
 export async function templateIds(db: SupabaseClient<any, any, any>, templateId: string) {
-  const { data: domains } = await db.from('template_domains').select('id').eq('template_id', templateId)
-  const { data: sections } = await db.from('template_sections').select('id').in('domain_id', (domains ?? []).map(d => d.id))
-  const sectionIds = (sections ?? []).map(s => s.id as string)
-  const { data: standards } = sectionIds.length
-    ? await db.from('template_standards').select('id').in('section_id', sectionIds)
-    : { data: [] as { id: string }[] }
-  return { sections: new Set(sectionIds), standards: new Set((standards ?? []).map(s => s.id as string)) }
+  const [{ data: sections }, { data: standards }] = await Promise.all([
+    db.from('template_sections').select('id, template_domains!inner(template_id)').eq('template_domains.template_id', templateId),
+    db.from('template_standards').select('id, template_sections!inner(template_domains!inner(template_id))').eq('template_sections.template_domains.template_id', templateId),
+  ])
+  return { sections: new Set((sections ?? []).map(s => s.id as string)), standards: new Set((standards ?? []).map(s => s.id as string)) }
 }
 
 export async function applyResponse(db: SupabaseClient<any, any, any>, campaignId: string, userId: string,
