@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  // Home-screen app on iPhone (ZG-6 offline audits)
+  appleWebApp: {
+    capable: true,
+    title: 'Zahir Guest',
+    statusBarStyle: 'black-translucent',
+  },
 }
 
 export default function RootLayout({
