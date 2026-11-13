@@ -31,6 +31,10 @@ interface Props {
   lang: string
   domainName: (d: Domain) => string
   sectionName: (s: Section) => string
+  /** Messages from the synchronisation (conflicts, rejected changes, long time offline) */
+  notices?: React.ReactNode
+  /** The audit is kept on the phone (offline mode) */
+  offlineReady?: boolean
 }
 
 export default function AuditOverview({
@@ -48,6 +52,8 @@ export default function AuditOverview({
   lang,
   domainName,
   sectionName,
+  notices,
+  offlineReady,
 }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const propertyName = (campaign.property as any)?.name ?? ''
@@ -59,11 +65,14 @@ export default function AuditOverview({
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <span className={styles.auditLabel}>{t(T.auditIn)}</span>
+          {offlineReady && <span className={styles.offlineBadge}>{lang === 'en' ? 'Available offline ✓' : 'Disponible hors ligne ✓'}</span>}
         </div>
         <h1 className={styles.propertyName}>{propertyName}</h1>
         {propertyCity && <p className={styles.propertyCity}>{propertyCity}</p>}
         <p className={styles.campaignName}>{campaign.name}</p>
       </div>
+
+      {notices}
 
       {/* Progress ring */}
       <div className={styles.progressSection}>

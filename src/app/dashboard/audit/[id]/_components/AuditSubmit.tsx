@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import styles from './AuditSubmit.module.css'
 import type { Domain, Section, Standard, ResponseMap, EmotionalRatingMap } from './AuditInterface'
+import type { SyncView } from '@/lib/offline/auditSync'
 
 const T = {
   title: { en: 'Review & submit', fr: 'Vérification et soumission' },
@@ -23,9 +24,12 @@ const T = {
   successTitle: { en: 'Audit submitted', fr: 'Audit soumis' },
   successMsg: { en: 'Your audit has been submitted successfully. The admin will review it shortly.', fr: 'Votre audit a été soumis avec succès. L\'administrateur le révisera prochainement.' },
   overall: { en: 'Overall progress', fr: 'Progression globale' },
-  waitSaving: { en: 'Saving your last answers… you can submit in a moment.', fr: 'Enregistrement de vos dernières réponses… vous pourrez soumettre dans un instant.' },
-  unsaved: { en: 'Some answers are not saved yet. Check your connection, then tap Retry before submitting.', fr: "Certaines réponses ne sont pas encore enregistrées. Vérifiez votre connexion, puis touchez Réessayer avant de soumettre." },
-  retry: { en: 'Retry', fr: 'Réessayer' },
+  waitSaving: { en: 'Sending your last changes… you can submit in a moment.', fr: 'Envoi de vos dernières modifications… vous pourrez soumettre dans un instant.' },
+  offline: { en: 'You are offline. Your changes are kept on the phone; submitting will be possible once they have been sent (submission needs the network).', fr: 'Vous êtes hors ligne. Vos modifications sont gardées sur le téléphone ; la soumission sera possible une fois qu’elles auront été envoyées (elle demande du réseau).' },
+  unsaved: { en: 'Some changes have not reached the server yet. Check your connection, then tap Send now.', fr: "Certaines modifications ne sont pas encore arrivées sur le serveur. Vérifiez votre connexion, puis touchez Envoyer maintenant." },
+  auth: { en: 'Your session has expired: sign in again (new tab), then tap Send now.', fr: 'Votre session a expiré : reconnectez-vous (nouvel onglet), puis touchez Envoyer maintenant.' },
+  rejected: { en: 'Some changes were refused by the server (see above). Remove them before submitting.', fr: 'Certaines modifications ont été refusées par le serveur (voir plus haut). Retirez-les avant de soumettre.' },
+  retry: { en: 'Send now', fr: 'Envoyer maintenant' },
   submitFailed: { en: 'The audit could not be submitted. Check your connection and try again.', fr: "L'audit n'a pas pu être soumis. Vérifiez votre connexion et réessayez." },
 }
 
@@ -39,10 +43,11 @@ interface Props {
   getSectionProgress: (id: string) => { total: number; answered: number }
   onBack: () => void
   lang: string
-  /** Saves still in flight / failed: submitting now would score the audit without them */
-  saving: boolean
-  unsaved: number
-  onRetry: () => void
+  /** Synchronisation state: submitting while changes are still on the phone would score the audit without them */
+  sync: SyncView
+  notices?: React.ReactNode
+  onSync: () => void
+  onSubmitted: () => void
 }
 
 export default function AuditSubmit({
@@ -55,16 +60,24 @@ export default function AuditSubmit({
   getSectionProgress,
   onBack,
   lang,
-  saving,
-  unsaved,
-  onRetry,
+  sync,
+  notices,
+  onSync,
+  onSubmitted,
 }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const blocked = saving || unsaved > 0
+  const offline = sync.state === 'offline' || (typeof navigator !== 'undefined' && navigator.onLine === false)
+  const blocked = sync.pending > 0 || sync.rejected > 0 || sync.sending || offline || ['auth', 'closed', 'forbidden'].includes(sync.state)
+  const blockMsg = sync.state === 'auth' ? t(T.auth)
+    : offline ? t(T.offline)
+    : sync.rejected > 0 ? t(T.rejected)
+    : sync.state === 'error' ? t(T.unsaved)
+    : t(T.waitSaving)
+  const canRetry = !['closed', 'forbidden'].includes(sync.state) && sync.rejected === 0
 
   const totalAnswered = standards.filter(s => responses[s.id]?.response != null).length
   const totalStandards = standards.length
@@ -85,6 +98,7 @@ export default function AuditSubmit({
       })
       if (res.ok && !res.redirected) {
         setSubmitted(true)
+        onSubmitted()
         return
       }
       const data = await res.json().catch(() => ({}))
@@ -177,11 +191,13 @@ export default function AuditSubmit({
         })}
       </div>
 
-      {blocked && (
+      {notices}
+      {blocked && !['closed', 'forbidden'].includes(sync.state) && (
         <div className={styles.warningBanner} role="status">
-          {unsaved > 0 ? (
-            <>⚠️ {t(T.unsaved)}{' '}<button type="button" className="btn btn-ghost btn-sm" onClick={onRetry}>{t(T.retry)}</button></>
-          ) : t(T.waitSaving)}
+          ⚠️ {blockMsg}{' '}
+          {canRetry && (sync.state !== 'idle' && sync.state !== 'syncing') && (
+            <button type="button" className="btn btn-ghost btn-sm" onClick={onSync}>{t(T.retry)}</button>
+          )}
         </div>
       )}
       {submitError && <div className={styles.warningBanner} role="alert">⚠️ {submitError}</div>}

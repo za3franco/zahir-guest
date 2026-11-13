@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "regions": ["fra1"],
   "crons": [
     { "path": "/api/cron/billing-reminders", "schedule": "17 7 * * *" },
     { "path": "/api/cron/free-nurture", "schedule": "43 8 * * *" }

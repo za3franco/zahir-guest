@@ -79,8 +79,16 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
     .eq('campaign_id', params.id)
     .order('uploaded_at')
 
+  // Offline mode is switched on per workspace (ZG-6 rollout)
+  const { data: tenant } = await supabaseAdmin
+    .from('tenants')
+    .select('offline_audit_enabled')
+    .eq('id', campaign.tenant_id)
+    .maybeSingle()
+
   return (
     <AuditInterface
+      offlineEnabled={!!tenant?.offline_audit_enabled}
       campaign={campaign}
       domains={domains ?? []}
       sections={sections ?? []}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import styles from './superadmin.module.css'
 
-export default function TenantActions({ tenantId, name, suspended, internal, pilot, free }: {
+export default function TenantActions({ tenantId, name, suspended, internal, pilot, free, offline }: {
   tenantId: string
   name: string
   suspended: boolean
@@ -12,6 +12,8 @@ export default function TenantActions({ tenantId, name, suspended, internal, pil
   pilot?: boolean
   /** The workspace is on the free plan (pilot can be opened) */
   free?: boolean
+  /** Offline audit mode is on for this workspace */
+  offline?: boolean
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -85,6 +87,24 @@ export default function TenantActions({ tenantId, name, suspended, internal, pil
     }
   }
 
+  async function toggleOffline() {
+    if (!window.confirm(offline
+      ? `Switch OFF the offline audit mode for ${name}? Changes already on phones are still sent; phones stop keeping audits offline.`
+      : `Switch ON the offline audit mode for ${name}? Auditors' phones will keep their audits (answers, notes, photos) until synchronised.`)) return
+    setBusy(true)
+    setError(null)
+    const res = await fetch(`/api/superadmin/tenants/${tenantId}/offline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: !offline }),
+    })
+    if (res.ok) window.location.reload()
+    else {
+      setError('Failed')
+      setBusy(false)
+    }
+  }
+
   async function remove() {
     const typed = window.prompt(
       `PERMANENTLY delete "${name}"?\n\nThis deletes its users, properties, campaigns, reports, photos and logo, and cancels any running Stripe subscription immediately (no refund). It cannot be undone.\n\nType the workspace name to confirm:`
@@ -112,6 +132,9 @@ export default function TenantActions({ tenantId, name, suspended, internal, pil
   return (
     <div className={styles.actions}>
       <button type="button" className={styles.btn} disabled={busy} onClick={viewAs}>View as</button>
+      <button type="button" className={styles.btn} disabled={busy} onClick={toggleOffline} title="Offline audit mode (ZG-6)">
+        {offline ? 'Offline: on' : 'Offline: off'}
+      </button>
       {!internal && !suspended && (pilot || free) && (
         <button type="button" className={styles.btn} disabled={busy} onClick={togglePilot}>
           {pilot ? 'End pilot' : 'Open pilot'}

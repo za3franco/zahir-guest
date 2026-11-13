@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 import { canWorkOnAudit, isAuditOpen, standardSectionInTemplate } from '@/lib/auditAccess'
+import { applyResponse } from '@/lib/auditSync'
 
 const RESPONSES = ['meet', 'below', 'na']
 const MAX_NOTE = 20000 // generous ceiling: protects the database, never reached by a real observation
@@ -60,21 +61,11 @@ export async function POST(
       .eq('status', 'assigned')
   }
 
-  // Upsert response
-  const { error } = await supabaseAdmin
-    .from('audit_responses')
-    .upsert({
-      campaign_id: params.id,
-      standard_id,
-      response,
-      auditor_note: auditor_note === null ? null : auditor_note.slice(0, MAX_NOTE),
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'campaign_id,standard_id',
-    })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  // Same rule as the offline sync: the change is stamped now, so it wins over anything older
+  try {
+    await applyResponse(supabaseAdmin, params.id, user.id, standard_id, response, auditor_note === null ? null : auditor_note.slice(0, MAX_NOTE), null)
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
