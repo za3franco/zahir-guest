@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import styles from './SectionAudit.module.css'
 import type { Section, Standard, Domain, ResponseMap } from './AuditInterface'
-import StandardPhotos, { type PhotoRef } from './StandardPhotos'
+import StandardPhotos from './StandardPhotos'
+import type { PhotoView } from '@/lib/offline/auditSync'
 
 const T = {
   meet: { en: 'MEET', fr: 'CONFORME' },
@@ -34,8 +35,9 @@ interface Props {
   domain: Domain | null
   standards: Standard[]
   responses: ResponseMap
-  photos: Record<string, PhotoRef[]>
-  onPhotosChange: (standardId: string, photos: PhotoRef[]) => void
+  photos: Record<string, PhotoView[]>
+  onAddPhoto: (standardId: string, blob: Blob) => Promise<'limit_standard' | 'limit_total' | null>
+  onRemovePhoto: (photoId: string) => void
   emotionalRating: number | null
   onResponseChange: (standardId: string, response: 'meet' | 'below' | 'na' | null, note: string) => void
   onEmotionalRatingChange: (sectionId: string, rating: number) => void
@@ -52,7 +54,8 @@ interface Props {
 export default function SectionAudit({
   campaign,
   photos,
-  onPhotosChange,
+  onAddPhoto,
+  onRemovePhoto,
   section,
   domain,
   standards,
@@ -214,11 +217,10 @@ export default function SectionAudit({
               )}
 
               <StandardPhotos
-                campaignId={campaign.id}
-                standardId={standard.id}
                 photos={photos[standard.id] ?? []}
                 lang={lang === 'en' ? 'en' : 'fr'}
-                onChange={list => onPhotosChange(standard.id, list)}
+                onAdd={blob => onAddPhoto(standard.id, blob)}
+                onRemove={onRemovePhoto}
               />
             </div>
           )
