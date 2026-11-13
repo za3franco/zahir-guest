@@ -128,24 +128,39 @@ export default function AuditInterface({
   const noteTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const noteJobs = useRef(new Map<string, Job>())
 
-  const send = useCallback(async (key: string, job: Job, keepalive = false) => {
+  // Saves of the same standard / section go out one after the other, and only the latest value is sent:
+  // an older request can never arrive after a newer one and overwrite it.
+  const latest = useRef(new Map<string, Job>())
+  const chains = useRef(new Map<string, Promise<void>>())
+
+  const send = useCallback((key: string, job: Job, keepalive = false) => {
+    latest.current.set(key, job)
+    failed.current.delete(key) // superseded by this newer value
+    setFailedCount(failed.current.size)
     setPending(n => n + 1)
-    try {
-      const res = await fetch(job.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(job.body),
-        keepalive,
-      })
-      // A redirect means the session expired (sent to /login): not saved
-      if (!res.ok || res.redirected) throw new Error(String(res.status))
-      failed.current.delete(key)
-    } catch {
-      failed.current.set(key, job)
-    } finally {
+    const run = async () => {
+      if (latest.current.get(key) !== job) return // a newer value is queued behind us
+      try {
+        const res = await fetch(job.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(job.body),
+          keepalive,
+        })
+        // A redirect means the session expired (sent to /login): not saved
+        if (!res.ok || res.redirected) throw new Error(String(res.status))
+        if (latest.current.get(key) === job) latest.current.delete(key)
+      } catch {
+        if (latest.current.get(key) === job) failed.current.set(key, job)
+      }
+    }
+    const p = (chains.current.get(key) ?? Promise.resolve()).then(run).finally(() => {
+      if (chains.current.get(key) === p) chains.current.delete(key)
       setFailedCount(failed.current.size)
       setPending(n => n - 1)
-    }
+    })
+    chains.current.set(key, p)
+    return p
   }, [])
 
   const retryFailed = useCallback(() => {
@@ -259,6 +274,9 @@ export default function AuditInterface({
   if (currentView === 'submit') {
     return (
       <>{status}<AuditSubmit
+        unsaved={failedCount}
+        saving={saving}
+        onRetry={retryFailed}
         campaign={campaign}
         sections={sections}
         domains={domains}

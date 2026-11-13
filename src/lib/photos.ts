@@ -3,6 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { User } from '@/types'
 import { canViewProperty, isViewer } from '@/lib/access'
+import { canWorkOnAudit, isAuditOpen } from '@/lib/auditAccess'
 
 export const PHOTO_BUCKET = 'audit-photos'
 export const MAX_PHOTOS_PER_STANDARD = 4
@@ -39,11 +40,7 @@ export async function canViewPhotos(supabase: SupabaseClient<any, any, any>, use
   return false
 }
 
-/** Who may ADD or REMOVE photos: the assigned auditor or the tenant's admins, while the audit is still open. */
+/** Who may ADD or REMOVE photos: the assigned auditor or the tenant's admins, while the audit is still open (not yet submitted). */
 export function canEditPhotos(user: User, c: PhotoCampaign): boolean {
-  if (['published', 'finalized'].includes(c.status)) return false
-  if (user.role === 'super_admin') return true
-  if (user.role === 'tenant_admin') return c.tenant_id === user.tenant_id
-  if (user.role === 'auditor') return c.tenant_id === user.tenant_id && c.auditor_user_id === user.id
-  return false
+  return isAuditOpen(c.status) && canWorkOnAudit(user, c)
 }

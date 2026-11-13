@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
 import AuditInterface from './_components/AuditInterface'
+import { isAuditOpen } from '@/lib/auditAccess'
 
 export default async function AuditPage({ params }: { params: { id: string } }) {
   const user = await requireUser()
@@ -35,8 +36,8 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
     redirect('/dashboard')
   }
 
-  // Cannot audit a published or finalized campaign
-  if (['published', 'finalized'].includes(campaign.status)) {
+  // Only an open audit can be filled in; once submitted it is frozen until an admin reopens it
+  if (!isAuditOpen(campaign.status)) {
     redirect(`/dashboard/campaigns/${params.id}`)
   }
 

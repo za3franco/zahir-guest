@@ -5,29 +5,43 @@ import { redirect } from 'next/navigation'
 export const IMPERSONATE_COOKIE = 'zg_impersonate_tenant'
 import type { User } from '@/types'
 
-function decodeJwtPayload(token: string): { sub?: string } | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const padded = payload + '='.repeat((4 - payload.length % 4) % 4)
-    return JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'))
-  } catch {
-    return null
-  }
-}
-
 function tryExtractToken(value: string): string | null {
   // Direct JWT
   if (value.split('.').length === 3) return value
-  // Try URL decode then JSON
-  const attempts = [value, (() => { try { return decodeURIComponent(value) } catch { return value } })()]
+  // @supabase/ssr stores the session as JSON, optionally URL-encoded or base64 ("base64-" prefix)
+  const raw = value.startsWith('base64-') ? value.slice(7) : value
+  const attempts = [raw, (() => { try { return decodeURIComponent(raw) } catch { return raw } })()]
   for (const v of attempts) {
     try { const p = JSON.parse(v); if (p?.access_token) return p.access_token } catch { /* skip */ }
     try { const p = JSON.parse(Buffer.from(v, 'base64').toString()); if (p?.access_token) return p.access_token } catch { /* skip */ }
     try { const p = JSON.parse(Buffer.from(v, 'base64url').toString()); if (p?.access_token) return p.access_token } catch { /* skip */ }
   }
   return null
+}
+
+// One verifier per server instance: it keeps the project's public signing keys in memory.
+let verifier: ReturnType<typeof createClient> | null = null
+function getVerifier() {
+  verifier ??= createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  })
+  return verifier
+}
+
+/**
+ * The signed-in user's id, taken ONLY from an access token whose signature and expiry Supabase Auth
+ * has verified (getClaims: checked locally with the project's public keys, or by the Auth server for
+ * projects still on the legacy shared secret). A cookie that merely looks like a token is never trusted.
+ */
+async function verifiedUserId(token: string): Promise<string | null> {
+  try {
+    const { data, error } = await getVerifier().auth.getClaims(token)
+    if (error || !data?.claims) return null
+    const sub = data.claims.sub
+    return typeof sub === 'string' && sub ? sub : null
+  } catch {
+    return null
+  }
 }
 
 // Real signed-in profile, ignoring any impersonation.
@@ -37,67 +51,29 @@ async function loadRealUser(): Promise<User> {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const cookieStore = cookies()
-  const allCookies = cookieStore.getAll()
-
-  // Log ALL cookies with full names (truncated values)
-  const allNames = allCookies.map(c => c.name).join(' | ')
-  console.log('[auth] cookie names:', allNames || 'NONE')
-
-  // Grab ANY sb- cookie — don't filter by exact project ref
-  const sbCookies = allCookies
-    .filter(c => c.name.startsWith('sb-'))
-    .sort((a, b) => a.name.localeCompare(b.name))
-
-  console.log('[auth] sb cookies:', sbCookies.map(c => `${c.name}(${c.value.length})`).join(' | ') || 'NONE')
-
-  if (sbCookies.length === 0) {
-    console.log('[auth] FAIL no sb- cookies')
-    redirect('/login')
-  }
-
-  // Reassemble (handles chunked tokens)
-  // Group by base name (strip trailing .0 .1 etc)
+  // Session cookies: sb-<project ref>-auth-token, possibly split into .0, .1 ... chunks.
+  // The middleware has already refreshed an expired session before this runs.
   const grouped: Record<string, string> = {}
-  for (const c of sbCookies) {
+  for (const c of cookies().getAll().filter(c => c.name.startsWith('sb-')).sort((a, b) => a.name.localeCompare(b.name))) {
     const base = c.name.replace(/\.\d+$/, '')
     grouped[base] = (grouped[base] ?? '') + c.value
   }
 
-  console.log('[auth] grouped keys:', Object.keys(grouped).join(' | '))
+  // This project's cookie first; any other sb- cookie is only a fallback and must verify too
+  let ref = ''
+  try { ref = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname.split('.')[0] } catch { /* keep empty */ }
+  const own = `sb-${ref}-auth-token`
+  const keys = Object.keys(grouped).sort((a, b) => Number(b === own) - Number(a === own))
 
-  let accessToken: string | null = null
-  let foundKey = ''
-
-  for (const [key, val] of Object.entries(grouped)) {
-    const token = tryExtractToken(val)
-    if (token) {
-      accessToken = token
-      foundKey = key
-      break
-    }
+  let userId: string | null = null
+  for (const key of keys) {
+    const token = tryExtractToken(grouped[key])
+    if (token && (userId = await verifiedUserId(token))) break
   }
+  if (!userId) redirect('/login')
 
-  console.log('[auth] token from:', foundKey || 'NONE', 'found:', !!accessToken)
-
-  if (!accessToken) {
-    console.log('[auth] FAIL could not parse any token')
-    redirect('/login')
-  }
-
-  const payload = decodeJwtPayload(accessToken!)
-  const userId = payload?.sub
-  console.log('[auth] userId:', userId ?? 'NONE')
-
-  if (!userId) {
-    console.log('[auth] FAIL no sub in payload')
-    redirect('/login')
-  }
-
-  const { data: userProfile, error } = await supabaseAdmin
+  const { data: userProfile } = await supabaseAdmin
     .from('users').select('*').eq('id', userId!).single()
-
-  console.log('[auth] profile:', userProfile?.email ?? 'NULL', error?.message ?? '')
 
   if (!userProfile) redirect('/login?error=no_profile')
 
