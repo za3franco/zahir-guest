@@ -70,7 +70,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   }
 
   // Same behaviour as answering: the audit starts when the first data comes in
-  if (campaign.status === 'assigned') await supabase.from('campaigns').update({ status: 'in_progress' }).eq('id', campaign.id)
+  if (campaign.status === 'assigned') await supabase.from('campaigns').update({ status: 'in_progress' }).eq('id', campaign.id).eq('status', 'assigned')
 
   return NextResponse.json({ ok: true, id: row.id })
 }

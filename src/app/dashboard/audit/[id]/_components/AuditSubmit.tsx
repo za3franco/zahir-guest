@@ -23,6 +23,10 @@ const T = {
   successTitle: { en: 'Audit submitted', fr: 'Audit soumis' },
   successMsg: { en: 'Your audit has been submitted successfully. The admin will review it shortly.', fr: 'Votre audit a été soumis avec succès. L\'administrateur le révisera prochainement.' },
   overall: { en: 'Overall progress', fr: 'Progression globale' },
+  waitSaving: { en: 'Saving your last answers… you can submit in a moment.', fr: 'Enregistrement de vos dernières réponses… vous pourrez soumettre dans un instant.' },
+  unsaved: { en: 'Some answers are not saved yet. Check your connection, then tap Retry before submitting.', fr: "Certaines réponses ne sont pas encore enregistrées. Vérifiez votre connexion, puis touchez Réessayer avant de soumettre." },
+  retry: { en: 'Retry', fr: 'Réessayer' },
+  submitFailed: { en: 'The audit could not be submitted. Check your connection and try again.', fr: "L'audit n'a pas pu être soumis. Vérifiez votre connexion et réessayez." },
 }
 
 interface Props {
@@ -35,6 +39,10 @@ interface Props {
   getSectionProgress: (id: string) => { total: number; answered: number }
   onBack: () => void
   lang: string
+  /** Saves still in flight / failed: submitting now would score the audit without them */
+  saving: boolean
+  unsaved: number
+  onRetry: () => void
 }
 
 export default function AuditSubmit({
@@ -47,11 +55,16 @@ export default function AuditSubmit({
   getSectionProgress,
   onBack,
   lang,
+  saving,
+  unsaved,
+  onRetry,
 }: Props) {
   const t = (key: { en: string; fr: string }) => key[lang as 'en' | 'fr']
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const blocked = saving || unsaved > 0
 
   const totalAnswered = standards.filter(s => responses[s.id]?.response != null).length
   const totalStandards = standards.length
@@ -62,18 +75,24 @@ export default function AuditSubmit({
   })
 
   async function handleSubmit() {
+    if (blocked) return
     setSubmitting(true)
+    setSubmitError(null)
     try {
       const res = await fetch(`/api/audit/${campaign.id}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
-      if (res.ok) {
+      if (res.ok && !res.redirected) {
         setSubmitted(true)
+        return
       }
+      const data = await res.json().catch(() => ({}))
+      setSubmitError(typeof data.error === 'string' && res.status !== 500 ? data.error : t(T.submitFailed))
     } catch {
-      setSubmitting(false)
+      setSubmitError(t(T.submitFailed))
     }
+    setSubmitting(false)
   }
 
   if (submitted) {
@@ -158,9 +177,18 @@ export default function AuditSubmit({
         })}
       </div>
 
+      {blocked && (
+        <div className={styles.warningBanner} role="status">
+          {unsaved > 0 ? (
+            <>⚠️ {t(T.unsaved)}{' '}<button type="button" className="btn btn-ghost btn-sm" onClick={onRetry}>{t(T.retry)}</button></>
+          ) : t(T.waitSaving)}
+        </div>
+      )}
+      {submitError && <div className={styles.warningBanner} role="alert">⚠️ {submitError}</div>}
+
       {/* Submit */}
       {!showConfirm ? (
-        <button onClick={() => setShowConfirm(true)} className={styles.submitBtn}>
+        <button onClick={() => setShowConfirm(true)} className={styles.submitBtn} disabled={blocked}>
           {t(T.submitBtn)}
         </button>
       ) : (
@@ -171,7 +199,7 @@ export default function AuditSubmit({
             <button onClick={() => setShowConfirm(false)} className="btn btn-ghost" disabled={submitting}>
               {t(T.cancel)}
             </button>
-            <button onClick={handleSubmit} className={styles.confirmBtn} disabled={submitting}>
+            <button onClick={handleSubmit} className={styles.confirmBtn} disabled={submitting || blocked}>
               {submitting ? t(T.submitting) : t(T.confirm)}
             </button>
           </div>

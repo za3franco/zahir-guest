@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
+import { canWorkOnAudit, isAuditOpen, standardSectionInTemplate } from '@/lib/auditAccess'
+
+const RESPONSES = ['meet', 'below', 'na']
+const MAX_NOTE = 20000 // generous ceiling: protects the database, never reached by a real observation
 
 export async function POST(
   request: Request,
@@ -13,13 +17,18 @@ export async function POST(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const body = await request.json()
-  const { standard_id, response, auditor_note } = body
+  const body = await request.json().catch(() => null)
+  const standard_id = typeof body?.standard_id === 'string' ? body.standard_id : ''
+  const response = body?.response ?? null
+  const auditor_note = body?.auditor_note ?? null
+  if (!standard_id || (response !== null && !RESPONSES.includes(response)) || (auditor_note !== null && typeof auditor_note !== 'string')) {
+    return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
+  }
 
   // Verify campaign access
   const { data: campaign } = await supabaseAdmin
     .from('campaigns')
-    .select('id, auditor_user_id, tenant_id, status')
+    .select('id, auditor_user_id, tenant_id, status, template_id')
     .eq('id', params.id)
     .single()
 
@@ -28,16 +37,18 @@ export async function POST(
   }
 
   // Only the assigned auditor or admins of the same workspace may touch an audit
-  if (!['auditor', 'tenant_admin', 'super_admin'].includes(user.role) || (user.role !== 'super_admin' && campaign.tenant_id !== user.tenant_id)) {
+  if (!canWorkOnAudit(user, campaign)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
-  if (user.role === 'auditor' && campaign.auditor_user_id !== user.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  // Once submitted, answers are frozen (the score is computed at submission); an admin reopens the audit to change them
+  if (!isAuditOpen(campaign.status)) {
+    return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed' }, { status: 409 })
   }
 
-  if (['published', 'finalized'].includes(campaign.status)) {
-    return NextResponse.json({ error: 'Campaign is closed' }, { status: 400 })
+  // The standard must belong to this audit's questionnaire
+  if (!(await standardSectionInTemplate(supabaseAdmin, standard_id, campaign.template_id))) {
+    return NextResponse.json({ error: 'Standard does not belong to this audit', code: 'unknown_standard' }, { status: 400 })
   }
 
   // Update campaign status to in_progress if still assigned
@@ -46,6 +57,7 @@ export async function POST(
       .from('campaigns')
       .update({ status: 'in_progress' })
       .eq('id', params.id)
+      .eq('status', 'assigned')
   }
 
   // Upsert response
@@ -54,8 +66,8 @@ export async function POST(
     .upsert({
       campaign_id: params.id,
       standard_id,
-      response: response ?? null,
-      auditor_note: auditor_note ?? null,
+      response,
+      auditor_note: auditor_note === null ? null : auditor_note.slice(0, MAX_NOTE),
       updated_at: new Date().toISOString(),
     }, {
       onConflict: 'campaign_id,standard_id',
