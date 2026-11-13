@@ -226,3 +226,14 @@ export function auditStore(enabled: boolean): OfflineStore {
     clearAll: call('clearAll'),
   }
 }
+
+/** True when this device still holds unsent changes for this audit (kept even if the offline mode was switched off). */
+export async function deviceHasWork(userId: string, campaignId: string): Promise<boolean> {
+  if (typeof indexedDB === 'undefined') return false
+  try {
+    const store = await deviceStore()
+    return store.persistent && (await store.listOps(userId, campaignId)).length > 0
+  } catch {
+    return false
+  }
+}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useSyncExternalStore } from 'react'
 import SyncStatus, { SyncNotices } from './SyncStatus'
 import { AuditSync, type SyncView } from '@/lib/offline/auditSync'
-import { auditStore, purgeOld, requestPersistentStorage } from '@/lib/offline/store'
+import { auditStore, deviceHasWork, purgeOld, requestPersistentStorage } from '@/lib/offline/store'
 import type { User } from '@/types'
 import styles from './AuditInterface.module.css'
 import SectionAudit from './SectionAudit'
@@ -80,8 +80,13 @@ export default function AuditInterface({
   // (src/lib/offline/auditSync.ts). There is no "save" button.
   const [engine, setEngine] = useState<AuditSync | null>(null)
   useEffect(() => {
-    const store = auditStore(offlineEnabled)
-    const e = new AuditSync({
+    let e: AuditSync | null = null
+    let cancelled = false
+    void (async () => {
+    // Offline mode switched off for the workspace: changes still on this phone are sent all the same
+    const store = auditStore(offlineEnabled || (await deviceHasWork(user.id, campaign.id)))
+    if (cancelled) return
+    e = new AuditSync({
       campaignId: campaign.id,
       userId: user.id,
       campaignName: campaign.name,
@@ -96,7 +101,8 @@ export default function AuditInterface({
       void requestPersistentStorage()
       void purgeOld(store)
     }
-    return () => e.dispose()
+    })()
+    return () => { cancelled = true; e?.dispose() }
     // the engine lives as long as the page; props are only its starting point
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign.id, user.id, offlineEnabled])

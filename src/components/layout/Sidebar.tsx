@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { prepareLogout } from '@/lib/offline/session'
 import type { User } from '@/types'
 import FeedbackWidget from './FeedbackWidget'
 import styles from './Sidebar.module.css'
@@ -153,6 +154,8 @@ export default function Sidebar({ user, brand }: { user: User; brand?: SidebarBr
   }, [mobileOpen])
 
   async function handleLogout() {
+    // Offline mode: warn about changes not sent yet, then erase what this phone keeps
+    if (!(await prepareLogout(user.id, lang))) return
     const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/login'

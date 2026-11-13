@@ -2,6 +2,7 @@ import { requireUser } from '@/lib/auth'
 import Sidebar from '@/components/layout/Sidebar'
 import ScrollToTop from '@/components/ScrollToTop'
 import SessionTimeout from '@/components/SessionTimeout'
+import OfflineApp from '@/components/offline/OfflineApp'
 import TrialBanner from '@/components/layout/TrialBanner'
 import ImpersonationBanner from '@/components/layout/ImpersonationBanner'
 import HelpCoach from '@/components/help/HelpCoach'
@@ -24,17 +25,19 @@ export default async function DashboardLayout({
   let branding = brandingFromTenant(null)
   let tenantName = ''
   let suspended = false
+  let offlineEnabled = false
   try {
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     const { data: tenant } = await supabase
       .from('tenants')
-      .select('name, subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, branding_config, cancel_at_period_end, current_period_end')
+      .select('name, subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, branding_config, cancel_at_period_end, current_period_end, offline_audit_enabled')
       .eq('id', user.tenant_id)
       .single()
     if (tenant) {
       branding = brandingFromTenant(tenant)
       tenantName = tenant.name
       suspended = tenant.subscription_status === 'suspended'
+      offlineEnabled = !!tenant.offline_audit_enabled
       // Subscription notices are shown to everyone in the workspace (admins also get the actions)
       if (tenant.subscription_tier !== 'za3fran_internal') {
         billing = {
@@ -94,7 +97,8 @@ export default async function DashboardLayout({
         <ScrollToTop />
         <HelpCoach lang={user.default_language === 'en' ? 'en' : 'fr'} />
         <ProductTour lang={user.default_language === 'en' ? 'en' : 'fr'} group={helpRoleFor(user.role)} autoStart={!user.tour_completed && !user.impersonating_tenant_id} />
-        <SessionTimeout role={user.role} />
+        <SessionTimeout role={user.role} userId={user.id} />
+        <OfflineApp enabled={offlineEnabled} />
         <div className={styles.content}>
           {children}
         </div>
