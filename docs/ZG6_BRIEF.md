@@ -1,4 +1,4 @@
-# Zahir Guest — ZG-6 brief (mis à jour le 13 nov. 2026, PR n°23 en attente de fusion)
+# Zahir Guest — ZG-6 brief (mis à jour le 13 nov. 2026, après la PR n°23)
 
 À lire en premier au début d'une session ZG. Les documents détaillés ZG-5 (statut, grille tarifaire) restent dans le projet claude.ai « Zahir Guest App ».
 
@@ -16,7 +16,7 @@ Tests d'Arnaud : check-list partagée https://claude.ai/artifact/YPsqEFpS7z3wM2h
 - Boutons « Passer à Hôtel » : page Questionnaires verrouillée, Nouvelle campagne (bandeau + erreur 402) → `/dashboard/billing#plans`.
 - Reste à vérifier : un parcours réel avec un espace Découverte de test (quota atteint → email immédiat).
 
-### 2. Mode hors ligne de l'audit — PR 0, 1 et 2 en production ; PR 3 (n°23) testée, fusion demandée à Arnaud
+### 2. Mode hors ligne de l'audit — EN PRODUCTION (PR 0 à 3) ; reste le test réel d'Arnaud puis l'ouverture aux autres espaces
 Objectif : les auditeurs perdent le réseau dans les sous-sols et les couloirs d'hôtels ; réponses, notes et photos restent sur le téléphone et partent au retour du réseau.
 
 **Décisions validées par Arnaud (13 nov.)**
@@ -33,10 +33,9 @@ Objectif : les auditeurs perdent le réseau dans les sous-sols et les couloirs d
 
 - PR 2 — n°21 : photos hors ligne. La photo est réduite, gardée sur le téléphone (badge « Sur le téléphone ») et envoyée en arrière-plan ; identifiant créé sur le téléphone, donc un envoi répété ne crée pas de doublon ; suppression d'une photo du serveur mise en file (DELETE sans erreur si déjà supprimée) ; limites 4 par critère / 40 par audit vérifiées sur le téléphone ; photo refusée gardée avec la raison. Routes photos : 409 `audit_closed` pour un audit soumis.
 
-- PR 3 — n°23 (testée sur version de test, **fusion à faire par Arnaud**) : `public/sw.js` (pages d'audit réseau d'abord puis copie hors ligne, code `/_next/static`, polices, icônes, photos déjà vues ; jamais d'autre `/api`, de POST, de page de connexion ni de redirection) ; préparation automatique de l'audit ouvert et des audits listés sur la page ; page « Hors ligne » listant les audits disponibles ; interrupteur d'arrêt (mode coupé → service worker retiré, caches vidés, modifications restantes envoyées quand même) ; pas de déconnexion automatique hors ligne ou avec des envois en attente ; déconnexion manuelle refusée hors ligne, avertissement s'il reste des envois, puis effacement des données du téléphone ; manifeste et icônes (installable, démarre sur `/dashboard`). Relecture de sécurité dans la description de la PR.
+- PR 3 — n°23 (fusionnée avec l'accord d'Arnaud le 13 nov., vérifiée en production : service worker actif, audit préparé puis ouvert sans réseau, réponse synchronisée au retour du réseau, déconnexion qui efface les données) : `public/sw.js` (pages d'audit réseau d'abord puis copie hors ligne, code `/_next/static`, polices, icônes, photos déjà vues ; jamais d'autre `/api`, de POST, de page de connexion ni de redirection) ; préparation automatique de l'audit ouvert et des audits listés sur la page ; page « Hors ligne » listant les audits disponibles ; interrupteur d'arrêt (mode coupé → service worker retiré, caches vidés, modifications restantes envoyées quand même) ; pas de déconnexion automatique hors ligne ou avec des envois en attente ; déconnexion manuelle refusée hors ligne, avertissement s'il reste des envois, puis effacement des données du téléphone ; manifeste et icônes (installable, démarre sur `/dashboard`). Relecture de sécurité dans la description de la PR.
 
 **Reste**
-- Fusion de la PR n°23 par Arnaud, puis vérification en production (service worker actif, audit ouvert sans réseau).
 - Test réel d'Arnaud sur iPhone (Safari, puis appli ajoutée à l'écran d'accueil) et Android (Chrome), dans un sous-sol : check-list ZG-6.
 - Ensuite : ouvrir le mode hors ligne aux autres espaces (super admin → « Offline: on »), et prévenir les auditeurs qu'un téléphone avec des envois en attente reste connecté.
 - Risques résiduels acceptés : données stockées en clair sur le téléphone jusqu'à la déconnexion ; Safari peut effacer les données d'un site non installé après 7 jours sans visite (installer l'appli sur l'écran d'accueil).
