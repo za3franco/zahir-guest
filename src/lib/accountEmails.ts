@@ -3,9 +3,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SUPPORT_EMAIL, SITE_URL } from '@/lib/site'
+import { ctaButton, emailBrandFor, esc, h1, p, renderEmail, senderNameFor, sendViaBrevo, strong, workspaceReplyTo } from '@/lib/emailLayout'
 
-const esc = (s: string) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 function layout(title: string, paragraphs: string[], cta?: { href: string; label: string }, lang: 'en' | 'fr' = 'fr') {
   const body = paragraphs
@@ -121,25 +120,123 @@ export async function sendAccountStatusEmails(
 
 /**
  * "Forgot password" email, in the person's language, sent by Brevo instead of the standard Supabase Auth email.
+ * In the look of the person's workspace when it is on a white-label plan (name, logo, main colour, "Powered by Zahir
+ * Guest" in the footer); otherwise the standard Zahir Guest email. No reply-to: nothing about the workspace's people
+ * goes into an email that anyone can trigger for a known address.
  * `link` carries a single-use recovery token: never log it.
  */
-export async function sendPasswordResetEmail(to: { name: string; email: string }, lang: 'en' | 'fr', link: string): Promise<boolean> {
+export async function sendPasswordResetEmail(
+  to: { name: string; email: string },
+  lang: 'en' | 'fr',
+  link: string,
+  tenantId?: string | null
+): Promise<boolean> {
   const en = lang === 'en'
-  const hello = en ? `Hello ${esc(to.name)},` : `Bonjour ${esc(to.name)},`
-  const subject = en ? 'Reset your Zahir Guest password' : 'Réinitialisez votre mot de passe Zahir Guest'
-  const html = layout(
-    en ? 'Reset your password' : 'Réinitialisez votre mot de passe',
-    [
-      hello,
+  const brand = await emailBrandFor(tenantId)
+  const who = esc(brand.displayName)
+  const subject = en ? `Reset your ${brand.displayName} password` : `Réinitialisez votre mot de passe ${brand.displayName}`
+  const content = [
+    h1(en ? 'Reset your password' : 'Réinitialisez votre mot de passe'),
+    p(en ? `Hello ${esc(to.name)},` : `Bonjour ${esc(to.name)},`),
+    p(
       en
-        ? 'We received a request to reset the password of your Zahir Guest account. Click the button below to choose a new one.'
-        : 'Nous avons reçu une demande de réinitialisation du mot de passe de votre compte Zahir Guest. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.',
+        ? `We received a request to reset the password of your ${who} account. Click the button below to choose a new one.`
+        : `Nous avons reçu une demande de réinitialisation du mot de passe de votre compte ${who}. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.`
+    ),
+    ctaButton(brand, link, en ? 'Choose a new password →' : 'Choisir un nouveau mot de passe →'),
+    p(
       en
         ? 'This link works only once and for a limited time. If you did not ask for it, ignore this email: your password stays the same.'
         : "Ce lien ne fonctionne qu'une fois et pendant une durée limitée. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe reste le même.",
-    ],
-    { href: esc(link), label: en ? 'Choose a new password →' : 'Choisir un nouveau mot de passe →' },
-    lang
-  )
-  return send({ name: to.name || to.email, email: to.email }, subject, html)
+      { size: 13, mb: 0 }
+    ),
+  ].join('')
+  return sendViaBrevo({
+    to: { name: to.name || to.email, email: to.email },
+    subject,
+    html: renderEmail(brand, lang, content),
+    senderName: senderNameFor(brand),
+  })
+}
+
+type Actor = { email?: string | null; role?: string | null; name?: string | null }
+
+/**
+ * Invitation to join a workspace, in the look of that workspace (name, logo, main colour, "Powered by Zahir Guest"
+ * when it is on a white-label plan). Replies go to the inviter (an administrator of the workspace).
+ * `link` carries a single-use token: never log it.
+ */
+export async function sendInvitationEmail(args: {
+  tenantId: string
+  to: { name: string; email: string }
+  lang: 'en' | 'fr'
+  roleName: string
+  inviter: Actor & { name: string }
+  link: string
+}): Promise<boolean> {
+  const { lang, to, inviter, roleName, link } = args
+  const en = lang === 'en'
+  const brand = await emailBrandFor(args.tenantId)
+  const who = strong(esc(brand.displayName))
+  const role = `<strong style="color:${brand.accent};">${esc(roleName)}</strong>`
+  const content = [
+    h1(en ? 'You have been invited' : 'Vous avez été invité'),
+    p(en ? `Hello ${esc(to.name)},` : `Bonjour ${esc(to.name)},`, { size: 15, mb: 20 }),
+    p(
+      en
+        ? `${strong(esc(inviter.name))} has invited you to join ${who} as ${role}.`
+        : `${strong(esc(inviter.name))} vous a invité à rejoindre ${who} en tant que ${role}.`,
+      { size: 15, mb: 20 }
+    ),
+    p(
+      en
+        ? 'Click the button below to set your password and access the platform.'
+        : 'Cliquez sur le bouton ci-dessous pour définir votre mot de passe et accéder à la plateforme.',
+      { size: 15, mb: 8 }
+    ),
+    ctaButton(brand, link, en ? 'Set my password →' : 'Définir mon mot de passe →'),
+    p(
+      en
+        ? 'This link expires in 24 hours. If you did not expect this invitation, you can safely ignore this email.'
+        : "Ce lien expire dans 24 heures. Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.",
+      { size: 13, mb: 0 }
+    ),
+  ].join('')
+  return sendViaBrevo({
+    to,
+    subject: en ? `You have been invited to ${brand.displayName}` : `Vous avez été invité sur ${brand.displayName}`,
+    html: renderEmail(brand, lang, content),
+    senderName: senderNameFor(brand),
+    replyTo: brand.custom ? await workspaceReplyTo(args.tenantId, inviter) : undefined,
+  })
+}
+
+/** Told to a person removed from a workspace, in the look of that workspace. */
+export async function sendRemovedEmail(args: {
+  tenantId: string
+  to: { name: string; email: string }
+  lang: 'en' | 'fr'
+  removedBy: Actor
+}): Promise<boolean> {
+  const { lang, to } = args
+  const en = lang === 'en'
+  const brand = await emailBrandFor(args.tenantId)
+  const who = esc(brand.displayName)
+  const content = [
+    h1(en ? 'Account removed' : 'Compte supprimé'),
+    p(en ? `Hello ${esc(to.name)},` : `Bonjour ${esc(to.name)},`),
+    p(
+      en
+        ? `Your access to ${who} has been removed by your administrator. If you believe this is a mistake, please contact your administrator directly.`
+        : `Votre accès à ${who} a été supprimé par votre administrateur. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter votre administrateur directement.`,
+      { mb: 0 }
+    ),
+  ].join('')
+  return sendViaBrevo({
+    to,
+    subject: en ? `Your ${brand.displayName} account has been removed` : `Votre compte ${brand.displayName} a été supprimé`,
+    html: renderEmail(brand, lang, content),
+    senderName: senderNameFor(brand),
+    replyTo: brand.custom ? await workspaceReplyTo(args.tenantId, args.removedBy) : undefined,
+  })
 }

@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     // Emails are stored in lower case (signup and invitation both normalise them)
     const { data: user } = await supabase
       .from('users')
-      .select('id, name, email, default_language')
+      .select('id, tenant_id, name, email, default_language')
       .eq('email', email)
       .maybeSingle()
     if (!user) return await done()
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     // mail scanner that merely opens the link does not burn it. The language is the account's.
     const lang: 'en' | 'fr' = user.default_language === 'en' ? 'en' : 'fr'
     const url = `${SITE_URL}/auth/set-password?type=recovery&lang=${lang}#token_hash=${encodeURIComponent(tokenHash)}`
-    const sent = await sendPasswordResetEmail({ name: user.name ?? '', email: user.email }, lang, url)
+    const sent = await sendPasswordResetEmail({ name: user.name ?? '', email: user.email }, lang, url, user.tenant_id)
     if (!sent) console.error('[auth/forgot-password] email not sent for user', user.id)
     return await done()
   } catch (err) {
