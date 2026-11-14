@@ -47,6 +47,9 @@ export async function POST(request: Request) {
       line_items: items,
       currency: currency.toLowerCase(),
       allow_promotion_codes: true,
+      // Charge in the chosen currency (EUR / USD), no automatic conversion to the visitor's local currency
+      // (same rule as /api/billing/checkout): without this, a visitor abroad saw e.g. S$ instead of the 79 € price
+      adaptive_pricing: { enabled: false },
       payment_method_collection: 'if_required',
       customer_email: email,
       metadata: meta,
