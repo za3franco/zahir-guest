@@ -75,6 +75,7 @@ export async function POST(request: Request) {
           visitWindowStart: body.visit_window_start ?? null,
           visitWindowEnd: body.visit_window_end ?? null,
           assignedByName: user.name,
+          assignedBy: { email: user.email, role: user.role, name: user.name },
           lang: auditor.default_language === 'en' ? 'en' : 'fr',
         })
       }

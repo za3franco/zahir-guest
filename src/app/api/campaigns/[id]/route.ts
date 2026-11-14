@@ -110,6 +110,7 @@ export async function PATCH(
           visitWindowStart: visitStart ?? null,
           visitWindowEnd: visitEnd ?? null,
           assignedByName: user.name,
+          assignedBy: { email: user.email, role: user.role, name: user.name },
           lang: auditor.default_language === 'en' ? 'en' : 'fr',
         })
       }

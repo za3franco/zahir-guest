@@ -1,106 +1,49 @@
-import { getTenantBranding } from '@/lib/branding'
 /**
- * ZAHIR GUEST — BREVO EMAIL UTILITY
- * All transactional email templates and send function
+ * ZAHIR GUEST — emails sent to the teams of a workspace (assignment, audit submitted, report published).
+ * Layout, escaping and sending are shared with the other workspace emails in `emailLayout.ts`: a white-label workspace
+ * gets its own name, logo and main colour here, with a "Powered by Zahir Guest" line in the footer.
+ * Every value typed by a person (names, property, campaign) is escaped before it goes into the HTML.
  */
 
-const BREVO_API = 'https://api.brevo.com/v3/smtp/email'
+import {
+  type EmailLang,
+  accentRgba,
+  ctaButton,
+  emailBrandFor,
+  esc,
+  h1,
+  p,
+  renderEmail,
+  senderNameFor,
+  sendViaBrevo,
+  strong,
+  workspaceReplyTo,
+} from '@/lib/emailLayout'
 
-interface EmailPayload {
-  to: { name: string; email: string }[]
-  subject: string
-  htmlContent: string
-}
+const appBase = () => (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com').replace(/\/$/, '')
 
-async function sendEmail(payload: EmailPayload, tenantId?: string): Promise<boolean> {
-  try {
-    // White-label tenants send under their own brand name (the address stays our verified domain)
-    let senderName = process.env.BREVO_SENDER_NAME ?? 'Zahir Guest'
-    if (tenantId) {
-      const b = await getTenantBranding(tenantId).catch(() => null)
-      if (b?.brandName) senderName = b.brandName
-    }
-    const res = await fetch(BREVO_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': process.env.BREVO_API_KEY!,
-      },
-      body: JSON.stringify({
-        sender: {
-          name: senderName,
-          email: process.env.BREVO_SENDER_EMAIL ?? 'hello@zahirguest.com',
-        },
-        ...payload,
-      }),
-    })
-    if (!res.ok) {
-      const err = await res.json()
-      console.error('Brevo send error:', err)
-      return false
-    }
-    return true
-  } catch (err) {
-    console.error('Brevo network error:', err)
-    return false
-  }
-}
+const LABEL = 'font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;'
 
-// ── Shared layout wrapper ────────────────────────────────
-function emailWrapper(content: string): string {
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D1B2A;padding:40px 20px;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#162236;border-radius:12px;overflow:hidden;border:1px solid #253549;max-width:600px;width:100%;">
-        <tr>
-          <td style="padding:32px 40px 24px;border-bottom:1px solid #253549;">
-            <table cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="padding-right:12px;">
-                  <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
-                    <circle cx="20" cy="20" r="3" fill="#C8A45A"/>
-                    <circle cx="20" cy="20" r="7" stroke="#C8A45A" stroke-width="1" stroke-opacity="0.5" fill="none"/>
-                    <circle cx="20" cy="20" r="13" stroke="#C8A45A" stroke-width="0.5" stroke-opacity="0.25" fill="none"/>
-                    <line x1="20" y1="4" x2="20" y2="10" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-                    <line x1="20" y1="30" x2="20" y2="36" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-                    <line x1="4" y1="20" x2="10" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-                    <line x1="30" y1="20" x2="36" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-                  </svg>
-                </td>
-                <td>
-                  <div style="font-size:16px;font-weight:400;color:#F4F1EC;letter-spacing:0.05em;">Zahir Guest</div>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr><td style="padding:32px 40px;">${content}</td></tr>
-        <tr>
-          <td style="padding:20px 40px;border-top:1px solid #253549;">
-            <p style="margin:0;font-size:11px;color:#9B9488;line-height:1.6;">
-              Zahir Guest — Mystery Guest Audit Platform<br>
-              <a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a>
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
-}
+interface Actor { email?: string | null; role?: string | null; name?: string | null }
 
-function ctaButton(href: string, label: string): string {
-  return `<table cellpadding="0" cellspacing="0" style="margin:24px 0;">
-    <tr>
-      <td style="background:#C8A45A;border-radius:8px;">
-        <a href="${href}" style="display:inline-block;padding:13px 28px;color:#0D1B2A;font-size:13px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${label}</a>
-      </td>
-    </tr>
-  </table>`
+async function sendWorkspaceEmail(args: {
+  tenantId?: string
+  lang: EmailLang
+  to: { name: string; email: string }
+  subject: (displayName: string) => string
+  content: (ctx: { accent: string; brand: Awaited<ReturnType<typeof emailBrandFor>> }) => string
+  actor?: Actor | null
+}): Promise<boolean> {
+  const brand = await emailBrandFor(args.tenantId)
+  // Reply-to only for white-label emails: the recipients belong to the same workspace as the administrator
+  const replyTo = brand.custom && args.tenantId ? await workspaceReplyTo(args.tenantId, args.actor) : undefined
+  return sendViaBrevo({
+    to: args.to,
+    subject: args.subject(brand.displayName),
+    html: renderEmail(brand, args.lang, args.content({ accent: brand.accent, brand })),
+    senderName: senderNameFor(brand),
+    replyTo,
+  })
 }
 
 // ── 1. Auditor assigned to campaign ─────────────────────
@@ -113,14 +56,14 @@ export async function sendAuditorAssignedEmail(params: {
   visitWindowStart: string | null
   visitWindowEnd: string | null
   assignedByName: string
+  /** The person who assigned the mission (used as reply-to when they are an administrator of the workspace). */
+  assignedBy?: Actor | null
   lang: 'en' | 'fr'
   tenantId?: string
 }): Promise<boolean> {
   const { auditorName, auditorEmail, campaignName, propertyName, propertyCity, visitWindowStart, visitWindowEnd, assignedByName, lang, tenantId } = params
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
   const dateLocale = lang === 'en' ? 'en-GB' : 'fr-FR'
-
   const formatDate = (d: string | null) => d
     ? new Date(d).toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
     : null
@@ -129,63 +72,45 @@ export async function sendAuditorAssignedEmail(params: {
     ? `${formatDate(visitWindowStart)} → ${formatDate(visitWindowEnd)}`
     : visitWindowEnd ? `${lang === 'en' ? 'Before' : 'Avant le'} ${formatDate(visitWindowEnd)}` : null
 
-  const subject = lang === 'en'
-    ? `New audit assignment — ${propertyName}`
-    : `Nouvelle mission d'audit — ${propertyName}`
-
-  const content = lang === 'en' ? `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">You have been assigned an audit</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Hello ${auditorName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#F4F1EC;">${assignedByName}</strong> has assigned you to conduct a mystery guest audit.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Property</span><br>
-        <span style="font-size:14px;color:#F4F1EC;font-weight:500;">${propertyName}${propertyCity ? ` — ${propertyCity}` : ''}</span>
-      </td></tr>
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campaign</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-      ${windowStr ? `<tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Visit window</span><br>
-        <span style="font-size:14px;color:#C8A45A;font-weight:500;">${windowStr}</span>
-      </td></tr>` : ''}
-    </table>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 8px;">Log in to access your audit on mobile.</p>
-    ${ctaButton(`${appUrl}/dashboard`, 'Go to my dashboard →')}
-    <p style="color:#9B9488;font-size:12px;line-height:1.6;margin:0;">Do not conduct the audit before your assigned visit window.</p>
-  ` : `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">Vous avez été assigné à un audit</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Bonjour ${auditorName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#F4F1EC;">${assignedByName}</strong> vous a assigné une mission d'audit mystère.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Établissement</span><br>
-        <span style="font-size:14px;color:#F4F1EC;font-weight:500;">${propertyName}${propertyCity ? ` — ${propertyCity}` : ''}</span>
-      </td></tr>
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campagne</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-      ${windowStr ? `<tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Fenêtre de visite</span><br>
-        <span style="font-size:14px;color:#C8A45A;font-weight:500;">${windowStr}</span>
-      </td></tr>` : ''}
-    </table>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 8px;">Connectez-vous pour accéder à votre audit sur mobile.</p>
-    ${ctaButton(`${appUrl}/dashboard`, 'Accéder à mon tableau de bord →')}
-    <p style="color:#9B9488;font-size:12px;line-height:1.6;margin:0;">Ne conduisez pas l'audit avant votre fenêtre de visite assignée.</p>
-  `
-
-  return sendEmail({
-    to: [{ name: auditorName, email: auditorEmail }],
-    subject,
-    htmlContent: emailWrapper(content),
-  }, tenantId)
+  return sendWorkspaceEmail({
+    tenantId,
+    lang,
+    to: { name: auditorName, email: auditorEmail },
+    actor: params.assignedBy,
+    subject: () => lang === 'en' ? `New audit assignment — ${propertyName}` : `Nouvelle mission d'audit — ${propertyName}`,
+    content: ({ accent, brand }) => {
+      const where = `${esc(propertyName)}${propertyCity ? ` — ${esc(propertyCity)}` : ''}`
+      const row = (label: string, value: string, last = false, color = '#F4F1EC', weight = 400) =>
+        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #253549;'}">
+          <span style="${LABEL}">${label}</span><br>
+          <span style="font-size:14px;color:${color};font-weight:${weight};">${value}</span>
+        </td></tr>`
+      const table = (rows: string) => `<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">${rows}</table>`
+      return lang === 'en'
+        ? `${h1('You have been assigned an audit')}
+           ${p(`Hello ${esc(auditorName)},`)}
+           ${p(`${strong(esc(assignedByName))} has assigned you to conduct a mystery guest audit.`, { mb: 24 })}
+           ${table(
+             row('Property', where, false, '#F4F1EC', 500) +
+             row('Campaign', esc(campaignName), !windowStr) +
+             (windowStr ? row('Visit window', esc(windowStr), true, accent, 500) : '')
+           )}
+           ${p('Log in to access your audit on mobile.', { mb: 8 })}
+           ${ctaButton(brand, `${appBase()}/dashboard`, 'Go to my dashboard →')}
+           ${p('Do not conduct the audit before your assigned visit window.', { size: 12, mb: 0 })}`
+        : `${h1('Vous avez été assigné à un audit')}
+           ${p(`Bonjour ${esc(auditorName)},`)}
+           ${p(`${strong(esc(assignedByName))} vous a assigné une mission d'audit mystère.`, { mb: 24 })}
+           ${table(
+             row('Établissement', where, false, '#F4F1EC', 500) +
+             row('Campagne', esc(campaignName), !windowStr) +
+             (windowStr ? row('Fenêtre de visite', esc(windowStr), true, accent, 500) : '')
+           )}
+           ${p('Connectez-vous pour accéder à votre audit sur mobile.', { mb: 8 })}
+           ${ctaButton(brand, `${appBase()}/dashboard`, 'Accéder à mon tableau de bord →')}
+           ${p("Ne conduisez pas l'audit avant votre fenêtre de visite assignée.", { size: 12, mb: 0 })}`
+    },
+  })
 }
 
 // ── 2. Admin notified when audit submitted ───────────────
@@ -202,57 +127,33 @@ export async function sendAuditSubmittedEmail(params: {
 }): Promise<boolean> {
   const { adminName, adminEmail, auditorName, campaignName, propertyName, propertyCity, campaignId, lang, tenantId } = params
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
-
-  const subject = lang === 'en'
-    ? `Audit submitted for review — ${propertyName}`
-    : `Audit soumis pour révision — ${propertyName}`
-
-  const content = lang === 'en' ? `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">Audit ready for review</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Hello ${adminName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#F4F1EC;">${auditorName}</strong> has submitted the audit for 
-      <strong style="color:#F4F1EC;">${propertyName}${propertyCity ? ` (${propertyCity})` : ''}</strong>. 
-      It is ready for your review.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campaign</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-      <tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Submitted by</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${auditorName}</span>
-      </td></tr>
-    </table>
-    ${ctaButton(`${appUrl}/dashboard/campaigns/${campaignId}`, 'Review audit →')}
-  ` : `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">Audit prêt pour révision</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Bonjour ${adminName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#F4F1EC;">${auditorName}</strong> a soumis l'audit pour 
-      <strong style="color:#F4F1EC;">${propertyName}${propertyCity ? ` (${propertyCity})` : ''}</strong>. 
-      Il est prêt pour votre révision.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;border-bottom:1px solid #253549;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campagne</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-      <tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Soumis par</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${auditorName}</span>
-      </td></tr>
-    </table>
-    ${ctaButton(`${appUrl}/dashboard/campaigns/${campaignId}`, 'Réviser l\'audit →')}
-  `
-
-  return sendEmail({
-    to: [{ name: adminName, email: adminEmail }],
-    subject,
-    htmlContent: emailWrapper(content),
-  }, tenantId)
+  return sendWorkspaceEmail({
+    tenantId,
+    lang,
+    to: { name: adminName, email: adminEmail },
+    subject: () => lang === 'en' ? `Audit submitted for review — ${propertyName}` : `Audit soumis pour révision — ${propertyName}`,
+    content: ({ brand }) => {
+      const where = `${esc(propertyName)}${propertyCity ? ` (${esc(propertyCity)})` : ''}`
+      const row = (label: string, value: string, last = false) =>
+        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #253549;'}">
+          <span style="${LABEL}">${label}</span><br>
+          <span style="font-size:14px;color:#F4F1EC;">${value}</span>
+        </td></tr>`
+      const table = (rows: string) => `<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">${rows}</table>`
+      const url = `${appBase()}/dashboard/campaigns/${encodeURIComponent(campaignId)}`
+      return lang === 'en'
+        ? `${h1('Audit ready for review')}
+           ${p(`Hello ${esc(adminName)},`)}
+           ${p(`${strong(esc(auditorName))} has submitted the audit for ${strong(where)}. It is ready for your review.`, { mb: 24 })}
+           ${table(row('Campaign', esc(campaignName)) + row('Submitted by', esc(auditorName), true))}
+           ${ctaButton(brand, url, 'Review audit →')}`
+        : `${h1('Audit prêt pour révision')}
+           ${p(`Bonjour ${esc(adminName)},`)}
+           ${p(`${strong(esc(auditorName))} a soumis l'audit pour ${strong(where)}. Il est prêt pour votre révision.`, { mb: 24 })}
+           ${table(row('Campagne', esc(campaignName)) + row('Soumis par', esc(auditorName), true))}
+           ${ctaButton(brand, url, "Réviser l'audit →")}`
+    },
+  })
 }
 
 // ── 3. Property manager notified when report published ───
@@ -269,62 +170,43 @@ export async function sendReportPublishedEmail(params: {
 }): Promise<boolean> {
   const { pmName, pmEmail, propertyName, propertyCity, campaignName, overallScore, reportId, lang, tenantId } = params
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
-
-  const subject = lang === 'en'
-    ? `Your audit report is ready — ${propertyName}`
-    : `Votre rapport d'audit est disponible — ${propertyName}`
-
-  const scoreDisplay = overallScore !== null
-    ? `<div style="font-size:36px;font-weight:700;color:#C8A45A;line-height:1;margin:16px 0 4px;">${overallScore}%</div>
-       <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">${lang === 'en' ? 'Overall score' : 'Score global'}</div>`
-    : ''
-
-  const content = lang === 'en' ? `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">Your audit report is ready</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Hello ${pmName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      The mystery guest audit report for <strong style="color:#F4F1EC;">${propertyName}${propertyCity ? ` — ${propertyCity}` : ''}</strong> 
-      has been completed and is now available.
-    </p>
-    ${scoreDisplay ? `
-    <div style="background:rgba(200,164,90,0.08);border:1px solid rgba(200,164,90,0.2);border-radius:8px;padding:20px 24px;text-align:center;margin-bottom:24px;">
-      ${scoreDisplay}
-    </div>` : ''}
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campaign</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-    </table>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 8px;">View the full report and download the PDF from your portal.</p>
-    ${ctaButton(`${appUrl}/dashboard/reports/${reportId}/view`, 'View report →')}
-    <p style="color:#9B9488;font-size:12px;line-height:1.6;margin:0;">This report is confidential. Please do not forward this email.</p>
-  ` : `
-    <h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">Votre rapport d'audit est disponible</h1>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 16px;">Bonjour ${pmName},</p>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 24px;">
-      Le rapport d'audit mystère pour <strong style="color:#F4F1EC;">${propertyName}${propertyCity ? ` — ${propertyCity}` : ''}</strong> 
-      a été finalisé et est maintenant disponible.
-    </p>
-    ${scoreDisplay ? `
-    <div style="background:rgba(200,164,90,0.08);border:1px solid rgba(200,164,90,0.2);border-radius:8px;padding:20px 24px;text-align:center;margin-bottom:24px;">
-      ${scoreDisplay}
-    </div>` : ''}
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
-      <tr><td style="padding:8px 0;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">Campagne</span><br>
-        <span style="font-size:14px;color:#F4F1EC;">${campaignName}</span>
-      </td></tr>
-    </table>
-    <p style="color:#9B9488;font-size:14px;line-height:1.7;margin:0 0 8px;">Consultez le rapport complet et téléchargez le PDF depuis votre portail.</p>
-    ${ctaButton(`${appUrl}/dashboard/reports/${reportId}/view`, 'Consulter le rapport →')}
-    <p style="color:#9B9488;font-size:12px;line-height:1.6;margin:0;">Ce rapport est confidentiel. Merci de ne pas transférer cet email.</p>
-  `
-
-  return sendEmail({
-    to: [{ name: pmName, email: pmEmail }],
-    subject,
-    htmlContent: emailWrapper(content),
-  }, tenantId)
+  return sendWorkspaceEmail({
+    tenantId,
+    lang,
+    to: { name: pmName, email: pmEmail },
+    subject: () => lang === 'en' ? `Your audit report is ready — ${propertyName}` : `Votre rapport d'audit est disponible — ${propertyName}`,
+    content: ({ accent, brand }) => {
+      const where = `${esc(propertyName)}${propertyCity ? ` — ${esc(propertyCity)}` : ''}`
+      const score = typeof overallScore === 'number' && Number.isFinite(overallScore)
+        ? `<div style="background:${accentRgba(accent, 0.08)};border:1px solid ${accentRgba(accent, 0.2)};border-radius:8px;padding:20px 24px;text-align:center;margin-bottom:24px;">
+             <div style="font-size:36px;font-weight:700;color:${accent};line-height:1;margin:16px 0 4px;">${esc(overallScore)}%</div>
+             <div style="${LABEL}">${lang === 'en' ? 'Overall score' : 'Score global'}</div>
+           </div>`
+        : ''
+      const campaign = (label: string) => `<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
+        <tr><td style="padding:8px 0;">
+          <span style="${LABEL}">${label}</span><br>
+          <span style="font-size:14px;color:#F4F1EC;">${esc(campaignName)}</span>
+        </td></tr>
+      </table>`
+      const url = `${appBase()}/dashboard/reports/${encodeURIComponent(reportId)}/view`
+      return lang === 'en'
+        ? `${h1('Your audit report is ready')}
+           ${p(`Hello ${esc(pmName)},`)}
+           ${p(`The mystery guest audit report for ${strong(where)} has been completed and is now available.`, { mb: 24 })}
+           ${score}
+           ${campaign('Campaign')}
+           ${p('View the full report and download the PDF from your portal.', { mb: 8 })}
+           ${ctaButton(brand, url, 'View report →')}
+           ${p('This report is confidential. Please do not forward this email.', { size: 12, mb: 0 })}`
+        : `${h1("Votre rapport d'audit est disponible")}
+           ${p(`Bonjour ${esc(pmName)},`)}
+           ${p(`Le rapport d'audit mystère pour ${strong(where)} a été finalisé et est maintenant disponible.`, { mb: 24 })}
+           ${score}
+           ${campaign('Campagne')}
+           ${p('Consultez le rapport complet et téléchargez le PDF depuis votre portail.', { mb: 8 })}
+           ${ctaButton(brand, url, 'Consulter le rapport →')}
+           ${p('Ce rapport est confidentiel. Merci de ne pas transférer cet email.', { size: 12, mb: 0 })}`
+    },
+  })
 }
