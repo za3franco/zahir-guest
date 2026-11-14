@@ -26,7 +26,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { name, email, role, default_language } = body
+  const { name, role, default_language } = body
+  // Stored in lower case, like signup: the "forgot password" route looks accounts up by exact address
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
 
   if (!name || !email || !role) {
     return apiError(lang, 'missing_fields')

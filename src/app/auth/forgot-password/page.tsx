@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import styles from './forgot-password.module.css'
 
 export default function ForgotPasswordPage() {
@@ -10,26 +9,30 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
 
+  // The page is bilingual (shown before we know who the person is). The email itself is written in the language
+  // of the account; the browser's language is only used for the rare error message below.
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
-    const supabase = createClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${appUrl}/auth/set-password`,
-    })
-
-    setLoading(false)
-
-    // Always show the success state, even on error — do not reveal whether
-    // an account exists for this email (basic enumeration protection).
-    if (error) {
-      console.error('Password reset error:', error.message)
+    const lang = (navigator.language ?? '').toLowerCase().startsWith('en') ? 'en' : 'fr'
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), lang }),
+      })
+      if (res.ok) {
+        setSent(true)
+      } else {
+        // Invalid address or too many attempts: never says whether an account exists
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Une erreur s\'est produite. / Something went wrong.')
+      }
+    } catch {
+      setError('Pas de connexion. Vérifiez votre réseau. / No connection. Check your network.')
     }
-    setSent(true)
+    setLoading(false)
   }
 
   return (

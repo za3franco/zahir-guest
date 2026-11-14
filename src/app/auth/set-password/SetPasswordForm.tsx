@@ -9,6 +9,7 @@ const TEXT = {
   en: {
     tagline: 'Reveal what cannot be unseen.',
     title: 'Set your password',
+    titleRecovery: 'Choose a new password',
     loading: 'Loading…',
     password: 'PASSWORD',
     confirm: 'CONFIRM PASSWORD',
@@ -19,6 +20,8 @@ const TEXT = {
     tooShort: 'The password must be at least 8 characters.',
     mismatch: 'The two passwords do not match.',
     linkInvalid: 'This link has expired or is not valid. Please ask for a new invitation.',
+    linkInvalidRecovery: 'This link has expired or has already been used. Please ask for a new one.',
+    askNewLink: 'Get a new link →',
     done: 'Password set!',
     redirecting: 'Redirecting to your dashboard…',
     language: 'Language',
@@ -26,6 +29,7 @@ const TEXT = {
   fr: {
     tagline: 'Ce qui est révélé ne peut plus être ignoré.',
     title: 'Définissez votre mot de passe',
+    titleRecovery: 'Choisissez un nouveau mot de passe',
     loading: 'Chargement…',
     password: 'MOT DE PASSE',
     confirm: 'CONFIRMER LE MOT DE PASSE',
@@ -36,6 +40,8 @@ const TEXT = {
     tooShort: 'Le mot de passe doit contenir au moins 8 caractères.',
     mismatch: 'Les deux mots de passe ne correspondent pas.',
     linkInvalid: "Ce lien a expiré ou n'est pas valide. Demandez une nouvelle invitation.",
+    linkInvalidRecovery: 'Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.',
+    askNewLink: 'Recevoir un nouveau lien →',
     done: 'Mot de passe enregistré !',
     redirecting: 'Redirection vers votre tableau de bord…',
     language: 'Langue',
@@ -50,9 +56,13 @@ type Problem =
   | { kind: 'auth'; error: { code?: string; message?: string; status?: number } }
   | { kind: 'network'; error: unknown }
 
-export default function SetPasswordForm({ initialLang }: { initialLang: Lang }) {
+export default function SetPasswordForm({ initialLang, langFromLink = false, recovery = false }: {
+  initialLang: Lang
+  langFromLink?: boolean // the "forgot password" link already carries the account's language
+  recovery?: boolean
+}) {
   const [lang, setLang] = useState<Lang>(initialLang)
-  const chosenByHand = useRef(false)
+  const chosenByHand = useRef(langFromLink)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -78,6 +88,21 @@ export default function SetPasswordForm({ initialLang }: { initialLang: Lang }) 
     const supabase = createClient()
     const opened = () => { setReady(true); void adoptProfileLanguage() }
 
+    // "Forgot password" email (sent by our server through Brevo): a single-use token after the '#', never sent to
+    // a server. Exchanged by this script only, so a mail scanner that merely opens the link does not use it up.
+    // Then removed from the address bar, so it stays neither in the history nor on screen.
+    const tokenHash = new URLSearchParams(window.location.hash.substring(1)).get('token_hash')
+    if (tokenHash && recovery) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+        .then(({ data, error }) => {
+          if (!error && data.session) opened()
+          else setProblem({ kind: 'link' })
+        })
+        .catch(() => setProblem({ kind: 'link' }))
+      return
+    }
+
     // Supabase sometimes puts the token in the hash fragment
     const hash = window.location.hash
     if (hash && hash.includes('access_token')) {
@@ -102,7 +127,7 @@ export default function SetPasswordForm({ initialLang }: { initialLang: Lang }) 
 
   function problemText(p: Problem): string {
     switch (p.kind) {
-      case 'link': return t.linkInvalid
+      case 'link': return recovery ? t.linkInvalidRecovery : t.linkInvalid
       case 'short': return t.tooShort
       case 'mismatch': return t.mismatch
       case 'auth': return authErrorText(p.error, lang)
@@ -165,7 +190,7 @@ export default function SetPasswordForm({ initialLang }: { initialLang: Lang }) 
           <p className={styles.brandTagline}>{t.tagline}</p>
         </div>
         {langSwitch}
-        <h1 className={styles.title}>{t.title}</h1>
+        <h1 className={styles.title}>{recovery ? t.titleRecovery : t.title}</h1>
         {!ready && !problem && (
           <p style={{ color: 'var(--color-sand)', textAlign: 'center', fontSize: '0.875rem' }}>{t.loading}</p>
         )}
@@ -206,6 +231,11 @@ export default function SetPasswordForm({ initialLang }: { initialLang: Lang }) 
         )}
         {problem && !ready && (
           <div className={styles.error} role="alert">{problemText(problem)}</div>
+        )}
+        {problem?.kind === 'link' && !ready && recovery && (
+          <a href="/auth/forgot-password" className={styles.btn} style={{ display: 'block', textAlign: 'center', textDecoration: 'none', marginTop: 16 }}>
+            {t.askNewLink}
+          </a>
         )}
       </div>
     </div>
