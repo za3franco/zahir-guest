@@ -76,5 +76,6 @@ export async function GET(request: Request) {
     reminded++
   }
 
+  console.log(`[cron billing-reminders] done: ${(tenants ?? []).length} prepaid workspaces, ${reminded} reminded, ${ended} ended`)
   return NextResponse.json({ ok: true, reminded, ended })
 }

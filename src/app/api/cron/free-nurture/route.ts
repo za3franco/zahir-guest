@@ -61,5 +61,6 @@ export async function GET(request: Request) {
     if ((await sendNurtureEmail(supabase, t, step.key)) > 0) sent++
   }
 
+  console.log(`[cron free-nurture] done: ${sent} sent, ${skipped} skipped`)
   return NextResponse.json({ ok: true, sent, skipped })
 }
