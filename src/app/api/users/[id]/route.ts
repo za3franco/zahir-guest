@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -55,14 +56,15 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const currentUser = await requireUser()
+  const lang = langOf(currentUser)
 
   // Only workspace admins remove people
   if (currentUser.role !== 'tenant_admin' && currentUser.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   if (params.id === currentUser.id) {
-    return NextResponse.json({ error: 'Cannot remove yourself' }, { status: 400 })
+    return apiError(lang, 'cannot_remove_self')
   }
 
   const supabaseAdmin = createClient(
@@ -78,12 +80,12 @@ export async function POST(
     .single()
 
   if (!targetUser) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    return apiError(lang, 'user_not_found')
   }
 
   // A platform super admin can only be changed by a super admin
   if (targetUser.role === 'super_admin' && currentUser.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   // Send removal email before deleting
@@ -103,7 +105,7 @@ export async function POST(
     .eq('id', params.id)
 
   if (dbError) {
-    return NextResponse.json({ error: dbError.message }, { status: 500 })
+    return serverError(lang, dbError, 'users/id')
   }
 
   await supabaseAdmin.auth.admin.deleteUser(params.id)

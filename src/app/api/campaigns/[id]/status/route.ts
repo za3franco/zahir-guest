@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { viewersOfProperty } from '@/lib/access'
@@ -25,6 +26,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,11 +42,11 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   if (campaign.tenant_id !== user.tenant_id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   // Only admins move campaigns through review and publication; an auditor can only start or
@@ -53,7 +55,7 @@ export async function POST(
   const auditorStep = user.role === 'auditor' && campaign.auditor_user_id === user.id &&
     ((campaign.status === 'assigned' && newStatus === 'in_progress') || (campaign.status === 'in_progress' && newStatus === 'submitted'))
   if (!isAdmin && !auditorStep) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const forwardAllowed = FORWARD_TRANSITIONS[campaign.status] ?? []
@@ -61,14 +63,11 @@ export async function POST(
   const isBackward = backwardAllowed.includes(newStatus)
 
   if (isBackward && user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Only admins can reverse campaign status' }, { status: 403 })
+    return apiError(lang, 'status_admin_only')
   }
 
   if (!forwardAllowed.includes(newStatus) && !backwardAllowed.includes(newStatus)) {
-    return NextResponse.json(
-      { error: `Cannot transition from ${campaign.status} to ${newStatus}` },
-      { status: 400 }
-    )
+    return apiError(lang, 'status_transition')
   }
 
   const updateData: Record<string, any> = { status: newStatus }
@@ -85,7 +84,7 @@ export async function POST(
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'campaigns/id/status')
   }
 
   // Publication email to everyone who can see this property (client, property and department managers)

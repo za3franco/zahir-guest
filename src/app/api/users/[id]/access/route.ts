@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -7,16 +8,17 @@ import { isAdminRole, isViewer } from '@/lib/access'
 // Body: { clientIds: string[], propertyIds: string[] } (a client = all its properties, including future ones)
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const admin = await requireUser()
-  if (!isAdminRole(admin.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(admin)
+  if (!isAdminRole(admin.role)) return apiError(lang, 'forbidden')
   const body = await request.json().catch(() => null)
   const clientIds: string[] = Array.isArray(body?.clientIds) ? body.clientIds.filter((x: unknown) => typeof x === 'string') : []
   const propertyIds: string[] = Array.isArray(body?.propertyIds) ? body.propertyIds.filter((x: unknown) => typeof x === 'string') : []
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: target } = await supabase.from('users').select('id, role').eq('id', params.id).eq('tenant_id', admin.tenant_id).maybeSingle()
-  if (!target) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  if (!target) return apiError(lang, 'user_not_found')
   if (!isViewer(target.role)) {
-    return NextResponse.json({ error: 'Access only applies to client, property and department managers.' }, { status: 400 })
+    return apiError(lang, 'access_role_invalid')
   }
 
   // Keep only ids of this workspace
@@ -31,10 +33,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   ]
 
   const { error: delErr } = await supabase.from('user_access').delete().eq('user_id', target.id).eq('tenant_id', admin.tenant_id)
-  if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 })
+  if (delErr) return serverError(lang, delErr, 'users/id/access')
   if (rows.length) {
     const { error } = await supabase.from('user_access').insert(rows)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(lang, error, 'users/id/access')
   }
   return NextResponse.json({ ok: true, clients: okClients?.length ?? 0, properties: okProps?.length ?? 0 })
 }

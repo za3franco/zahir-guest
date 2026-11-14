@@ -1,5 +1,7 @@
 'use client'
 
+import { failureText } from '@/lib/clientErrors'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from '../questionnaires.module.css'
@@ -110,7 +112,7 @@ export default function AiImport({ lang }: { lang: Lang }) {
       }
       if (!finished) throw new Error(t(T.failed))
     } catch (e: any) {
-      setError(e.message || t(T.failed)); setPhase('input'); setPhaseLabel('')
+      setError(failureText(e, lang, t(T.failed))); setPhase('input'); setPhaseLabel('')
     }
   }
 
@@ -134,10 +136,14 @@ export default function AiImport({ lang }: { lang: Lang }) {
   async function create() {
     if (!name.trim()) return setError(t(T.needName))
     setBusy(true); setError(null)
-    const res = await fetch('/api/questionnaires/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, tree: kept }) })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok) { setError(json.error || t(T.failed)); setBusy(false); return }
-    router.push(`/dashboard/questionnaires/${json.id}/edit`)
+    try {
+      const res = await fetch('/api/questionnaires/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, tree: kept }) })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(json.error || t(T.failed)); setBusy(false); return }
+      router.push(`/dashboard/questionnaires/${json.id}/edit`)
+    } catch (e) {
+      setError(failureText(e, lang, t(T.failed))); setBusy(false)
+    }
   }
 
   return (

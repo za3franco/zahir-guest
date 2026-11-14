@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import styles from './login.module.css'
+import { authErrorText } from '@/lib/clientErrors'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -28,11 +29,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError(
-        error.message === 'Invalid login credentials'
-          ? 'Email ou mot de passe incorrect. / Incorrect email or password.'
-          : error.message
-      )
+      // This page is shown before the language is known: both languages, as for the notices above
+      setError(`${authErrorText(error, 'fr')} / ${authErrorText(error, 'en')}`)
       setLoading(false)
       return
     }

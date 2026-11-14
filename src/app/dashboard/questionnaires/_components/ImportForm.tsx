@@ -1,5 +1,7 @@
 'use client'
 
+import { failureText } from '@/lib/clientErrors'
+
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { parseQuestionnaire, TEMPLATE_CSV } from '@/lib/questionnaireImport'
@@ -109,7 +111,7 @@ export default function ImportForm({ lang, standards }: { lang: Lang; standards:
       router.push('/dashboard/questionnaires')
       router.refresh()
     } catch (err: any) {
-      setError(err.message || t(T.failed))
+      setError(failureText(err, lang, t(T.failed)))
       setBusy(false)
     }
   }

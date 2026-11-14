@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
@@ -92,12 +93,12 @@ const TOOL = {
 
 export async function POST(request: Request) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return Response.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   {
     const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
     if (locked) return locked
   }
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return Response.json({ error: msg('AI is not available right now.', "L'IA n'est pas disponible pour le moment.") }, { status: 503 })

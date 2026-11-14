@@ -1,3 +1,4 @@
+import { serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   if (!isAdminRole(user.role)) {
     return NextResponse.json({ error: lang === 'en' ? 'Not allowed' : 'Non autorisé' }, { status: 403 })
   }
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'campaigns')
   }
 
   // Send auditor assignment email if auditor was assigned

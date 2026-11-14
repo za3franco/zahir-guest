@@ -1,5 +1,7 @@
 'use client'
 
+import { failureText } from '@/lib/clientErrors'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CLASSIFICATIONS } from '@/lib/questionnaireImport'
@@ -125,7 +127,7 @@ export default function QuestionnaireEditor({ tree, lang, inUse, library }: { tr
       setStatus('saved')
       router.refresh()
     } catch (e: any) {
-      setError(e.message || t(T.failed)); setStatus('dirty')
+      setError(failureText(e, lang, t(T.failed))); setStatus('dirty')
     }
   }
 

@@ -1,5 +1,7 @@
 'use client'
 
+import { failureText, GENERIC } from '@/lib/clientErrors'
+
 import { useState } from 'react'
 import styles from './ExecutiveSummaryEditor.module.css'
 
@@ -65,10 +67,10 @@ export default function ExecutiveSummaryEditor({ campaignId, existingSummary, la
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/ai-summary`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: aiLang }) })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(json.error || 'Error')
+      if (!res.ok) throw new Error(json.error || GENERIC[lang as 'en' | 'fr'])
       setSummary(json.text); setAiDone(true); setStatus('idle')
     } catch (e: any) {
-      setAiError(e.message)
+      setAiError(failureText(e, lang as 'en' | 'fr'))
     } finally {
       setAiBusy(false)
     }

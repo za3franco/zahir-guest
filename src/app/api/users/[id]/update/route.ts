@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -8,9 +9,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const currentUser = await requireUser()
+  const lang = langOf(currentUser)
 
   if (currentUser.role !== 'tenant_admin' && currentUser.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -27,12 +29,12 @@ export async function PATCH(
     .single()
 
   if (!targetUser) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    return apiError(lang, 'user_not_found')
   }
 
   // A platform super admin can only be changed by a super admin
   if (targetUser.role === 'super_admin' && currentUser.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const body = await request.json()
@@ -56,7 +58,7 @@ export async function PATCH(
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'users/id/update')
   }
 
   return NextResponse.json({ ok: true })

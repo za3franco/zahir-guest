@@ -1,3 +1,4 @@
+import { apiError, langOf, serverError } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -9,12 +10,12 @@ import { parseQuestionnaire } from '@/lib/questionnaireImport'
 // The file is re-validated here: the browser preview is only a convenience.
 export async function POST(request: Request) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   {
     const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
     if (locked) return locked
   }
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
 
   const body = await request.json().catch(() => null)
   const name = String(body?.name ?? '').trim().slice(0, 120)
@@ -34,11 +35,12 @@ export async function POST(request: Request) {
     .insert({ tenant_id: user.tenant_id, name, tier: 'custom', language: 'bilingual', is_active: true })
     .select('id')
     .single()
-  if (tErr || !tpl) return NextResponse.json({ error: tErr?.message ?? 'Error' }, { status: 500 })
+  if (tErr || !tpl) return serverError(lang, tErr ?? 'no template row', 'questionnaires/import', 'import_failed')
 
-  const fail = async (msg: string) => {
+  const fail = async (reason: string) => {
+    console.error('[questionnaires/import] failed:', reason)
     await db.from('questionnaire_templates').delete().eq('id', tpl.id) // cascades to domains/sections/standards
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return apiError(lang, 'import_failed')
   }
 
   // Domains and sections keep the order in which they first appear in the file.

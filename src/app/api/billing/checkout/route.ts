@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -13,7 +14,7 @@ import { startYoucanCheckout, youcanPeriodRunning } from '@/lib/youcanBilling'
 // Body: { tier, interval, properties, currency } or, in MAD, { kind: 'extra', count }.
 export async function POST(request: Request) {
   const user = await requireUser()
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: tenant } = await supabase.from('tenants').select('*').eq('id', user.tenant_id).single()
-  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+  if (!tenant) return apiError(lang, 'workspace_not_found')
 
   if (tenant.subscription_tier === 'za3fran_internal' || tenant.billing_mode === 'direct') {
     return NextResponse.json({ error: msg('This workspace is not billed online.', "Cet espace n'est pas facturé en ligne.") }, { status: 400 })
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       }
       const { tier, interval } = body
       if (!isPlanTier(tier) || !TIER_RULES[tier].selfServe || (interval !== 'quarterly' && interval !== 'annual')) {
-        return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+        return apiError(lang, 'invalid_plan')
       }
       const properties = TIER_RULES[tier].includedProperties + extraFor(tier, body.properties)
       const url = await startYoucanCheckout({ tenant, user, lang, customerIp: clientIp(request), order: { kind: 'plan', tier, interval, properties } })
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
   const { tier } = body
   const interval: 'monthly' | 'annual' | null = body.interval === 'monthly' || body.interval === 'annual' ? body.interval : null
   if (!isPlanTier(tier) || !TIER_RULES[tier].selfServe || !interval) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    return apiError(lang, 'invalid_plan')
   }
 
   // Already subscribed: changes go through /api/billing/change, never a second subscription.
@@ -105,7 +106,6 @@ export async function POST(request: Request) {
     if (err instanceof PlanNotAvailable) {
       return NextResponse.json({ error: msg('This plan is not available online yet. Please contact us.', "Ce forfait n'est pas encore disponible en ligne. Merci de nous contacter.") }, { status: 503 })
     }
-    const m = err instanceof StripeError ? err.message : 'Checkout unavailable'
-    return NextResponse.json({ error: m }, { status: 500 })
+    return apiError(lang, 'checkout_unavailable')
   }
 }

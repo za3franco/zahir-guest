@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -37,7 +38,8 @@ function digest(scores: ReportScores, notes: Map<string, string>): string {
 // Drafts the executive summary and recommendations of a report. The admin reviews and edits it before saving.
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   const ui = user.default_language === 'en' ? 'en' : 'fr'
   const msg = (en: string, fr: string) => (ui === 'en' ? en : fr)
   if (!process.env.ANTHROPIC_API_KEY) return NextResponse.json({ error: msg('AI is not available right now.', "L'IA n'est pas disponible pour le moment.") }, { status: 503 })
@@ -51,7 +53,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .eq('id', params.id)
     .eq('tenant_id', user.tenant_id)
     .maybeSingle()
-  if (!campaign) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!campaign) return apiError(lang, 'not_found')
   if (!['submitted', 'under_review', 'finalized', 'published'].includes(campaign.status)) {
     return NextResponse.json({ error: msg('The audit has not been submitted yet.', "L'audit n'a pas encore été soumis.") }, { status: 400 })
   }

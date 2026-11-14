@@ -1,3 +1,4 @@
+import { apiError } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -42,7 +43,6 @@ export async function POST() {
     return NextResponse.json({ url: session.url })
   } catch (err) {
     console.error('[billing portal]', err)
-    const msg = err instanceof StripeError ? err.message : 'Portal unavailable'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return apiError(lang, 'portal_unavailable')
   }
 }

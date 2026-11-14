@@ -1,4 +1,4 @@
-# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, handoff de la session ZG-6)
+# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, fin de la session « messages d'erreur »)
 
 > À lire en premier au début d'une session ZG, avec `CLAUDE.md`. Remplace `docs/ZG6_BRIEF.md`, gardé comme archive détaillée du mode hors ligne. Ne jamais y écrire d'adresse email personnelle, de clé ou de mot de passe.
 
@@ -13,7 +13,7 @@
 - **PR n°26** : écran d'audit sur téléphone (note émotionnelle en lignes, retour en haut, « Section X/N », bouton « Précédente »), champs de connexion / inscription stylés.
 - **PR n°28** : « 1 property » au singulier ; avis de fin de période prépayée sans date passée ; les tâches planifiées écrivent une ligne de bilan dans les journaux ; Stripe : pas de conversion automatique en devise locale.
 - **PR n°29** : confirmation du changement d'offre ; bouton Delete pour les espaces de test du super admin ; migration 015 (mode hors ligne actif par défaut).
-- **PR n°30** : la langue FR / EN choisie suit la personne partout (cookie `zg_lang`, `src/lib/lang.ts`), nom « Zahir Guest » sur la page de paiement Stripe (`branding_settings`), confirmation du changement d'offre en fenêtre centrée (texte différent montée / descente).
+- **PR n°30** : la langue FR / EN choisie suit la personne (**correction du 14 nov. : le cookie `zg_lang` et `src/lib/lang.ts` cités ici n'existent pas dans `main`, la PR n°30 ne contient que la facturation ; la langue d'un utilisateur connecté est la colonne `users.default_language`, changée par le bouton FR / EN du menu**), nom « Zahir Guest » sur la page de paiement Stripe (`branding_settings`), confirmation du changement d'offre en fenêtre centrée (texte différent montée / descente).
 - **PR n°31** : marque blanche : « Couleur principale », « Couleur du fond (thème) » (fond sombre teinté, `src/lib/brandColors.ts`), « Reprendre les couleurs de mon logo », aperçu ; montée en gamme facturée tout de suite sur la carte enregistrée (`always_invoice` + `error_if_incomplete`), descente en crédit sur la prochaine facture.
 - **Documentation** : PR n°18, 24, 25, 27 (CLAUDE.md, feuille de route, tests, pratiques, brief).
 - **Migrations appliquées** : 010 à 015 (dernière : 015, 14 nov.).
@@ -29,11 +29,13 @@
 Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com` (adresses qui ne reçoivent pas de mail ; mots de passe jamais dans le dépôt).
 
 ## Priorités ZG-7 (dans l'ordre)
-### 1. Messages d'erreur serveur en français et en anglais — PROCHAINE ÉTAPE
-Décidé par Arnaud le 14 nov. Environ 45 routes `src/app/api/**` renvoient des erreurs seulement en anglais (photos, sync, réponses, IA, rapports, utilisateurs, campagnes, questionnaires…), certaines sont déjà traduites avec `msg(en, fr)` selon `user.default_language`. L'écran super admin est entièrement en anglais. Objectif : tout message vu par un utilisateur suit sa langue.
-- Approche conseillée : un petit helper commun (langue de l'utilisateur, messages dans un seul fichier) plutôt que des `msg()` partout ; lister toutes les routes, puis traduire, puis tester par un parcours d'erreurs en français et en anglais (iPhone réglé en anglais, choix FR).
-- Les routes appelées par le téléphone hors ligne (`/api/audit/*`) renvoient aussi des codes (`audit_closed`, `unknown_standard`…) que l'interface traduit : ne pas les casser.
-- À trancher avec Arnaud : traduire aussi l'écran super admin (outil interne, anglais aujourd'hui).
+### 1. Messages d'erreur serveur en français et en anglais — FAIT sur la branche `claude/bold-sagan-d8wich` (commit `bf7ed05`), PR à ouvrir et fusion à décider par Arnaud
+- `src/lib/apiErrors.ts` : un catalogue unique (47 messages FR / EN), `apiError(lang, clé)`, `serverError(lang, erreur, contexte)` (le vrai message va dans les journaux, la personne voit un texte neutre traduit : plus de « duplicate key… » ni de texte brut de Stripe à l'écran), `langOf(user)`, `requestLang(request, body.lang)` pour les routes publiques (choix de la page, sinon langue du navigateur). Statuts HTTP et champs `code` conservés (`audit_closed`, `unknown_standard`, `unknown_section`, `not_found`, `forbidden`, `invalid`, `use_change`…) : le moteur hors ligne ne lit jamais le texte.
+- 45 routes migrées. Restent en anglais volontairement : webhooks Stripe et YouCan Pay, tâches planifiées (lus par des robots). Les messages déjà bilingues (`msg(en, fr)`) sont laissés en place.
+- Cas soignés : carte refusée lors d'une montée en gamme (message dédié) ; invitation d'un email déjà inscrit (409 clair).
+- `src/lib/clientErrors.ts` : « Pas de connexion » traduit à la place du texte du navigateur (« Load failed » sur iPhone) ; erreurs Supabase Auth (mot de passe, connexion) traduites.
+- **Pas encore traduits** : (a) la page `/auth/set-password` (lien d'invitation) est entièrement en anglais, interface comprise ; (b) l'écran super admin (Arnaud a demandé le 14 nov. de le traduire : PR séparée) ; (c) 5 messages de réussite / états, hors périmètre.
+- Tests : voir `docs/TESTS.md` (37 / 37, iPhone en anglais).
 
 ### 2. Vérifications en production avec Arnaud
 - Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
@@ -64,7 +66,7 @@ Supprimer les espaces et comptes de test listés ci-dessus. Piège : un `DELETE`
 ## Références techniques
 - Dépôt `za3franco/zahir-guest` ; site www.zahirguest.com ; Next.js (App Router), Supabase, Vercel, Stripe, YouCan Pay, Brevo.
 - Supabase : projet `fnrafhbautactzhemmjb` (région `eu-central-1`). Vercel : projet `prj_qbLa1WSUk6QOHlG8vrrzAhSAb23z`, équipe `team_mCxAzBP02S8BF3JQddNa47eQ`, fonctions en `fra1`. Stripe : compte `acct_1TVT2jIqDwcwTTU9` (live, partagé avec Za3fran.io ; la page de paiement force le nom « Zahir Guest »).
-- Fichiers clés : `src/lib/auth.ts` (identité), `src/lib/auditAccess.ts` et `src/lib/auditSync.ts` (écritures d'audit), `src/lib/offline/*` (stockage local et synchronisation), `public/sw.js`, `src/lib/plans.ts` (droits des offres), `src/lib/limits.ts`, `src/lib/brandColors.ts` et `src/lib/branding.ts` (marque blanche), `src/lib/lang.ts` (langue), `src/app/api/billing/*` (paiements), `src/app/dashboard/billing/BillingActions.tsx`.
+- Fichiers clés : `src/lib/auth.ts` (identité), `src/lib/auditAccess.ts` et `src/lib/auditSync.ts` (écritures d'audit), `src/lib/offline/*` (stockage local et synchronisation), `public/sw.js`, `src/lib/plans.ts` (droits des offres), `src/lib/limits.ts`, `src/lib/brandColors.ts` et `src/lib/branding.ts` (marque blanche), `src/lib/apiErrors.ts` et `src/lib/clientErrors.ts` (messages d'erreur FR / EN), `src/app/api/billing/*` (paiements), `src/app/dashboard/billing/BillingActions.tsx`.
 - Build local : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` factices suffisent ; `tsc --noEmit` puis `next build` avant chaque push. Pas de configuration ESLint.
 - Livraison : une PR par sujet. La branche de travail de la session est `claude/charming-mayer-b9lkq6` : après chaque fusion, la rebaser est impossible sans forcer, donc repartir de `main` puis fusionner l'ancienne branche avec `git merge -s ours` avant de pousser. Migrations dans `sql/NNN_*.sql`, vérification par `execute_sql` juste après `apply_migration`.
 - Versions de test : protégées par Vercel (lien de partage avec `get_access_to_vercel_url`), sans clés Stripe ni YouCan : les paiements ne se testent qu'en production.
@@ -78,7 +80,8 @@ Reprise de `CLAUDE.md`, plus :
 - Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Pour la prochaine session
-- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High (travail large mais mécanique, avec tests). Passer à `claude-opus-5-5` seulement pour les phases de paiement, de domaine ou d'authentification.
-- **Message de lancement** (à coller dans une nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
-  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorité 1 du brief ZG-7, traduire en français et en anglais tous les messages d'erreur du serveur, selon la langue choisie par l'utilisateur, avec un plan court d'abord, puis un parcours de test sur un iPhone réglé en anglais. Aucun changement en production sans mon accord explicite.
-- **Accords que doit donner Arnaud** : fusion de chaque PR ; traduction ou non de l'écran super admin ; ce qu'il veut parmi les finitions de la priorité 4.
+- **Avant tout** : Arnaud décide de la PR « messages d'erreur » (branche `claude/bold-sagan-d8wich`, version de test déjà testée) : ouverture de la PR et fusion, avec son accord explicite. Après la fusion, repartir de `main`.
+- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High (traduction large et mécanique, avec tests).
+- **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
+  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : traduis en français et en anglais l'écran super admin et la page `/auth/set-password` (lien d'invitation), avec un plan court d'abord, puis teste sur un iPhone réglé en anglais. Aucun changement en production sans mon accord explicite.
+- **Accords que doit donner Arnaud** : ouverture et fusion de la PR des messages d'erreur ; fusion de la PR suivante ; ce qu'il veut parmi les finitions de la priorité 4 ; un mot de passe temporaire sur un compte de test pour les tests connectés (donné le 14 nov. pour l'auditeur de test seulement, puis neutralisé).

@@ -1,3 +1,4 @@
+import { apiError, langOf, serverError } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -35,12 +36,12 @@ function sanitize(input: unknown): TreeDomain[] {
 // New questionnaire: blank, a copy of an existing one, or a ready structure (guided start / AI import).
 export async function POST(request: Request) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   {
     const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
     if (locked) return locked
   }
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
   const body = await request.json().catch(() => null)
   const name = txt(body?.name, 120)
   if (!name) return NextResponse.json({ error: lang === 'en' ? 'Please name the questionnaire.' : 'Donnez un nom au questionnaire.' }, { status: 400 })
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
   let domains: TreeDomain[]
   if (body?.from) {
     const source = await loadTemplateTree(db, String(body.from), user.tenant_id)
-    if (!source) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!source) return apiError(lang, 'not_found')
     domains = source.domains
   } else if (body?.tree) {
     domains = sanitize(body.tree)
@@ -65,10 +66,11 @@ export async function POST(request: Request) {
     .insert({ tenant_id: user.tenant_id, name, tier: 'custom', language: 'bilingual', is_active: true })
     .select('id')
     .single()
-  if (error || !tpl) return NextResponse.json({ error: error?.message ?? 'Error' }, { status: 500 })
-  const fail = async (msg: string) => {
+  if (error || !tpl) return serverError(lang, error ?? 'no template row', 'questionnaires/new', 'import_failed')
+  const fail = async (reason: string) => {
+    console.error('[questionnaires/new] failed:', reason)
     await db.from('questionnaire_templates').delete().eq('id', tpl.id) // cascades
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return apiError(lang, 'import_failed')
   }
 
   const { data: dRows, error: dErr } = await db

@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -13,18 +14,18 @@ const ERR = {
 // or { addPropertyIds: string[] } / { removePropertyIds: string[] } to (un)link properties.
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   const body = await request.json().catch(() => null)
-  if (!body) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  if (!body) return apiError(lang, 'invalid_request')
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: client } = await supabase.from('clients').select('id').eq('id', params.id).eq('tenant_id', user.tenant_id).maybeSingle()
-  if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+  if (!client) return apiError(lang, 'client_not_found')
 
   if (typeof body.archived === 'boolean') {
     const { error } = await supabase.from('clients').update({ is_archived: body.archived }).eq('id', params.id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return serverError(lang, error, 'clients/id')
     return NextResponse.json({ ok: true })
   }
 
@@ -33,11 +34,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const remove = (body.removePropertyIds ?? []).filter((x: unknown) => typeof x === 'string')
     if (add.length) {
       const { error } = await supabase.from('properties').update({ client_id: params.id }).eq('tenant_id', user.tenant_id).in('id', add)
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error) return serverError(lang, error, 'clients/id')
     }
     if (remove.length) {
       const { error } = await supabase.from('properties').update({ client_id: null }).eq('tenant_id', user.tenant_id).eq('client_id', params.id).in('id', remove)
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error) return serverError(lang, error, 'clients/id')
     }
     return NextResponse.json({ ok: true })
   }
@@ -45,6 +46,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const parsed = parseClientBody(body)
   if ('error' in parsed) return NextResponse.json({ error: ERR[parsed.error as keyof typeof ERR][lang] }, { status: 400 })
   const { error } = await supabase.from('clients').update(parsed.fields).eq('id', params.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(lang, error, 'clients/id')
   return NextResponse.json({ ok: true })
 }

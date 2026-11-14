@@ -1,17 +1,19 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 
 export async function POST(request: Request) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   const body = await request.json()
   const message: string = (body.message ?? '').trim()
 
   if (!message) {
-    return NextResponse.json({ error: 'Message is required' }, { status: 400 })
+    return apiError(lang, 'message_required')
   }
   if (message.length > 4000) {
-    return NextResponse.json({ error: 'Message is too long' }, { status: 400 })
+    return apiError(lang, 'message_too_long')
   }
 
   const notifyEmail = process.env.FEEDBACK_NOTIFY_EMAIL ?? 'hello@za3fran.io'
@@ -77,11 +79,11 @@ export async function POST(request: Request) {
     if (!res.ok) {
       const err = await res.json()
       console.error('Brevo feedback send error:', err)
-      return NextResponse.json({ error: 'Failed to send feedback' }, { status: 500 })
+      return apiError(lang, 'send_failed')
     }
   } catch (err) {
     console.error('Brevo feedback network error:', err)
-    return NextResponse.json({ error: 'Failed to send feedback' }, { status: 500 })
+    return apiError(lang, 'send_failed')
   }
 
   return NextResponse.json({ ok: true })

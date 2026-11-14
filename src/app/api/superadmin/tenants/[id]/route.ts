@@ -1,3 +1,4 @@
+import { apiError, langOf, serverError } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireSuperAdmin } from '@/lib/auth'
@@ -32,6 +33,7 @@ async function removeAll(supabase: any, bucket: string, prefix: string) {
 // Body: { confirm: <exact tenant name> }. Running Stripe subscriptions are cancelled immediately (no refund).
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const admin = await requireSuperAdmin()
+  const lang = langOf(admin)
   const { confirm } = await request.json().catch(() => ({}))
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -40,13 +42,13 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     .select('id, name, subscription_tier, subscription_status, stripe_subscription_id')
     .eq('id', params.id)
     .maybeSingle()
-  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+  if (!tenant) return apiError(lang, 'workspace_not_found')
   // Only the Za3fran workspace itself (and the admin's own) is protected; other internal-tier workspaces are test spaces
   if (tenant.id === 'a0000000-0000-0000-0000-000000000001' || tenant.id === admin.tenant_id) {
-    return NextResponse.json({ error: 'The internal workspace cannot be deleted.' }, { status: 400 })
+    return apiError(lang, 'internal_workspace')
   }
   if (typeof confirm !== 'string' || confirm.trim() !== tenant.name) {
-    return NextResponse.json({ error: 'Type the exact workspace name to confirm.' }, { status: 400 })
+    return apiError(lang, 'confirm_name')
   }
 
   // 1) Stop billing first: if this fails, nothing is deleted
@@ -56,7 +58,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     } catch (err: any) {
       // Already cancelled on Stripe's side is fine; anything else stops the deletion
       if (!/No such subscription|canceled/i.test(err?.message ?? '')) {
-        return NextResponse.json({ error: `Stripe cancellation failed: ${err?.message}. Nothing was deleted.` }, { status: 502 })
+        return serverError(lang, err, 'superadmin/delete stripe cancel', 'stripe_cancel_failed')
       }
     }
   }
@@ -80,7 +82,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const { error } = await run()
     if (error) {
       console.error(`[superadmin/delete] ${label} failed:`, error.message)
-      return NextResponse.json({ error: `Deletion stopped at step "${label}": ${error.message}` }, { status: 500 })
+      return apiError(lang, 'delete_stopped', { params: { step: label } })
     }
   }
 

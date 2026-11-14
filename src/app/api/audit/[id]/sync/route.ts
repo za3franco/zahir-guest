@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -20,10 +21,11 @@ async function loadCampaign(supabase: ReturnType<typeof db>, id: string) {
 // Current state of the audit on the server (answers, ratings, photos, status) so a phone can catch up.
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
+  const lang = langOf(user)
   const supabase = db()
   const campaign = await loadCampaign(supabase, params.id)
-  if (!campaign) return NextResponse.json({ error: 'Campaign not found', code: 'not_found' }, { status: 404 })
-  if (!canWorkOnAudit(user, campaign)) return NextResponse.json({ error: 'Unauthorized', code: 'forbidden' }, { status: 403 })
+  if (!campaign) return apiError(lang, 'audit_not_found', { code: 'not_found' })
+  if (!canWorkOnAudit(user, campaign)) return apiError(lang, 'forbidden')
   const state = await auditState(supabase, campaign.id)
   return NextResponse.json(
     { status: campaign.status, open: isAuditOpen(campaign.status), server_time: new Date().toISOString(), ...state },
@@ -35,16 +37,17 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 // Each op is applied only if it is the most recent change for its standard / section.
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
+  const lang = langOf(user)
   const body = await request.json().catch(() => null)
   const ops: unknown[] = Array.isArray(body?.ops) ? body.ops : []
-  if (!ops.length || ops.length > SYNC_MAX_OPS) return NextResponse.json({ error: 'Invalid data', code: 'invalid' }, { status: 400 })
+  if (!ops.length || ops.length > SYNC_MAX_OPS) return apiError(lang, 'invalid_request', { code: 'invalid' })
 
   const supabase = db()
   const campaign = await loadCampaign(supabase, params.id)
-  if (!campaign) return NextResponse.json({ error: 'Campaign not found', code: 'not_found' }, { status: 404 })
-  if (!canWorkOnAudit(user, campaign)) return NextResponse.json({ error: 'Unauthorized', code: 'forbidden' }, { status: 403 })
+  if (!campaign) return apiError(lang, 'audit_not_found', { code: 'not_found' })
+  if (!canWorkOnAudit(user, campaign)) return apiError(lang, 'forbidden')
   if (!isAuditOpen(campaign.status)) {
-    return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed', status: campaign.status }, { status: 409 })
+    return apiError(lang, 'audit_closed', { extra: { status: campaign.status } })
   }
 
   const results = await applyOps(supabase, campaign.id, user.id, campaign.template_id, ops)
