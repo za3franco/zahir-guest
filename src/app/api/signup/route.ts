@@ -1,3 +1,4 @@
+import { apiError, requestLang } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
@@ -19,10 +20,10 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return apiError(requestLang(request), 'invalid_request')
   }
 
-  const lang: 'en' | 'fr' = body.lang === 'en' ? 'en' : 'fr'
+  const lang = requestLang(request, body.lang)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   // Honeypot: real users never fill this hidden field. Pretend success so bots learn nothing.

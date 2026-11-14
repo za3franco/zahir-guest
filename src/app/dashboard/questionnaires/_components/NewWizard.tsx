@@ -1,5 +1,7 @@
 'use client'
 
+import { failureText, GENERIC } from '@/lib/clientErrors'
+
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { essentials, type Library } from '@/lib/questionnaireLibrary'
@@ -82,10 +84,14 @@ export default function NewWizard({ lang, library, templates }: { lang: Lang; li
 
   async function post(body: Record<string, unknown>) {
     setBusy(true); setError(null)
-    const res = await fetch('/api/questionnaires/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok) { setError(json.error || 'Error'); setBusy(false); return }
-    router.push(`/dashboard/questionnaires/${json.id}/edit`)
+    try {
+      const res = await fetch('/api/questionnaires/new', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(json.error || GENERIC[lang]); setBusy(false); return }
+      router.push(`/dashboard/questionnaires/${json.id}/edit`)
+    } catch (e) {
+      setError(failureText(e, lang)); setBusy(false)
+    }
   }
 
   function createGuided() {

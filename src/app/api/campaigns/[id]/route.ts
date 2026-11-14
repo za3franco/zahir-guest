@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -16,7 +17,7 @@ export async function PATCH(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   if (!isAdminRole(user.role)) {
     return NextResponse.json({ error: lang === 'en' ? 'Not allowed' : 'Non autorisé' }, { status: 403 })
   }
@@ -30,7 +31,7 @@ export async function PATCH(
     .eq('id', params.id)
     .eq('tenant_id', user.tenant_id)
     .single()
-  if (!currentCampaign) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!currentCampaign) return apiError(lang, 'not_found')
 
   // Only a changed questionnaire is checked against the plan (an existing campaign keeps its own).
   const refError = await checkCampaignRefs(
@@ -61,7 +62,7 @@ export async function PATCH(
       .eq('tenant_id', user.tenant_id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return serverError(lang, error, 'campaigns/id')
     }
   }
 

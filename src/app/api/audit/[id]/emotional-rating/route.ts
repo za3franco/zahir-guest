@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -9,6 +10,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,7 +22,7 @@ export async function POST(
   const rating = body?.rating
 
   if (!section_id || !Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
+    return apiError(lang, 'invalid_request')
   }
 
   // Verify campaign access
@@ -31,22 +33,22 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   // Only the assigned auditor or admins of the same workspace may touch an audit
   if (!canWorkOnAudit(user, campaign)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   // Once submitted, ratings are frozen like answers
   if (!isAuditOpen(campaign.status)) {
-    return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed' }, { status: 409 })
+    return apiError(lang, 'audit_closed')
   }
 
   // The section must belong to this audit's questionnaire
   if (!(await sectionInTemplate(supabaseAdmin, section_id, campaign.template_id))) {
-    return NextResponse.json({ error: 'Section does not belong to this audit', code: 'unknown_section' }, { status: 400 })
+    return apiError(lang, 'unknown_section')
   }
 
   if (campaign.status === 'assigned') {
@@ -56,7 +58,7 @@ export async function POST(
   try {
     await applyRating(supabaseAdmin, params.id, user.id, section_id, rating, null)
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
+    return serverError(lang, err, 'audit/id/emotional-rating')
   }
 
   return NextResponse.json({ ok: true })

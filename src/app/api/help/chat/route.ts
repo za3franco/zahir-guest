@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { articlesFor, helpRoleFor } from '@/lib/helpContent'
@@ -15,7 +16,7 @@ const ESCALATE = '[[SUPPORT]]'
 // When it cannot help it ends its answer with [[SUPPORT]] so the UI offers to contact a human.
 export async function POST(request: Request) {
   const user = await requireUser()
-  const lang: 'en' | 'fr' = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   const body = await request.json().catch(() => null)
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_CHARS) }))
   while (messages.length && messages[0].role !== 'user') messages.shift()
   if (!messages.length || messages[messages.length - 1].role !== 'user') {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return apiError(lang, 'invalid_request')
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY

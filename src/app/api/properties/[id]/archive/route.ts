@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -7,10 +8,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   // Only workspace admins archive properties
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -37,7 +39,7 @@ export async function POST(
     .eq('tenant_id', user.tenant_id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'properties/id/archive')
   }
 
   return NextResponse.redirect(new URL('/dashboard/properties', request.url))

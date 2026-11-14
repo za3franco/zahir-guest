@@ -1,3 +1,4 @@
+import { serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -5,6 +6,7 @@ import { requireUser } from '@/lib/auth'
 // Lazily ends an overdue Professional pilot: the workspace falls back to the free Découverte plan (data kept).
 export async function POST() {
   const user = await requireUser()
+  const lang = langOf(user)
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { error } = await supabase
     .from('tenants')
@@ -13,6 +15,6 @@ export async function POST() {
     .eq('subscription_status', 'trialing')
     .is('stripe_subscription_id', null)
     .lt('trial_ends_at', new Date().toISOString())
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(lang, error, 'billing/sync-trial')
   return NextResponse.json({ ok: true })
 }

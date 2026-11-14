@@ -1,5 +1,7 @@
 'use client'
 
+import { authErrorText } from '@/lib/clientErrors'
+
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
@@ -124,7 +126,7 @@ export default function ProfilePage() {
       const supabase = createClient()
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) {
-        setPasswordError(error.message)
+        setPasswordError(authErrorText(error, lang))
       } else {
         setPasswordSuccess(true)
         setNewPassword('')

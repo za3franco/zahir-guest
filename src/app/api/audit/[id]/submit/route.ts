@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -9,6 +10,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,20 +25,20 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   // Only the assigned auditor or admins of the same workspace may touch an audit
   if (!['auditor', 'tenant_admin', 'super_admin'].includes(user.role) || (user.role !== 'super_admin' && campaign.tenant_id !== user.tenant_id)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   if (user.role === 'auditor' && campaign.auditor_user_id !== user.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   if (!['assigned', 'in_progress'].includes(campaign.status)) {
-    return NextResponse.json({ error: 'Campaign cannot be submitted in its current status' }, { status: 400 })
+    return apiError(lang, 'audit_not_submittable')
   }
 
   // Load questionnaire structure
@@ -94,7 +96,7 @@ export async function POST(
     .eq('id', params.id)
 
   if (campaignError) {
-    return NextResponse.json({ error: campaignError.message }, { status: 500 })
+    return serverError(lang, campaignError, 'audit/id/submit')
   }
 
   // Store report with scores

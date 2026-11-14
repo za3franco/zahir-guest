@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -5,10 +6,11 @@ import { checkPlanLimit } from '@/lib/limits'
 
 export async function POST(request: Request) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   // Only workspace admins manage properties
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -16,7 +18,6 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
   const limit = await checkPlanLimit(user.tenant_id, 'properties', lang)
   if (!limit.allowed) {
     return NextResponse.json({ error: limit.message, code: limit.code }, { status: 402 })
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'properties')
   }
 
   return NextResponse.json({ id: data.id })

@@ -1,13 +1,15 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
   const user = await requireUser()
+  const lang = langOf(user)
   const { language } = await request.json()
 
   if (!['en', 'fr'].includes(language)) {
-    return NextResponse.json({ error: 'Invalid language' }, { status: 400 })
+    return apiError(lang, 'invalid_language')
   }
 
   // ← paste your Supabase URL and service role key are already in env
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
     .eq('id', user.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'user/language')
   }
 
   return NextResponse.json({ ok: true })

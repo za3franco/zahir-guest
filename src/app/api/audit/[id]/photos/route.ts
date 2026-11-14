@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -17,32 +18,32 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 // stored twice.
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const campaign = await loadPhotoCampaign(supabase, params.id)
-  if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
-  if (!canWorkOnAudit(user, campaign)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (!canEditPhotos(user, campaign)) return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed' }, { status: 409 })
+  if (!campaign) return apiError(lang, 'audit_not_found')
+  if (!canWorkOnAudit(user, campaign)) return apiError(lang, 'forbidden')
+  if (!canEditPhotos(user, campaign)) return apiError(lang, 'audit_closed')
 
   let form: FormData
-  try { form = await request.formData() } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }) }
+  try { form = await request.formData() } catch { return apiError(lang, 'invalid_request') }
   const standardId = String(form.get('standard_id') ?? '')
   const file = form.get('file')
   const photoId = String(form.get('photo_id') ?? '')
-  if (photoId && !UUID.test(photoId)) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  if (photoId && !UUID.test(photoId)) return apiError(lang, 'invalid_request')
 
   // Repeated upload of a photo already received (the phone did not get the answer the first time)
   if (photoId) {
     const { data: existing } = await supabase.from('audit_photos').select('id, campaign_id').eq('id', photoId).maybeSingle()
     if (existing) {
-      if (existing.campaign_id !== campaign.id) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+      if (existing.campaign_id !== campaign.id) return apiError(lang, 'invalid_request')
       return NextResponse.json({ ok: true, id: existing.id, already: true })
     }
   }
   if (!standardId || !(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return apiError(lang, 'invalid_request')
   }
 
   const ext = PHOTO_MIME[file.type]
@@ -51,13 +52,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   // The standard must belong to this campaign's questionnaire; its section is stored with the photo
   const { data: standard } = await supabase.from('template_standards').select('id, section_id').eq('id', standardId).maybeSingle()
-  if (!standard) return NextResponse.json({ error: 'Unknown standard' }, { status: 400 })
+  if (!standard) return apiError(lang, 'unknown_standard')
   const { data: section } = await supabase.from('template_sections').select('id, domain_id').eq('id', standard.section_id).maybeSingle()
   const { data: domain } = section
     ? await supabase.from('template_domains').select('template_id').eq('id', section.domain_id).maybeSingle()
     : { data: null }
   if (!domain || domain.template_id !== campaign.template_id) {
-    return NextResponse.json({ error: 'Standard does not belong to this audit' }, { status: 400 })
+    return apiError(lang, 'unknown_standard')
   }
 
   const { count: total } = await supabase.from('audit_photos').select('id', { count: 'exact', head: true }).eq('campaign_id', campaign.id)
@@ -87,7 +88,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // Two copies of the same upload arriving together: the other one created the row
     if (photoId && error?.code === '23505') return NextResponse.json({ ok: true, id, already: true })
     await supabase.storage.from(PHOTO_BUCKET).remove([path])
-    return NextResponse.json({ error: error?.message ?? 'Could not save photo' }, { status: 500 })
+    return serverError(lang, error ?? 'photo row missing', 'audit/photos', 'save_failed')
   }
 
   // Same behaviour as answering: the audit starts when the first data comes in
@@ -99,21 +100,22 @@ export async function POST(request: Request, { params }: { params: { id: string 
 // Remove a photo: /api/audit/[id]/photos?photo_id=...
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
+  const lang = langOf(user)
   const photoId = new URL(request.url).searchParams.get('photo_id') ?? ''
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const campaign = await loadPhotoCampaign(supabase, params.id)
-  if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
-  if (!canWorkOnAudit(user, campaign)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (!canEditPhotos(user, campaign)) return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed' }, { status: 409 })
+  if (!campaign) return apiError(lang, 'audit_not_found')
+  if (!canWorkOnAudit(user, campaign)) return apiError(lang, 'forbidden')
+  if (!canEditPhotos(user, campaign)) return apiError(lang, 'audit_closed')
 
-  if (!UUID.test(photoId)) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  if (!UUID.test(photoId)) return apiError(lang, 'invalid_request')
   const { data: photo } = await supabase.from('audit_photos').select('id, storage_path').eq('id', photoId).eq('campaign_id', campaign.id).maybeSingle()
   // Already removed (e.g. a deletion queued offline and sent twice): nothing left to do
   if (!photo) return NextResponse.json({ ok: true, already: true })
 
   await supabase.storage.from(PHOTO_BUCKET).remove([photo.storage_path])
   const { error } = await supabase.from('audit_photos').delete().eq('id', photo.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(lang, error, 'audit/id/photos')
   return NextResponse.json({ ok: true })
 }

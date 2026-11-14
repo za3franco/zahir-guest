@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -9,9 +10,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -27,7 +29,7 @@ export async function POST(
     .single()
 
   if (!report) {
-    return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+    return apiError(lang, 'report_not_found')
   }
 
   // Load campaign
@@ -44,7 +46,7 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   // Load tenant
@@ -57,7 +59,7 @@ export async function POST(
   const scores = report.report_json
 
   if (!scores) {
-    return NextResponse.json({ error: 'No scores available. Submit the audit first.' }, { status: 400 })
+    return apiError(lang, 'no_scores')
   }
 
   // Photos per standard (thumbnails in the appendix)
@@ -87,7 +89,7 @@ export async function POST(
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'reports/id/generate')
   }
 
   return NextResponse.json({ ok: true })

@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -12,10 +13,10 @@ const EXT: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', '
 // Saves brand name, main colour, background colour and logo (multipart form). Plan must include white-label.
 export async function POST(request: Request) {
   const user = await requireUser()
+  const lang = langOf(user)
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     .select('subscription_tier, subscription_status, branding_config')
     .eq('id', user.tenant_id)
     .single()
-  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+  if (!tenant) return apiError(lang, 'workspace_not_found')
 
   if (!brandingFromTenant(tenant).whiteLabel) {
     return NextResponse.json(
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   try {
     form = await request.formData()
   } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return apiError(lang, 'invalid_request')
   }
 
   const brandName = String(form.get('brand_name') ?? '').trim().slice(0, 80)
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase.from('tenants').update({ branding_config: cfg }).eq('id', user.tenant_id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(lang, error, 'branding')
 
   return NextResponse.json({ ok: true, logo_url: cfg.logo_url ?? null })
 }

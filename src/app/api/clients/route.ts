@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -11,8 +12,8 @@ const ERR = {
 
 export async function POST(request: Request) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
 
   const parsed = parseClientBody(await request.json().catch(() => null))
   if ('error' in parsed) return NextResponse.json({ error: ERR[parsed.error as keyof typeof ERR][lang] }, { status: 400 })
@@ -23,6 +24,6 @@ export async function POST(request: Request) {
     .insert({ tenant_id: user.tenant_id, ...parsed.fields })
     .select('id')
     .single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return serverError(lang, error, 'clients')
   return NextResponse.json({ id: data.id })
 }

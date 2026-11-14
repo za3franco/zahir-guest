@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -13,16 +14,16 @@ const txt = (v: unknown, max = 1000) => String(v ?? '').trim().slice(0, max)
 // answers stay attached; questions that already have answers cannot be deleted (archive the questionnaire instead).
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const user = await requireUser()
-  if (!isAdminRole(user.role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  const lang = langOf(user)
+  if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
   {
     const locked = await libraryLockedResponse(user.tenant_id, user.default_language === 'en' ? 'en' : 'fr')
     if (locked) return locked
   }
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
   const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
   const current = await loadTemplateTree(db, params.id, user.tenant_id)
-  if (!current || current.tenant_id !== user.tenant_id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!current || current.tenant_id !== user.tenant_id) return apiError(lang, 'not_found')
 
   const body = await request.json().catch(() => null)
   const input: TreeDomain[] = Array.isArray(body?.domains) ? body.domains : []
@@ -68,7 +69,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return false
   }
   if ((await clash('template_domains', domains, known.domains)) || (await clash('template_sections', sections, known.sections)) || (await clash('template_standards', standards, known.standards))) {
-    return NextResponse.json({ error: 'Conflict' }, { status: 409 })
+    return apiError(lang, 'structure_conflict')
   }
 
   // A questionnaire used by an audit in progress keeps its structure (auditors may be working offline on it):
@@ -125,7 +126,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     await del('template_sections', Array.from(known.sections).filter(id => !keptSec.has(id)))
     await del('template_domains', Array.from(known.domains).filter(id => !keptDom.has(id)))
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return serverError(lang, err, 'questionnaires/id/structure')
   }
   return NextResponse.json({ ok: true, questions: standards.length })
 }

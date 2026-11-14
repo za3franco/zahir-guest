@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -6,10 +7,11 @@ import { ASSIGNABLE_ROLES, ROLE_LABELS, isAdminRole } from '@/lib/access'
 
 export async function POST(request: Request) {
   const currentUser = await requireUser()
+  const lang = langOf(currentUser)
 
   // Only workspace admins invite people, and never as super admin
   if (!isAdminRole(currentUser.role)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -27,10 +29,10 @@ export async function POST(request: Request) {
   const { name, email, role, default_language } = body
 
   if (!name || !email || !role) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    return apiError(lang, 'missing_fields')
   }
   if (!(ASSIGNABLE_ROLES as readonly string[]).includes(role)) {
-    return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    return apiError(lang, 'invalid_role')
   }
 
   // 1. Create auth user with a random password (they'll set their own via the email link)
@@ -44,7 +46,11 @@ export async function POST(request: Request) {
   })
 
   if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 500 })
+    // The most common cause: this email already has an account
+    if (authError.code === 'email_exists' || authError.code === 'user_already_exists' || /already.*registered/i.test(authError.message)) {
+      return apiError(lang, 'email_exists')
+    }
+    return serverError(lang, authError, 'users/invite')
   }
 
   const userId = authData.user.id
@@ -64,7 +70,8 @@ export async function POST(request: Request) {
   if (dbError) {
     // Rollback auth user if DB insert fails
     await supabaseAdmin.auth.admin.deleteUser(userId)
-    return NextResponse.json({ error: dbError.message }, { status: 500 })
+    if (dbError.code === '23505') return apiError(lang, 'email_exists')
+    return serverError(lang, dbError, 'users/invite')
   }
 
   // 3. Generate a password reset link — this is the "set your password" link
@@ -84,15 +91,15 @@ export async function POST(request: Request) {
   const inviteLink = linkData.properties?.action_link
 
   // 4. Send branded Brevo email
-  const lang = default_language === 'en' ? 'en' : 'fr'
+  const emailLang = default_language === 'en' ? 'en' : 'fr'
 
-  const roleName = ROLE_LABELS[role]?.[lang] ?? role
+  const roleName = ROLE_LABELS[role]?.[emailLang] ?? role
 
-  const subject = lang === 'en'
+  const subject = emailLang === 'en'
     ? 'You have been invited to Zahir Guest'
     : 'Vous avez été invité sur Zahir Guest'
 
-  const htmlContent = lang === 'en' ? `
+  const htmlContent = emailLang === 'en' ? `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>

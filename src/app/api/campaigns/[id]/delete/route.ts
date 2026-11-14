@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -7,9 +8,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   const supabaseAdmin = createClient(
@@ -26,15 +28,12 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   // Cannot delete published campaigns
   if (campaign.status === 'published') {
-    return NextResponse.json(
-      { error: 'Cannot delete a published campaign. Unpublish it first.' },
-      { status: 400 }
-    )
+    return apiError(lang, 'campaign_published')
   }
 
   // Remove the stored photo files first (the rows are deleted just below)
@@ -57,7 +56,7 @@ export async function POST(
     .eq('id', params.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return serverError(lang, error, 'campaigns/id/delete')
   }
 
   return NextResponse.redirect(new URL('/dashboard/campaigns', request.url))

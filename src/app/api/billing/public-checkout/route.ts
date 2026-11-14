@@ -1,3 +1,4 @@
+import { apiError, requestLang } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { appUrl, PlanNotAvailable, stripeLineItems } from '@/lib/billing'
@@ -9,7 +10,7 @@ import { stripeRequest, StripeError } from '@/lib/stripe'
 // and first admin once Stripe confirms. MAD buyers start with the free trial and pay from Billing (YouCan Pay).
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
-  const lang: 'en' | 'fr' = body.lang === 'en' ? 'en' : 'fr'
+  const lang = requestLang(request, body.lang)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
 
   const companyName = String(body.company_name ?? '').trim()
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg('Invalid email address.', 'Adresse email invalide.') }, { status: 400 })
   }
   if (!isPlanTier(tier) || !TIER_RULES[tier].selfServe || (interval !== 'monthly' && interval !== 'annual')) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    return apiError(lang, 'invalid_plan')
   }
 
   // Refuse if the email already belongs to a user, so a paid signup never collides with an account.
@@ -62,6 +63,6 @@ export async function POST(request: Request) {
     if (err instanceof PlanNotAvailable) {
       return NextResponse.json({ error: msg('This plan is not available online yet. Please contact us.', "Ce forfait n'est pas encore disponible en ligne. Merci de nous contacter.") }, { status: 503 })
     }
-    return NextResponse.json({ error: err instanceof StripeError ? err.message : 'Checkout unavailable' }, { status: 500 })
+    return apiError(lang, 'checkout_unavailable')
   }
 }

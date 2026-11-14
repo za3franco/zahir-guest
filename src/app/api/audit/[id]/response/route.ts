@@ -1,3 +1,4 @@
+import { apiError, serverError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { createClient } from '@supabase/supabase-js'
@@ -12,6 +13,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const user = await requireUser()
+  const lang = langOf(user)
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,7 +25,7 @@ export async function POST(
   const response = body?.response ?? null
   const auditor_note = body?.auditor_note ?? null
   if (!standard_id || (response !== null && !RESPONSES.includes(response)) || (auditor_note !== null && typeof auditor_note !== 'string')) {
-    return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
+    return apiError(lang, 'invalid_request')
   }
 
   // Verify campaign access
@@ -34,22 +36,22 @@ export async function POST(
     .single()
 
   if (!campaign) {
-    return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    return apiError(lang, 'audit_not_found')
   }
 
   // Only the assigned auditor or admins of the same workspace may touch an audit
   if (!canWorkOnAudit(user, campaign)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    return apiError(lang, 'forbidden')
   }
 
   // Once submitted, answers are frozen (the score is computed at submission); an admin reopens the audit to change them
   if (!isAuditOpen(campaign.status)) {
-    return NextResponse.json({ error: 'Audit is closed', code: 'audit_closed' }, { status: 409 })
+    return apiError(lang, 'audit_closed')
   }
 
   // The standard must belong to this audit's questionnaire
   if (!(await standardSectionInTemplate(supabaseAdmin, standard_id, campaign.template_id))) {
-    return NextResponse.json({ error: 'Standard does not belong to this audit', code: 'unknown_standard' }, { status: 400 })
+    return apiError(lang, 'unknown_standard')
   }
 
   // Update campaign status to in_progress if still assigned
@@ -65,7 +67,7 @@ export async function POST(
   try {
     await applyResponse(supabaseAdmin, params.id, user.id, standard_id, response, auditor_note === null ? null : auditor_note.slice(0, MAX_NOTE), null)
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 })
+    return serverError(lang, err, 'audit/id/response')
   }
 
   return NextResponse.json({ ok: true })

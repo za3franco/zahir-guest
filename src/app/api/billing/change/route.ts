@@ -1,3 +1,4 @@
+import { apiError, langOf } from '@/lib/apiErrors'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireUser } from '@/lib/auth'
@@ -28,7 +29,7 @@ const tierRank = (t: string | null | undefined) => (t === 'enterprise' ? 2 : t =
 // Body: { tier, interval: 'monthly' | 'annual', properties }
 export async function POST(request: Request) {
   const user = await requireUser()
-  const lang = user.default_language === 'en' ? 'en' : 'fr'
+  const lang = langOf(user)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
     return NextResponse.json({ error: msg('Not allowed', 'Non autorisé') }, { status: 403 })
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
   const { tier, interval } = body
   if (!isPlanTier(tier) || !TIER_RULES[tier].selfServe || (interval !== 'monthly' && interval !== 'annual')) {
-    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    return apiError(lang, 'invalid_plan')
   }
 
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -96,6 +97,8 @@ export async function POST(request: Request) {
     if (err instanceof PlanNotAvailable) {
       return NextResponse.json({ error: msg('This plan is not available online yet. Please contact us.', "Ce forfait n'est pas encore disponible en ligne. Merci de nous contacter.") }, { status: 503 })
     }
-    return NextResponse.json({ error: err instanceof StripeError ? err.message : msg('Change failed. Please try again.', 'La modification a échoué. Veuillez réessayer.') }, { status: 500 })
+    // Stripe's own wording is English only: recognise a refused card, show a translated text for everything else
+    if (err instanceof StripeError && /declin|insufficient|expired card|incorrect_cvc|authentication/i.test(err.message)) return apiError(lang, 'card_declined')
+    return apiError(lang, 'change_failed')
   }
 }
