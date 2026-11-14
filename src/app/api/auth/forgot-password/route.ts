@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
 import { SITE_URL } from '@/lib/site'
+import { passwordLinkUrl } from '@/lib/authLinks'
 import { sendPasswordResetEmail } from '@/lib/accountEmails'
 
 export const runtime = 'nodejs'
@@ -90,11 +91,9 @@ export async function POST(request: Request) {
       return await done()
     }
 
-    // Our own link (on SITE_URL, never the Host header of the request). The token sits after the '#': browsers never
-    // send that part to a server, so it is in no request log, and it is only used when the page's script runs, so a
-    // mail scanner that merely opens the link does not burn it. The language is the account's.
+    // Our own link (see src/lib/authLinks.ts: token after the '#'). The language is the account's.
     const lang: 'en' | 'fr' = user.default_language === 'en' ? 'en' : 'fr'
-    const url = `${SITE_URL}/auth/set-password?type=recovery&lang=${lang}#token_hash=${encodeURIComponent(tokenHash)}`
+    const url = passwordLinkUrl(tokenHash, lang, 'recovery')
     const sent = await sendPasswordResetEmail({ name: user.name ?? '', email: user.email }, lang, url, user.tenant_id)
     if (!sent) console.error('[auth/forgot-password] email not sent for user', user.id)
     return await done()

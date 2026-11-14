@@ -16,7 +16,7 @@ export default function SetPasswordPage({ searchParams }: { searchParams: { lang
     <SetPasswordForm
       initialLang={fromLink ?? (accept.startsWith('en') ? 'en' : 'fr')}
       langFromLink={fromLink !== null}
-      recovery={searchParams.type === 'recovery'}
+      kind={searchParams.type === 'recovery' ? 'recovery' : searchParams.type === 'invite' ? 'invite' : 'legacy'}
     />
   )
 }

@@ -56,11 +56,15 @@ type Problem =
   | { kind: 'auth'; error: { code?: string; message?: string; status?: number } }
   | { kind: 'network'; error: unknown }
 
-export default function SetPasswordForm({ initialLang, langFromLink = false, recovery = false }: {
+// 'recovery' = "forgot password" email, 'invite' = invitation or welcome email (both carry a token after the '#'),
+// 'legacy' = links sent before this change (Supabase verify address, session already open or in the hash).
+export default function SetPasswordForm({ initialLang, langFromLink = false, kind = 'legacy' }: {
   initialLang: Lang
-  langFromLink?: boolean // the "forgot password" link already carries the account's language
-  recovery?: boolean
+  langFromLink?: boolean // our own links already carry the account's language
+  kind?: 'recovery' | 'invite' | 'legacy'
 }) {
+  const recovery = kind === 'recovery'
+  const expiredLinkAnswer = kind !== 'legacy' // a new link can be requested by the person, no admin needed
   const [lang, setLang] = useState<Lang>(initialLang)
   const chosenByHand = useRef(langFromLink)
   const [password, setPassword] = useState('')
@@ -88,11 +92,12 @@ export default function SetPasswordForm({ initialLang, langFromLink = false, rec
     const supabase = createClient()
     const opened = () => { setReady(true); void adoptProfileLanguage() }
 
-    // "Forgot password" email (sent by our server through Brevo): a single-use token after the '#', never sent to
-    // a server. Exchanged by this script only, so a mail scanner that merely opens the link does not use it up.
-    // Then removed from the address bar, so it stays neither in the history nor on screen.
+    // Our own emails (forgot password, invitation, welcome; sent through Brevo): a single-use token after the '#',
+    // never sent to a server. Exchanged by this script only, so a mail scanner that merely opens the link does not use
+    // it up. Then removed from the address bar, so it stays neither in the history nor on screen. The token comes
+    // from a 'recovery' link in both cases.
     const tokenHash = new URLSearchParams(window.location.hash.substring(1)).get('token_hash')
-    if (tokenHash && recovery) {
+    if (tokenHash && kind !== 'legacy') {
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
       supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
         .then(({ data, error }) => {
@@ -127,7 +132,7 @@ export default function SetPasswordForm({ initialLang, langFromLink = false, rec
 
   function problemText(p: Problem): string {
     switch (p.kind) {
-      case 'link': return recovery ? t.linkInvalidRecovery : t.linkInvalid
+      case 'link': return expiredLinkAnswer ? t.linkInvalidRecovery : t.linkInvalid
       case 'short': return t.tooShort
       case 'mismatch': return t.mismatch
       case 'auth': return authErrorText(p.error, lang)
@@ -232,7 +237,7 @@ export default function SetPasswordForm({ initialLang, langFromLink = false, rec
         {problem && !ready && (
           <div className={styles.error} role="alert">{problemText(problem)}</div>
         )}
-        {problem?.kind === 'link' && !ready && recovery && (
+        {problem?.kind === 'link' && !ready && expiredLinkAnswer && (
           <a href="/auth/forgot-password" className={styles.btn} style={{ display: 'block', textAlign: 'center', textDecoration: 'none', marginTop: 16 }}>
             {t.askNewLink}
           </a>
