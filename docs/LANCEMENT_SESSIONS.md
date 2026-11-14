@@ -29,9 +29,11 @@ Une session par étape de la feuille de route (une PR, ou un lot de tests). Chan
 Le contexte est dans `CLAUDE.md` : un message court suffit.
 
 Modèle général :
-> On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md` (ou le brief le plus récent dans `docs/`). Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : [ÉTAPE]. Respecte les règles du dépôt, notamment aucun changement en production sans mon accord explicite.
+> On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md` (ou le brief le plus récent dans `docs/`) et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : [ÉTAPE], puis enchaîne les phases suivantes de la feuille de route selon la méthode « avancer d'un trait » (fusion sur `main` et migrations « ajout seulement » sans me demander ; mon accord seulement pour ce que la méthode liste). Ne me parle que pour une décision, un blocage ou quand la conversation devient lourde.
 
 Remplacer `[ÉTAPE]` par la ligne correspondante de `docs/FEUILLE_DE_ROUTE.md` (chaque étape y a sa phrase prête à coller).
 
-## Accords d'avance (à répéter à chaque session si besoin)
-Pour des tests : créer ou réutiliser l'espace de test en production, le modifier par SQL (pilote, date de fin de période), annuler les abonnements Stripe de test, et en fin de test remettre le prix de test YouCan à 0 dans Vercel avec redéploiement. Les migrations et les fusions de PR demandent toujours un accord explicite.
+**Depuis le 14 nov. 2026 (méthode « avancer d'un trait »)** : le message demande de continuer jusqu'au bout du plan en suivant `docs/PRATIQUES_TECHNIQUES.md`, section « Méthode », sans demander à chaque étape. Arnaud n'est sollicité que pour une décision, un blocage ou une conversation lourde.
+
+## Accords d'avance (valables sans les répéter)
+Fusions sur `main` et migrations « ajout seulement » : accordées par la méthode « avancer d'un trait » (voir `docs/PRATIQUES_TECHNIQUES.md`). Pour des tests : créer ou réutiliser l'espace de test en production, le modifier par SQL (pilote, date de fin de période), annuler les abonnements Stripe de test, et en fin de test remettre le prix de test YouCan à 0 dans Vercel avec redéploiement. Les actions listées dans la section « Méthode » de `docs/PRATIQUES_TECHNIQUES.md` (suppression de données, Stripe en direct, Vercel, domaine, email à une vraie personne) demandent toujours un accord explicite.

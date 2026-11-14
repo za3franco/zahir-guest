@@ -2,6 +2,27 @@
 
 Règles de travail de Claude sur Zahir Guest. Elles complètent `CLAUDE.md` (consignes générales) et `docs/TESTS.md` (méthode de test).
 
+## Méthode « avancer d'un trait » (validée par Arnaud le 14 nov. 2026)
+Objectif : aller plus vite. Arnaud ne valide plus chaque étape : Claude mène chaque phase du plan à la fusion, puis enchaîne, et ne lui parle que s'il faut décider ou débloquer.
+
+**Boucle de chaque phase** (une PR par sujet) : audit du code et du schéma → plan court avec les risques (écrit dans la PR, sans attendre de réponse sauf décision d'Arnaud) → code → `tsc --noEmit` et `next build` → banc d'essai automatique et test en navigateur (profil iPhone 390 px) → relecture de sécurité (obligatoire si authentification, stockage, cache, paiement, emails de comptes) → PR avec tests et risques → **fusion sur `main` par Claude** (squash, `expectedHeadSha` vérifié, pas de conflit) → déploiement READY et vérification en production → brief, tests et check-list à jour → phase suivante.
+
+**Sans demander** : tout ce qui précède, y compris la fusion sur `main` et les migrations « ajout seulement » (colonne avec valeur par défaut, nouvelle fonction réservée au rôle de service), vérifiées par `execute_sql` juste après.
+
+**Avec l'accord explicite d'Arnaud, dans la conversation, à chaque fois** : migration qui supprime ou réécrit des données ; Stripe en direct qui débite ou rembourse un vrai client ; variable d'environnement Vercel, domaine, DNS ; suppression d'un espace ou d'un compte qui n'est pas un compte de test listé dans le brief ; email envoyé à une vraie personne autre qu'Arnaud ; retour arrière forcé ou réécriture de l'historique de `main`. Jamais de coordonnées bancaires, jamais de secret dans le dépôt.
+
+**Ne pas fusionner si** : un contrôle échoue ou n'a pas été fait faute de moyen sans que le risque soit écrit dans la PR ; la PR change un prix, une règle de facturation ou une règle d'accès sans décision d'Arnaud ; un test échoue sans explication.
+
+**S'arrêter et faire un point** : décision qui revient à Arnaud (prix, règles, périmètre) ; blocage non levable (accès, carte, téléphone, compte super admin) ; conversation lourde (le brief est mis à jour, le message de relance est donné). Hors de ces cas, pas de question : choisir l'option raisonnable, la noter dans le brief.
+
+**Production cassée après une fusion** : retour immédiat au déploiement précédent (promotion du dernier déploiement READY), vérification que le site répond, puis explication à Arnaud et correction dans une nouvelle PR.
+
+**Compte rendu** : un message court par phase terminée (ce qui est en ligne, tests faits, ce qui n'a pas pu être vérifié, risque accepté, changements visibles par les clients), pas de question pour la forme. Les changements de comportement vus par les clients (textes, prix, emails) sont listés dans le brief à chaque fusion.
+
+**Suppressions de test** : par le module super admin (écran des espaces, bouton Delete), jamais par `DELETE` SQL (la confirmation Supabase n'arrive pas chez Arnaud et l'outil échoue). Claude n'a pas accès au compte super admin d'Arnaud : Claude prépare la liste exacte et Arnaud clique ; les comptes de test d'un espace partent avec l'espace.
+
+**Test qui reste toujours à Arnaud** (check-list partagée, une ligne chacun) : la montée en gamme avec sa carte, le paiement YouCan avec sa carte, les actions du compte super admin, Android et sous-sol, le contrôle sur un vrai iPhone (Safari) d'un email ou d'un écran.
+
 ## Avant de coder
 1. Lire `CLAUDE.md`, `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, ce fichier et `docs/TESTS.md`.
 2. Auditer le code concerné, puis le schéma réel de la base (`information_schema`, contraintes, déclencheurs, droits des fonctions) : ne jamais supposer une colonne.
@@ -33,12 +54,12 @@ Règles de travail de Claude sur Zahir Guest. Elles complètent `CLAUDE.md` (con
 - Une branche, une PR (ouverte avec l'outil GitHub ou l'API REST, GraphQL indisponible), mise à jour du brief et de la check-list avant de passer à la PR suivante.
 - La description de la PR dit : ce qui change, les tests faits (et sur quoi), les risques acceptés.
 - Une PR de code se teste sur sa version de test avant la fusion ; après la fusion, un test rapide en production avec l'espace de test.
-- Fusion (squash) seulement avec l'accord explicite d'Arnaud ; les PR de documentation aussi, sauf accord donné d'avance pour une PR précise. Vérifier le SHA de tête (`expectedHeadSha`) avant de fusionner.
+- Fusion (squash) par Claude sur `main` selon la méthode ci-dessus ; vérifier le SHA de tête (`expectedHeadSha`) avant de fusionner. Les PR de documentation seule peuvent être poussées directement sur `main`.
 - Ne pas forcer l'historique d'une branche : si elle a été fusionnée, repartir de `main` et fusionner `main` dans la branche.
 - Commits et PR se terminent par les lignes d'attribution demandées par la session.
 
 ## Production
-- Toute modification de production (migration, fusion, variable Vercel, réglage de projet, Stripe en direct, activation d'un espace) demande l'accord d'Arnaud ; un accord donné d'avance ne vaut que pour ce qu'il énumère.
+- Les modifications de production qui demandent l'accord explicite d'Arnaud sont celles listées dans la section « Méthode » ; les fusions et les migrations « ajout seulement » n'en font plus partie depuis le 14 nov. Un accord donné d'avance ne vaut que pour ce qu'il énumère.
 - Réglages de production déjà faits avec accord : protection Vercel des versions de test, fonctions en `fra1`, migration 014.
 - Préférer un changement réversible (interrupteur par espace `offline_audit_enabled`, ajout de colonne) à un changement définitif.
 

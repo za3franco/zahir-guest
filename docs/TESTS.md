@@ -16,14 +16,14 @@ Claude fait seul tout ce qui peut l'être. Arnaud ne garde que ce qui demande sa
 | Versions de test (PR) | Protégées par Vercel : obtenir un lien de partage avec `get_access_to_vercel_url`, ouvrir ce lien une fois dans le contexte du navigateur, puis naviguer |
 | Déploiements, journaux | Outils Vercel (états de déploiement, variables d'environnement par nom) |
 
-## Ce qui reste pour Arnaud
+## Ce qui reste pour Arnaud (seulement ces lignes, une par test dans la check-list)
 - Tout paiement réel (carte YouCan Pay, ou Stripe sans code promo), la réception du reçu et la vérification dans le tableau de bord YouCan.
 - Les actions du compte super admin : « Open pilot » et « End pilot », créer un espace, page Ventes, onglet Cron Jobs de Vercel.
 - Le téléphone : installation de l'appli sur l'écran d'accueil, test en mode avion dans un vrai audit, sous-sol, photos prises avec l'appareil.
 - Les décisions : prix, règles, ouverture du mode hors ligne aux autres espaces.
 
 ## Accords donnés d'avance par Arnaud (13 nov. 2026, à répéter à chaque session)
-Pour des tests : créer ou réutiliser un espace de test en production, le modifier par SQL (pilote, date de fin de période), annuler les abonnements Stripe de test, et en fin de test remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel avec redéploiement. **Les migrations et les fusions de PR demandent toujours un accord explicite.** Ne jamais saisir de coordonnées bancaires.
+Pour des tests : créer ou réutiliser un espace de test en production, le modifier par SQL (pilote, date de fin de période), annuler les abonnements Stripe de test, et en fin de test remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel avec redéploiement. **Depuis le 14 nov. (méthode « avancer d'un trait »), les fusions sur `main` et les migrations « ajout seulement » n'ont plus besoin d'accord ; les suppressions de données, Stripe en direct, Vercel, domaine et emails à de vraies personnes en demandent toujours un** (voir `docs/PRATIQUES_TECHNIQUES.md`). Ne jamais saisir de coordonnées bancaires.
 
 ## Espaces de test en production
 - « ZG TEST — Claude (ne pas utiliser) », id `c0000000-0000-4000-8000-00000000c1a0` : offre interne, mode hors ligne activé, sans facturation ni emails de suivi. Auditeur `zg-test-auditor@example.com` (adresse qui ne reçoit pas de mail), établissement « Hôtel Test ZG-6 », audit `c0000000-0000-4000-8000-00000000c1a3` (questionnaire Essentiel).
