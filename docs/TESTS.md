@@ -110,7 +110,7 @@ Méthode : build local avec variables factices, faux serveur Supabase local (aut
 | Lien d'invitation réel reçu par email, ouvert sur un vrai iPhone | pour Arnaud |
 | Piège : `innerText` renvoie les en-têtes de tableau en capitales (CSS), comparer sans tenir compte de la casse | |
 
-## Email « mot de passe oublié » par Brevo (14 nov., point 1 ter, PR ouverte)
+## Email « mot de passe oublié » par Brevo (14 nov., point 1 ter, PR n°36 fusionnée et en ligne)
 Méthode : build de production local (variables factices), faux Supabase local (tables `users` et `signup_attempts`, `generate_link`, `verify`, `user`), faux Brevo (appel intercepté et enregistré), Playwright en profil iPhone 14 réglé en anglais (Chromium). Aucune donnée ni clé de production ; deux comptes fictifs (un EN, un FR).
 | Test | Statut |
 | :- | :- |
@@ -121,6 +121,7 @@ Méthode : build de production local (variables factices), faux Supabase local (
 | Parcours iPhone anglais : page « Email sent », lien ouvert, page en anglais dès le HTML du serveur (même navigateur français), jeton échangé une fois puis retiré de l'adresse, champ 16 px, mot de passe enregistré, lien réutilisé → message clair et bouton « Get a new link », compte FR → email et page en français, adresse invalide → erreur en anglais, pas de défilement latéral (21 / 21) | validé en local |
 | Un simple chargement du lien (antivirus de messagerie) ne consomme pas le jeton | validé en local |
 | Lien d'invitation (ancien chemin, jetons dans le `#`) toujours accepté | validé en local |
+| En production après la fusion : adresse invalide refusée, adresse inconnue → réponse normale, compteurs écrits, faux lien → message « already been used » sur iPhone anglais, pas d'erreur dans les journaux | validé le 14 nov. |
 | Vrai email Brevo et vrai iPhone, en production après la fusion | pour Arnaud |
 
 ## Espaces de test au 14 nov.
