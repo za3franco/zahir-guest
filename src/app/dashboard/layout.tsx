@@ -3,6 +3,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import ScrollToTop from '@/components/ScrollToTop'
 import SessionTimeout from '@/components/SessionTimeout'
 import OfflineApp from '@/components/offline/OfflineApp'
+import LangMemory from '@/components/LangMemory'
 import TrialBanner from '@/components/layout/TrialBanner'
 import ImpersonationBanner from '@/components/layout/ImpersonationBanner'
 import HelpCoach from '@/components/help/HelpCoach'
@@ -99,6 +100,7 @@ export default async function DashboardLayout({
         <ProductTour lang={user.default_language === 'en' ? 'en' : 'fr'} group={helpRoleFor(user.role)} autoStart={!user.tour_completed && !user.impersonating_tenant_id} />
         <SessionTimeout role={user.role} userId={user.id} />
         <OfflineApp enabled={offlineEnabled} userId={user.id} />
+        <LangMemory lang={user.default_language === 'en' ? 'en' : 'fr'} />
         <div className={styles.content}>
           {children}
         </div>

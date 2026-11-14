@@ -1,3 +1,4 @@
+import LangMemory from '@/components/LangMemory'
 import Image from 'next/image'
 import Link from 'next/link'
 import { COPY, FAQS, type Lang } from '@/lib/landingContent'
@@ -80,6 +81,7 @@ export default function LandingPage({ lang }: { lang: Lang }) {
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(d) }} />
       ))}
 
+      <LangMemory lang={lang} />
       <LandingNav lang={lang} labels={c.nav} />
 
       <main>

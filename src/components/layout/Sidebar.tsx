@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { rememberLang } from '@/lib/lang'
 import { prepareLogout } from '@/lib/offline/session'
 import type { User } from '@/types'
 import FeedbackWidget from './FeedbackWidget'
@@ -165,6 +166,7 @@ export default function Sidebar({ user, brand }: { user: User; brand?: SidebarBr
     if (newLang === lang || switching) return
     setSwitching(true)
     setLang(newLang)
+    rememberLang(newLang)
     try {
       await fetch('/api/user/language', {
         method: 'POST',
