@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { SA, type Lang } from '@/lib/superadminText'
+import { failureText } from '@/lib/clientErrors'
 import styles from './superadmin.module.css'
 
-export default function TenantActions({ tenantId, name, suspended, internal, main, pilot, free, offline }: {
+export default function TenantActions({ tenantId, name, suspended, internal, main, pilot, free, offline, lang }: {
+  lang: Lang
   tenantId: string
   name: string
   suspended: boolean
@@ -17,138 +20,80 @@ export default function TenantActions({ tenantId, name, suspended, internal, mai
   /** Offline audit mode is on for this workspace */
   offline?: boolean
 }) {
+  const t = SA[lang]
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function viewAs() {
+  /** One request; `then` runs on success, otherwise the (already translated) server message or a generic one is shown. */
+  async function call(url: string, method: 'POST' | 'DELETE', body: unknown, then: () => void) {
     setBusy(true)
     setError(null)
-    const res = await fetch('/api/superadmin/impersonate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tenantId }),
-    })
-    if (res.ok) window.location.href = '/dashboard'
-    else {
-      setError('Failed')
-      setBusy(false)
-    }
-  }
-
-  async function toggleSuspend() {
-    const verb = suspended ? 'Reactivate' : 'Suspend'
-    if (!window.confirm(`${verb} ${name}?${suspended ? '' : ' All its users will be locked out immediately.'}`)) return
-    const notify = window.confirm(`Email the workspace admins about this ${suspended ? 'reactivation' : 'suspension'}?\n\nOK = send the email · Cancel = no email`)
-    setBusy(true)
-    setError(null)
-    const res = await fetch(`/api/superadmin/tenants/${tenantId}/suspend`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ suspend: !suspended, notify }),
-    })
-    if (res.ok) window.location.reload()
-    else {
+    try {
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      if (res.ok) { then(); return }
       const d = await res.json().catch(() => ({}))
-      setError(d.error ?? 'Failed')
-      setBusy(false)
+      setError(d.error ?? t.failed)
+    } catch (e) {
+      setError(failureText(e, lang))
     }
+    setBusy(false)
+  }
+  const reload = () => window.location.reload()
+
+  function viewAs() {
+    call('/api/superadmin/impersonate', 'POST', { tenantId }, () => { window.location.href = '/dashboard' })
   }
 
-  async function togglePilot() {
+  function toggleSuspend() {
+    if (!window.confirm(suspended ? t.confirmReactivate(name) : t.confirmSuspend(name))) return
+    const notify = window.confirm(t.confirmNotify(suspended))
+    call(`/api/superadmin/tenants/${tenantId}/suspend`, 'POST', { suspend: !suspended, notify }, reload)
+  }
+
+  function togglePilot() {
     if (pilot) {
-      if (!window.confirm(`End the pilot of ${name} now? The workspace goes back to the free Discovery plan.`)) return
-    } else {
-      const d = window.prompt(`Open a Professional pilot for ${name}.\n\nNumber of days (1–30):`, '14')
-      if (d === null) return
-      setBusy(true)
-      setError(null)
-      const res = await fetch(`/api/superadmin/tenants/${tenantId}/pilot`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ days: Number(d) }),
-      })
-      if (res.ok) window.location.reload()
-      else {
-        const j = await res.json().catch(() => ({}))
-        setError(j.error ?? 'Failed')
-        setBusy(false)
-      }
+      if (!window.confirm(t.confirmEndPilot(name))) return
+      call(`/api/superadmin/tenants/${tenantId}/pilot`, 'POST', { end: true }, reload)
       return
     }
-    setBusy(true)
-    setError(null)
-    const res = await fetch(`/api/superadmin/tenants/${tenantId}/pilot`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ end: true }),
-    })
-    if (res.ok) window.location.reload()
-    else {
-      setError('Failed')
-      setBusy(false)
-    }
+    const d = window.prompt(t.promptPilot(name), '14')
+    if (d === null) return
+    call(`/api/superadmin/tenants/${tenantId}/pilot`, 'POST', { days: Number(d) }, reload)
   }
 
-  async function toggleOffline() {
-    if (!window.confirm(offline
-      ? `Switch OFF the offline audit mode for ${name}? Changes already on phones are still sent; phones stop keeping audits offline.`
-      : `Switch ON the offline audit mode for ${name}? Auditors' phones will keep their audits (answers, notes, photos) until synchronised.`)) return
-    setBusy(true)
-    setError(null)
-    const res = await fetch(`/api/superadmin/tenants/${tenantId}/offline`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: !offline }),
-    })
-    if (res.ok) window.location.reload()
-    else {
-      setError('Failed')
-      setBusy(false)
-    }
+  function toggleOffline() {
+    if (!window.confirm(offline ? t.confirmOfflineOff(name) : t.confirmOfflineOn(name))) return
+    call(`/api/superadmin/tenants/${tenantId}/offline`, 'POST', { enabled: !offline }, reload)
   }
 
-  async function remove() {
-    const typed = window.prompt(
-      `PERMANENTLY delete "${name}"?\n\nThis deletes its users, properties, campaigns, reports, photos and logo, and cancels any running Stripe subscription immediately (no refund). It cannot be undone.\n\nType the workspace name to confirm:`
-    )
+  function remove() {
+    const typed = window.prompt(t.promptDelete(name))
     if (typed === null) return
     if (typed.trim() !== name) {
-      setError('Name did not match: nothing deleted')
+      setError(t.nameMismatch)
       return
     }
-    setBusy(true)
-    setError(null)
-    const res = await fetch(`/api/superadmin/tenants/${tenantId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirm: typed.trim() }),
-    })
-    if (res.ok) window.location.reload()
-    else {
-      const d = await res.json().catch(() => ({}))
-      setError(d.error ?? 'Failed')
-      setBusy(false)
-    }
+    call(`/api/superadmin/tenants/${tenantId}`, 'DELETE', { confirm: typed.trim() }, reload)
   }
 
   return (
     <div className={styles.actions}>
-      <button type="button" className={styles.btn} disabled={busy} onClick={viewAs}>View as</button>
-      <button type="button" className={styles.btn} disabled={busy} onClick={toggleOffline} title="Offline audit mode (ZG-6)">
-        {offline ? 'Offline: on' : 'Offline: off'}
+      <button type="button" className={styles.btn} disabled={busy} onClick={viewAs}>{t.viewAs}</button>
+      <button type="button" className={styles.btn} disabled={busy} onClick={toggleOffline} title={t.offlineTitle}>
+        {offline ? t.offlineOn : t.offlineOff}
       </button>
       {!internal && !suspended && (pilot || free) && (
         <button type="button" className={styles.btn} disabled={busy} onClick={togglePilot}>
-          {pilot ? 'End pilot' : 'Open pilot'}
+          {pilot ? t.endPilot : t.openPilot}
         </button>
       )}
       {!internal && (
         <button type="button" className={`${styles.btn} ${suspended ? '' : styles.btnDanger}`} disabled={busy} onClick={toggleSuspend}>
-          {suspended ? 'Reactivate' : 'Suspend'}
+          {suspended ? t.reactivate : t.suspend}
         </button>
       )}
       {!main && (
-        <button type="button" className={`${styles.btn} ${styles.btnDanger}`} disabled={busy} onClick={remove}>Delete</button>
+        <button type="button" className={`${styles.btn} ${styles.btnDanger}`} disabled={busy} onClick={remove}>{t.delete}</button>
       )}
       {error && <span className={styles.note}>{error}</span>}
     </div>

@@ -99,5 +99,15 @@ Corrigés : note émotionnelle, retour en haut, section précédente, champs de 
 | Non vérifiés ici : `audit_closed` en conditions réelles (il faudrait soumettre un audit : texte contrôlé par le catalogue seulement), carte refusée à la montée en gamme (carte requise), routes de l'administrateur (le compte de test est un auditeur ; leurs messages passent par le même helper), webhooks et tâches planifiées (volontairement en anglais) | non fait |
 | Compte `zg-test-auditor` : mot de passe temporaire posé avec l'accord d'Arnaud, langue remise en français, mot de passe neutralisé en fin de test | fait |
 
+## Écran super admin et `/auth/set-password` (14 nov., branche `claude/ecstatic-noether-glrn1q`)
+Méthode : build local avec variables factices, faux serveur Supabase local (auth, profil, données d'espaces) et réponses Stripe simulées, Playwright en profil iPhone 14 (Chromium, pas WebKit) réglé en anglais. Aucune donnée ni clé de production.
+| Test | Statut |
+| :- | :- |
+| `/auth/set-password` : anglais d'emblée sur un iPhone anglais, langue enregistrée prioritaire, bascule FR / EN, erreurs (différents, trop faible, même mot de passe, réseau coupé, lien expiré), succès, champ 16 px (15 sur 15) | validé en local |
+| Super admin FR et EN : vue d'ensemble, formulaire, fenêtres de confirmation, Ventes, bouton de langue enregistré dans le profil, aucun mot de l'autre langue, pas de défilement latéral (39 sur 39) | validé en local |
+| Mêmes écrans avec les vraies données, sur la version de test, compte super admin d'Arnaud | pour Arnaud |
+| Lien d'invitation réel reçu par email, ouvert sur un vrai iPhone | pour Arnaud |
+| Piège : `innerText` renvoie les en-têtes de tableau en capitales (CSS), comparer sans tenir compte de la casse | |
+
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
