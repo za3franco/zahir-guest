@@ -19,13 +19,14 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 
 ### 1 quater. Emails aux couleurs du client (marque blanche, niveau 1) : FAIT, en production (PR n°39, 14 nov.)
 - Les 6 emails envoyés aux équipes d'un espace en marque blanche (mission, audit soumis, rapport, invitation, compte supprimé, mot de passe oublié) prennent le nom, le logo et la couleur de l'espace, avec « Propulsé par Zahir Guest » en pied de page ; un seul gabarit (`src/lib/emailLayout.ts`) ; testé avec un faux Brevo et rendu sur iPhone émulé. Détail : `docs/ZG7_BRIEF.md`, point 1 quater.
-- Reste : test de l'invitation en production (Claude seule dans l'espace de test, puis Arnaud sur son iPhone dans l'espace Casa Nono).
+- Test de l'invitation en production par Claude : validé le 14 nov. au soir. Reste : Arnaud sur son iPhone dans l'espace Casa Nono (facultatif).
+- Constat : le lien d'invitation porte son jeton dans l'adresse (le mot de passe oublié le met après le `#`) : petite PR à faire pour aligner l'invitation (voir `docs/ZG7_BRIEF.md`).
 
-### 2. Vérifications en production
+### 2. Vérifications en production : page Stripe vérifiée (PR n°40, 14 nov.) ; tâches planifiées à lire le 15 nov.
 - Modèle : Sonnet 5.5, High (enchaînée avec les étapes 3 et 4 dans la même session). Page de paiement Stripe (« Zahir Guest », 79,00 € sans choix de devise), journaux des tâches planifiées (`[cron … ] done`), montée Hôtel vers Professional avec une vraie carte.
 - Arnaud : la carte pour la montée en gamme ; Android et sous-sol.
 
-### 3. Nettoyage des espaces et comptes de test
+### 3. Nettoyage des espaces et comptes de test : liste donnée à Arnaud le 14 nov. (voir brief)
 - Modèle : Sonnet 5.5, High. Liste dans `docs/ZG7_BRIEF.md`. Arnaud supprime lui-même dans le module super admin (décision du 14 nov. : pas de `DELETE` SQL) ; Claude vérifie ensuite en base.
 
 ## Après la mise en ligne des emails (priorité 1)

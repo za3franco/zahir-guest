@@ -1,11 +1,11 @@
-# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026 ; emails aux couleurs du client en production ; nouvelle méthode « avancer d'un trait » ; prochaine étape : vérifications en production, nettoyage, finitions)
+# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026 au soir ; emails aux couleurs du client vérifiés en production ; correctif Stripe public, rappel de fin de période, message 5ᵉ photo en ligne ; reste : nettoyage par Arnaud, tâches planifiées du 15 nov., suivi Découverte)
 
 > À lire en premier au début d'une session ZG, avec `CLAUDE.md`. Remplace `docs/ZG6_BRIEF.md`, gardé comme archive détaillée du mode hors ligne. Ne jamais y écrire d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Où on en est
 **La phase ZG-6 est terminée et en production.** Elle comprenait les emails d'accompagnement de la Découverte, le mode hors ligne de l'audit (stockage local, synchronisation, photos, service worker, appli installable), la sécurité de l'authentification, et les retours des tests d'Arnaud (iPhone, Stripe, marque blanche, langue). **La phase suivante, ZG-7, est une phase de finitions et de vérifications** : traduire les messages d'erreur du serveur, vérifier en production ce qu'un navigateur automatique ne peut pas voir (paiements, tâches planifiées), nettoyer les espaces de test. Les phases d'après (crédits, domaine personnalisé, liaison Za3fran.io) sont dans `docs/FEUILLE_DE_ROUTE.md`.
 
-### En production (dernier commit de code de `main` : `22168ba`, PR n°39 fusionnée le 14 nov., déploiement READY ; retour arrière possible : déploiement du commit `b4f32a3`)
+### En production (dernier commit de code de `main` : `781fcbb`, PR n°42 fusionnée le 14 nov. au soir ; retour arrière possible : déploiement du commit `2325cb4` (PR n°41), puis `498dd19` (PR n°40), puis `59d5eff`)
 - **ZG-5** : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD par Stripe, MAD par YouCan Pay, offre gratuite Découverte (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards), pilote Professional de 14 jours, correctifs RLS.
 - **PR n°16** : emails Découverte (J+2, J+14, quota atteint) et désinscription ; migration 013.
 - **PR n°17** : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`) ; écritures d'audit refusées après soumission ; protection Vercel des versions de test.
@@ -19,6 +19,9 @@
 - **PR n°34** : écran super admin et page `/auth/set-password` en français et en anglais (détail au point 1 bis).
 - **PR n°36** : email « mot de passe oublié » envoyé par Brevo dans la langue du compte (détail au point 1 ter).
 - **PR n°39** : emails aux couleurs du client, marque blanche niveau 1 (détail au point 1 quater).
+- **PR n°40** (14 nov., soir) : la route publique de paiement (`/api/billing/public-checkout`, inscription payante depuis la landing) désactive la conversion automatique en devise locale (`adaptive_pricing`), comme `/api/billing/checkout`. Constaté en production : le prix s'affichait en dollars de Singapour (116,64 $SG) ; après la correction : « Zahir Guest », 79,00 €, aucune conversion.
+- **PR n°41** : message « Maximum 4 photos par standard » quand la personne choisit plus de photos que la place restante (avant : les photos en trop étaient ignorées sans rien dire).
+- **PR n°42** : rappel de fin de période prépayée en haut du tableau de bord de l'administrateur (espaces payés en dirhams, `billing_mode = 'youcan'`, statut actif) : dès 15 jours avant la fin, pendant le délai de grâce de 7 jours, puis une fois la création suspendue ; bouton « Renouveler → » vers la facturation ; FR / EN. Testé sur la version de test (4 cas).
 - **Documentation** : PR n°18, 24, 25, 27 (CLAUDE.md, feuille de route, tests, pratiques, brief).
 - **Migrations appliquées** : 010 à 015 (dernière : 015, 14 nov.).
 
@@ -30,7 +33,7 @@
 | ZG TEST Modale (Claude) | Professional (abonnement Stripe fictif) | test de la fenêtre de confirmation et de la marque blanche ; **à supprimer** |
 | Grupo Casa Nono | Professional | espace de test d'Arnaud (nouveau, recréé le 14 nov.) ; **sa suppression par le module annule son abonnement Stripe** |
 
-Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com` (adresses qui ne reçoivent pas de mail ; mots de passe jamais dans le dépôt).
+Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com` (adresses qui ne reçoivent pas de mail ; mots de passe jamais dans le dépôt). **Ajoutés le 14 nov. au soir, dans l'espace « ZG TEST — Claude (ne pas utiliser) » (ils partent avec lui s'il est supprimé)** : `zg-test-admin@example.com` (administrateur de test, mot de passe neutralisé) et deux invités de test aux adresses d'essai d'Arnaud (alias `+zginvite1` et `+zginvite2`, créés par les tests d'invitation ; leur lien d'invitation expire sous 24 h ; mots de passe jamais choisis).
 
 ## Priorités ZG-7 (dans l'ordre)
 ### 1. Messages d'erreur serveur en français et en anglais — FAIT et fusionné (PR n°33, `main` `18b01f4`)
@@ -70,10 +73,10 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - **Mot de passe oublié** : la marque n'est cherchée qu'une fois le compte trouvé, donc dans la durée plancher de 2,5 s (mesuré : 2,51 à 2,54 s que le compte existe ou non, même réponse `{ ok: true }`). Jeton toujours après le `#`, liens inchangés sur www.zahirguest.com.
 - **Risques acceptés** : (1) un espace Professional choisit lui-même son nom de marque, donc l'expéditeur affiché ; la mention « Propulsé par Zahir Guest », la limite d'utilisateurs de l'offre et l'adresse d'envoi vérifiée limitent l'abus, il n'y a pas de contrôle du nom ; (2) l'adresse d'un administrateur de l'espace est visible des destinataires de ses emails (mêmes espaces, l'auditeur peut être un indépendant) ; (3) les liens passent par le suivi des clics de Brevo ; (4) un email « mot de passe oublié » d'un espace en marque blanche reçoit une réponse chez `hello@` (adresse d'envoi) : pas de réponse prévue.
 - **Reste hors périmètre (niveau 2)** : envoi depuis le domaine du client et liens sur son domaine (étape « Domaine personnalisé » de la feuille de route) ; fond d'email aux couleurs du client ; emails de Zahir Guest à son client (bienvenue, facturation, Découverte, suspension, support, retours) qui restent Zahir Guest volontairement.
-- **Tests** : voir `docs/TESTS.md` (632 / 632 contrôles automatiques, 32 emails photographiés sur iPhone émulé 390 px, parcours HTTP du mot de passe oublié sur build de production local). **Reste (Arnaud a dit qu'il le teste, une fois fusionné, mais la session suivante le teste aussi seule)** : inviter une personne dans l'espace Casa Nono (marque blanche, logo, orange) depuis son iPhone et vérifier l'email reçu (Gmail ou Mail), en français puis en anglais ; WebKit / Safari n'étant pas installé ici, le rendu a été vérifié avec Chromium en profil iPhone.
+- **Tests** : voir `docs/TESTS.md` (632 / 632 contrôles automatiques, 32 emails photographiés sur iPhone émulé 390 px, parcours HTTP du mot de passe oublié sur build de production local). **Test de Claude en production le 14 nov. au soir : validé (voir « Pour la prochaine session »). Reste pour Arnaud (s'il le fait)** : inviter une personne dans l'espace Casa Nono (marque blanche, logo, orange) depuis son iPhone et vérifier l'email reçu (Gmail ou Mail), en français puis en anglais ; WebKit / Safari n'étant pas installé ici, le rendu a été vérifié avec Chromium en profil iPhone.
 
 ### 2. Vérifications en production avec Arnaud
-- Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
+- Page de paiement Stripe : « Zahir Guest », 79,00 € sans choix de devise : **vérifié en production le 14 nov. au soir** (route publique corrigée par la PR n°40 ; la route connectée l'était déjà).
 - Montée Hôtel → Professional avec une vraie carte : prélèvement immédiat de la différence, facture visible dans Stripe (PR n°31). Non testé de bout en bout (les clés Stripe n'existent qu'en production).
 - Tâches planifiées : lire les journaux Vercel (`[cron billing-reminders] done`, `[cron free-nurture] done`), première exécution attendue le 15 nov. (07:17 et 08:43 UTC).
 - Test Android et test en sous-sol (Arnaud), voir `docs/TESTS.md`.
@@ -82,9 +85,9 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 Supprimer les espaces et comptes de test listés ci-dessus. Piège : un `DELETE` fait apparaître une confirmation Supabase chez Arnaud qui n'arrive pas (4 échecs le 14 nov.) ; solutions : Supabase → Authentication → Users → Delete user, ou le module super admin (espaces).
 
 ### 4. Finitions possibles (à décider avec Arnaud)
-- Rappel de fin de période prépayée en haut du tableau de bord (aujourd'hui seulement sur la page Facturation).
-- Thème clair pour la marque blanche : le fond reste sombre aujourd'hui (l'application est conçue sombre) ; un thème clair est un chantier plus lourd.
-- Message quand une 5ᵉ photo est ignorée (aujourd'hui elle l'est sans message).
+- ~~Rappel de fin de période prépayée en haut du tableau de bord~~ : fait (PR n°42).
+- ~~Message quand une 5ᵉ photo est ignorée~~ : fait (PR n°41).
+- Thème clair pour la marque blanche : le fond reste sombre aujourd'hui (l'application est conçue sombre) ; un thème clair est un chantier plus lourd, à chiffrer et à décider avec Arnaud.
 
 ## Phases suivantes (détail dans `docs/FEUILLE_DE_ROUTE.md`)
 - Suivi des emails de la Découverte (Sonnet) : une semaine après la première inscription, au plus tard le 20 nov.
@@ -120,14 +123,30 @@ Validée par Arnaud dans la conversation. Texte complet dans `CLAUDE.md` et `doc
 - **Reste toujours dans la check-list d'Arnaud** : la montée en gamme Hôtel → Professional avec sa carte (facture dans Stripe), le paiement YouCan, les actions du super admin (dont les suppressions ci-dessus), Android et sous-sol, un contrôle sur un vrai iPhone.
 
 ## Pour la prochaine session
-Conduite : méthode « avancer d'un trait », sans demander à chaque phase. Ordre de travail :
-1. **Contrôle du déploiement du 14 nov. (PR n°39)** et **test de l'invitation par Claude elle-même** : créer par SQL un compte `tenant_admin` de test dans l'espace « ZG TEST — Claude (ne pas utiliser) » (offre interne, marque blanche, logo, rouge ; mot de passe de test posé par SQL, gardé hors du dépôt), appeler l'API d'invitation avec une adresse qui reçoit (adresse de test d'Arnaud, la lire par l'outil Gmail ; ne jamais l'écrire dans le dépôt), lire l'email reçu (expéditeur = nom de l'espace, logo, mention « Propulsé par Zahir Guest », réponse à l'administrateur), suivre le lien, vérifier qu'un espace sans marque blanche reçoit toujours l'email Zahir Guest, FR et EN. Neutraliser ensuite le mot de passe de test et supprimer le compte invité (compte de test).
-2. **Priorité 2** (vérifications en production) : page de paiement Stripe lue (nom « Zahir Guest », 79,00 € sans choix de devise), journaux Vercel des tâches planifiées du 15 nov. (`[cron billing-reminders] done`, `[cron free-nurture] done`). La montée en gamme avec carte reste à Arnaud (check-list).
-3. **Priorité 3** (nettoyage) : lister précisément les espaces et comptes de test à supprimer (tableau du brief), les rappeler à Arnaud dans un seul message pour qu'il clique Delete dans le module super admin ; vérifier en base ensuite.
-4. **Priorité 4** (finitions) : rappel de fin de période prépayée en haut du tableau de bord ; message quand une 5ᵉ photo est ignorée ; (le thème clair de la marque blanche est un gros chantier : le chiffrer, ne pas le lancer sans décision).
-5. **Suivi des emails de la Découverte** (au plus tard le 20 nov.) : journaux de `/api/cron/free-nurture`, envois, désinscriptions, conversion (onglet Ventes).
-6. **Étapes qui demandent une décision d'Arnaud** (Opus 5.5, effort High, `/model claude-opus-5-5`) : paiement à l'audit (crédits), domaine personnalisé par client Enterprise (niveau 2 des emails), liaison de compte Za3fran.io. Arrivée à ce point : faire un point avec un plan court et les décisions à prendre, puis attendre.
-- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High pour les points 1 à 5.
+Conduite : méthode « avancer d'un trait », sans demander à chaque phase.
+
+### Fait le 14 nov. au soir (session « zen-darwin »)
+- **Site joint** : www.zahirguest.com répond 200. Déploiement du 14 nov. (PR n°39) READY, aucune erreur de production dans les journaux Vercel sur 24 h (seule trace : 2 erreurs « STRIPE_SECRET_KEY is not configured » d'une version de test sans clés Stripe, normal).
+- **Test de l'invitation en production (point 1) : validé.** Administrateur de test créé par SQL dans « ZG TEST — Claude » (marque blanche, logo, rouge), invitations FR et EN envoyées par `/api/users/invite` vers deux alias d'Arnaud, emails lus par l'outil Gmail : expéditeur « ZG TEST — Claude (ne pas utiliser) » (adresse d'envoi inchangée, DKIM / SPF / DMARC passent), logo et nom du client, bouton de la couleur du client (rouge éclairci), « Propulsé par / Powered by Zahir Guest » en pied, **adresse de réponse = l'administrateur qui invite**, sujet avec la marque, textes FR et EN corrects. Le lien (suivi Brevo, puis `/auth/v1/verify`) mène à `/auth/set-password`, qui s'ouvre en anglais avec ses deux champs. **Non refait en production : l'email Zahir Guest d'un espace sans marque blanche** (aucun espace Découverte / Hôtel n'existe en ce moment) ; il reste couvert par le banc d'essai de la PR n°39 (632 / 632).
+- **Constat à décider (hors périmètre de ce soir)** : le lien d'invitation (≠ mot de passe oublié) porte son jeton **dans l'adresse** (`/auth/v1/verify?token=…`) : un antivirus de messagerie qui ouvre le lien peut le consommer avant la personne. Le mot de passe oublié a déjà la protection du `#` (PR n°36). Étendre cette protection à l'invitation est une petite PR à faire (Sonnet) ; non lancée car elle touche l'authentification : à valider avec Arnaud ou à faire en début de prochaine session.
+- **Priorité 2** : la page de paiement Stripe est lue en production : nom « Zahir Guest », **79,00 € sans conversion** après la PR n°40 (avant : 116,64 $SG). Tâches planifiées : la première exécution est le **15 nov. à 07:17 et 08:43 UTC** : elle n'a pas encore eu lieu, à lire à la prochaine session (`[cron billing-reminders] done`, `[cron free-nurture] done`). La montée en gamme avec carte reste à Arnaud.
+- **Priorité 3** : liste de nettoyage préparée (ci-dessous, message à Arnaud).
+- **Priorité 4** : rappel de fin de période (PR n°42) et message de la 5ᵉ photo (PR n°41) faits. Le thème clair de la marque blanche n'est pas lancé : chantier lourd (l'application est conçue sombre ; il faut revoir toutes les couleurs, le logo et les emails, avec des tests de contraste) ; à chiffrer et à décider avec Arnaud (Opus conseillé).
+- **Suivi de la Découverte** : aucun espace Découverte n'existe encore en base (le seul espace inscrit par le formulaire, Casa Nono, est passé Professional) : rien à mesurer avant la première inscription réelle ; date limite du 20 nov. conservée.
+
+### Liste de nettoyage à clic d'Arnaud (module super admin, écran des espaces, bouton Delete)
+1. **ZG TEST Modale (Claude)** (Professional, abonnement Stripe fictif ; compte `zg-modale@example.com`).
+2. **ZG TEST — Claude (ne pas utiliser)** (interne ; comptes `zg-test-auditor`, `zg-iphone`, `zg-test-admin` et les deux invités de test) : à supprimer quand on n'a plus besoin des tests de Claude ; sinon le garder, il sert aux prochains tests.
+3. **Grupo Casa Nono** : l'espace de test d'Arnaud (Professional, abonnement Stripe réel) ; sa suppression annule l'abonnement Stripe ; à supprimer seulement quand Arnaud a fini ses essais d'invitation sur son iPhone (point ci-dessous).
+- Ne jamais supprimer « Za3fran Consulting » (espace réel). Après les clics : Claude vérifie en base que les espaces, les comptes (`users` et `auth.users`) et les abonnements Stripe de test ont disparu.
+
+### Ordre de travail à reprendre
+1. **Lire les journaux Vercel des tâches planifiées du 15 nov.** (`[cron billing-reminders] done`, `[cron free-nurture] done`, état HTTP 200) et noter le résultat dans ce brief.
+2. **Invitation : jeton hors de l'adresse** (voir « Constat à décider ») : PR avec relecture de sécurité, tests de l'invitation FR / EN et du lien expiré.
+3. **Après le nettoyage par Arnaud** : vérification en base ; contrôle de l'email d'invitation sur son vrai iPhone dans l'espace Casa Nono (Gmail ou Mail, FR puis EN) s'il le fait.
+4. **Suivi des emails de la Découverte** (au plus tard le 20 nov.) : journaux de `/api/cron/free-nurture`, envois, désinscriptions, conversion (onglet Ventes).
+5. **Étapes qui demandent une décision d'Arnaud** (Opus 5.5, effort High, `/model claude-opus-5-5`) : paiement à l'audit (crédits), domaine personnalisé par client Enterprise (niveau 2 des emails), liaison de compte Za3fran.io, thème clair de la marque blanche. Arrivée à ce point : plan court et décisions à prendre, puis attendre.
+- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High pour les points 1 à 4.
 - **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
-  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite, travaille selon la méthode « avancer d'un trait » (fusion sur `main` et migrations « ajout seulement » sans me demander, tests faits par toi, mon accord seulement pour ce que la méthode liste) et suis la section « Pour la prochaine session » du brief ZG-7 : contrôle du déploiement et test de l'invitation aux couleurs d'un espace en marque blanche, vérifications en production, liste de nettoyage des espaces de test (je les supprimerai dans le module super admin), finitions, suivi des emails de la Découverte. Ne me parle que pour une décision, un blocage ou quand la conversation devient lourde.
+  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite, travaille selon la méthode « avancer d'un trait » (fusion sur `main` et migrations « ajout seulement » sans me demander, tests faits par toi, mon accord seulement pour ce que la méthode liste) et suis la section « Pour la prochaine session » du brief ZG-7 : journaux des tâches planifiées du 15 nov., jeton d'invitation hors de l'adresse, vérification du nettoyage des espaces de test (si je l'ai fait), suivi des emails de la Découverte. Ne me parle que pour une décision, un blocage ou quand la conversation devient lourde.
 - **Accords que doit donner Arnaud** : seulement ce que la méthode liste (voir plus haut) ; il clique lui-même la suppression des espaces de test dans le module super admin.

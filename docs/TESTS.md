@@ -1,6 +1,6 @@
 # Tests Zahir Guest : méthode et statut
 
-Dernière mise à jour : 14 nov. 2026 (après les emails aux couleurs du client). La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
+Dernière mise à jour : 14 nov. 2026 au soir (invitation vérifiée en production, Stripe public, rappel de fin de période). La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
 
 ## Principe
 Claude fait seul tout ce qui peut l'être. Arnaud ne garde que ce qui demande sa carte bancaire, son compte super admin ou son téléphone. On ne coche un test que s'il a été réellement vérifié, avec une note datée qui dit quoi, comment et ce qui n'a pas été vu.
@@ -139,8 +139,20 @@ Méthode : `tsc --noEmit` et `next build` (variables factices). Banc d'essai hor
 | Rendu iPhone 390 px (32 emails : avec et sans marque blanche, FR et EN, couleurs extrêmes, nom piégé, textes piégés) : pas de défilement latéral, logo chargé (36 px), bouton lisible, pied de page « Propulsé par Zahir Guest » | validé |
 | Parcours HTTP « mot de passe oublié » sur le build local : compte d'un espace en marque blanche (anglais) → email aux couleurs de l'espace, sujet « Reset your … password », jeton après `#` ; compte d'un espace Hôtel (français) → email Zahir Guest sans trace de la marque gardée ; adresse inconnue → aucun email ; les trois : `{ ok: true }` 200 en 2,51 à 2,54 s | validé en local |
 | Limite du test HTTP : le faux Supabase est en `http`, donc le logo y est (volontairement) refusé ; le logo affiché est vérifié dans le banc d'essai (URL `https`) | |
-| Vrai email Brevo reçu et ouvert (Gmail, Mail iPhone), en production après la fusion, espace Casa Nono (logo, orange) : invitation d'une personne, mission, FR et EN | pour Arnaud |
+| Vrai email Brevo reçu en production (outil Gmail), espace « ZG TEST — Claude » (logo, rouge) : invitation FR et EN envoyées par `/api/users/invite` ; expéditeur = marque, DKIM / SPF / DMARC passent, logo et nom, bouton rouge éclairci, « Propulsé par Zahir Guest », adresse de réponse = l'administrateur, lien Brevo → `/auth/set-password` ouvert en anglais | validé le 14 nov. au soir (Claude) |
+| Vrai email ouvert sur un vrai iPhone (Gmail, Mail), espace Casa Nono (logo, orange) : invitation d'une personne, mission, FR et EN | pour Arnaud |
+| Email d'un espace sans marque blanche (Découverte, Hôtel) en production | non refait (aucun tel espace en base) ; couvert par le banc d'essai (632 / 632) |
 | Piège : une URL de logo doit avoir l'hôte exact de `NEXT_PUBLIC_SUPABASE_URL` et le chemin `/storage/v1/object/public/tenant-logos/` ; un logo téléversé par l'écran Marque est toujours de cette forme | |
+
+## Paiement public Stripe, rappel de fin de période, message de photo (14 nov. au soir, PR n°40 à 42)
+| Test | Statut |
+| :- | :- |
+| Page Stripe lue en production par la route publique (Hôtel, mensuel, EUR) : avant la PR n°40 « 116,64 $SG » (visiteur à Singapour) ; après : « Zahir Guest », « 79,00 € », aucun choix de devise | validé en production |
+| Session de test créée sans paiement (adresse fictive `example.com`) ; l'outil Stripe n'offre pas de fermeture de session : elle expire d'elle-même sous 24 h | fait |
+| Rappel de fin de période (PR n°42) sur la version de test, iPhone 390 px, espace de test réglé temporairement en prépayé puis remis à l'état d'origine : fin dans 5 jours (FR et EN), période terminée avec délai de grâce, création suspendue, pas de défilement latéral | validé |
+| Message « Maximum 4 photos par standard » (PR n°41) | `tsc` et build seulement : la sélection multiple de fichiers n'a pas été jouée dans un navigateur (risque écrit dans la PR) |
+| Tâches planifiées du 15 nov. | à lire le 15 nov. après 08:43 UTC |
+| Piège : la page de login est `/login` (pas `/auth/login`) ; le palier « Hôtel » est `starter` dans le code et les appels d'API | |
 
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
