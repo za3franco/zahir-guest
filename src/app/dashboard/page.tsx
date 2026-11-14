@@ -5,6 +5,7 @@ import { requireUser } from '@/lib/auth'
 import { STATUS_LABELS } from '@/types'
 import { redirect } from 'next/navigation'
 import OnboardingChecklist from './OnboardingChecklist'
+import PrepaidBanner from './PrepaidBanner'
 import styles from './dashboard.module.css'
 
 const T = {
@@ -118,6 +119,19 @@ export default async function DashboardPage() {
     }
   }
 
+  // Prepaid period reminder (workspace paid in dirhams through YouCan Pay): tenant admins only
+  let prepaidEnd: string | null = null
+  if (user.role === 'tenant_admin') {
+    const { data: billing } = await supabaseAdmin
+      .from('tenants')
+      .select('billing_mode, subscription_status, current_period_end')
+      .eq('id', user.tenant_id)
+      .single()
+    if (billing?.billing_mode === 'youcan' && billing.subscription_status === 'active' && billing.current_period_end) {
+      prepaidEnd = billing.current_period_end
+    }
+  }
+
   const allCampaigns = campaigns ?? []
   const total = allCampaigns.length
   const inProgress = allCampaigns.filter((c: any) => c.status === 'in_progress').length
@@ -131,6 +145,8 @@ export default async function DashboardPage() {
         <span className={styles.greetingWord}>{t(T.greeting)},</span>
         <h1 className={styles.greetingName}>{user.name}</h1>
       </div>
+
+      {prepaidEnd && <PrepaidBanner lang={lang} periodEnd={prepaidEnd} />}
 
       {onboarding && <OnboardingChecklist lang={lang} {...onboarding} />}
 
