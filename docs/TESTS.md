@@ -110,5 +110,18 @@ Méthode : build local avec variables factices, faux serveur Supabase local (aut
 | Lien d'invitation réel reçu par email, ouvert sur un vrai iPhone | pour Arnaud |
 | Piège : `innerText` renvoie les en-têtes de tableau en capitales (CSS), comparer sans tenir compte de la casse | |
 
+## Email « mot de passe oublié » par Brevo (14 nov., point 1 ter, PR ouverte)
+Méthode : build de production local (variables factices), faux Supabase local (tables `users` et `signup_attempts`, `generate_link`, `verify`, `user`), faux Brevo (appel intercepté et enregistré), Playwright en profil iPhone 14 réglé en anglais (Chromium). Aucune donnée ni clé de production ; deux comptes fictifs (un EN, un FR).
+| Test | Statut |
+| :- | :- |
+| Compte existant et adresse inconnue : même réponse `{ ok: true }` 200, même durée (2,5 s) ; pas d'email pour l'adresse inconnue ni pour un motif `%@%` | validé en local |
+| Email dans la langue du compte, pas celle de la page (EN pour le compte EN depuis une page FR, et l'inverse) ; aucun mot « Supabase » ; expéditeur Zahir Guest | validé en local |
+| Lien sur www.zahirguest.com même avec un en-tête `Host` piégé ; jeton après le `#` | validé en local |
+| Limites : 4ᵉ demande pour la même adresse dans l'heure sans email (réponse identique), 11ᵉ demande depuis la même IP refusée (429, message FR ou EN) | validé en local |
+| Parcours iPhone anglais : page « Email sent », lien ouvert, page en anglais dès le HTML du serveur (même navigateur français), jeton échangé une fois puis retiré de l'adresse, champ 16 px, mot de passe enregistré, lien réutilisé → message clair et bouton « Get a new link », compte FR → email et page en français, adresse invalide → erreur en anglais, pas de défilement latéral (21 / 21) | validé en local |
+| Un simple chargement du lien (antivirus de messagerie) ne consomme pas le jeton | validé en local |
+| Lien d'invitation (ancien chemin, jetons dans le `#`) toujours accepté | validé en local |
+| Vrai email Brevo et vrai iPhone, en production après la fusion | pour Arnaud |
+
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.

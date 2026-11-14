@@ -1,4 +1,4 @@
-# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, fin de la session « super admin et lien d'invitation »)
+# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, fin de la session « email mot de passe oublié »)
 
 > À lire en premier au début d'une session ZG, avec `CLAUDE.md`. Remplace `docs/ZG6_BRIEF.md`, gardé comme archive détaillée du mode hors ligne. Ne jamais y écrire d'adresse email personnelle, de clé ou de mot de passe.
 
@@ -45,11 +45,16 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - `/auth/set-password` : page serveur (`page.tsx`) qui démarre dans la langue du navigateur (en-tête `Accept-Language`, pas de flash de français sur un iPhone anglais), puis le formulaire (`SetPasswordForm.tsx`) adopte la langue enregistrée pour la personne invitée (`/api/user/me`), sauf si elle a cliqué FR / EN ; bouton FR | EN ; erreurs Supabase traduites (`authErrorText`), lien expiré expliqué ; champ à 16 px (l'iPhone ne zoome plus) et `autocomplete="new-password"`.
 - Test : voir `docs/TESTS.md` (54 vérifications automatiques en local, profil iPhone réglé en anglais). Après la fusion : la page `/auth/set-password` répond bien en français et en anglais en production. **Reste pour Arnaud** : l'écran super admin avec ses vraies données (bouton FR | EN) et un vrai lien d'invitation ouvert sur son iPhone réglé en anglais. Retour arrière possible : déploiement précédent `18b01f4`.
 
-### 1 ter. Email « mot de passe oublié » aux couleurs de Zahir Guest — À DÉCIDER (constaté par Arnaud sur iPhone le 14 nov.)
-- Constat : la page `/auth/forgot-password` appelle `supabase.auth.resetPasswordForEmail`, donc l'email vient de Supabase Auth (expéditeur « Supabase Auth », texte anglais standard, « powered by Supabase »). Les emails d'invitation (`/api/users/invite`) et de bienvenue partent déjà de Zahir Guest par Brevo.
-- Option A (conseillée, tout dans le code) : une route serveur qui génère le lien (`auth.admin.generateLink`, type `recovery`) et envoie un email Brevo dans la langue de la personne, comme l'invitation ; réponse toujours identique, que le compte existe ou non (pas de fuite d'information), limitation du nombre de demandes. Touche l'authentification : modèle `claude-opus-5-5`, effort High, plan d'abord, relecture de sécurité.
-- Option B (réglage Supabase, sans code) : SMTP personnalisé (Brevo) et modèle d'email personnalisé dans Supabase → Authentication. Modification de production à faire avec l'accord explicite d'Arnaud ; le modèle ne peut pas suivre la langue de la personne sans code.
-- La page `/auth/forgot-password` reste volontairement bilingue (affichée avant de connaître la langue).
+### 1 ter. Email « mot de passe oublié » par Brevo, dans la langue de la personne — FAIT, PR ouverte (option A choisie par Arnaud le 14 nov.), fusion à décider par Arnaud
+- Avant : `/auth/forgot-password` appelait `supabase.auth.resetPasswordForEmail` (email Supabase Auth en anglais, « powered by Supabase »).
+- Maintenant : la page appelle `POST /api/auth/forgot-password` (`src/app/api/auth/forgot-password/route.ts`). Le serveur cherche le compte (`users.email`, en minuscules), crée le lien (`auth.admin.generateLink`, type `recovery`, on ne garde que `hashed_token`) et envoie l'email par Brevo (`sendPasswordResetEmail` dans `src/lib/accountEmails.ts`) dans la langue du compte (`users.default_language`), avec la mise en page des autres emails Zahir Guest.
+- Lien envoyé : `https://www.zahirguest.com/auth/set-password?type=recovery&lang=xx#token_hash=…`. Le jeton est après le `#` : jamais envoyé à un serveur (absent des journaux Vercel), utilisé seulement par le script de la page (`verifyOtp`), donc un antivirus de messagerie qui ouvre le lien ne le consomme pas ; il est retiré de la barre d'adresse dès la lecture. Page en `referrer: no-referrer`. Le domaine vient de `NEXT_PUBLIC_APP_URL`, jamais de l'en-tête `Host`.
+- Page `/auth/set-password` : titre « Choisissez un nouveau mot de passe » / « Choose a new password », langue prise dans le lien (pas de bascule), lien expiré ou déjà servi expliqué avec un bouton « Recevoir un nouveau lien ». Les liens d'invitation fonctionnent comme avant.
+- Protection : même réponse (`{ ok: true }`, 200) et même durée minimale (2,5 s) que le compte existe ou non ; 10 demandes par heure et par adresse IP (429 explicite, ne dit rien sur les comptes) ; 3 emails par heure et par adresse email (au-delà : réponse identique, pas d'email). Compteurs dans la table existante `signup_attempts` (HMAC avec la clé serveur, jamais l'adresse ni l'IP en clair) : **aucune migration**.
+- `/api/users/invite` enregistre désormais l'email en minuscules (comme l'inscription) ; les 7 comptes existants sont déjà en minuscules (vérifié le 14 nov.).
+- Risques acceptés : le lien passe par le suivi des clics de Brevo (comme l'invitation) ; l'ancien point d'entrée Supabase (`/auth/v1/recover`) reste joignable par quelqu'un qui appelle l'API Supabase directement (il enverrait l'email Supabase standard) ; l'inscription dit toujours « un compte existe déjà » (choix d'origine, hors périmètre).
+- Tests : voir `docs/TESTS.md` (21 / 21 sur iPhone émulé réglé en anglais, faux Supabase et faux Brevo en local). **Reste pour Arnaud après la fusion** : demander un lien depuis son iPhone (réglé en anglais) pour son compte, vérifier l'email reçu (expéditeur Zahir Guest, langue du compte), ouvrir le lien et changer le mot de passe.
+- La page `/auth/forgot-password` reste volontairement bilingue (affichée avant de connaître la personne).
 
 ### 2. Vérifications en production avec Arnaud
 - Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
@@ -94,8 +99,8 @@ Reprise de `CLAUDE.md`, plus :
 - Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Pour la prochaine session
-- **Avant tout** : demander à Arnaud le résultat de ses deux contrôles (super admin avec ses vraies données, lien d'invitation sur son iPhone) ; corriger ce qu'il signale.
+- **Avant tout** : vérifier si la PR « mot de passe oublié » (point 1 ter) est fusionnée ; demander à Arnaud le résultat de ses contrôles (super admin avec ses vraies données, lien d'invitation et email « mot de passe oublié » sur son iPhone) ; corriger ce qu'il signale.
 - **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort Medium (vérifications en production et nettoyage).
 - **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
   > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorités 2 et 3 du brief ZG-7 (vérifications en production : page de paiement Stripe, journaux des tâches planifiées du 15 nov. ; puis nettoyage des espaces et comptes de test), avec un plan court d'abord. Aucun changement en production sans mon accord explicite.
-- **Accords que doit donner Arnaud** : fusion de chaque PR ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
+- **Accords que doit donner Arnaud** : fusion de chaque PR (dont celle du point 1 ter) ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).

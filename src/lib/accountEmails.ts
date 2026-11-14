@@ -118,3 +118,28 @@ export async function sendAccountStatusEmails(
   }
   return sent
 }
+
+/**
+ * "Forgot password" email, in the person's language, sent by Brevo instead of the standard Supabase Auth email.
+ * `link` carries a single-use recovery token: never log it.
+ */
+export async function sendPasswordResetEmail(to: { name: string; email: string }, lang: 'en' | 'fr', link: string): Promise<boolean> {
+  const en = lang === 'en'
+  const hello = en ? `Hello ${esc(to.name)},` : `Bonjour ${esc(to.name)},`
+  const subject = en ? 'Reset your Zahir Guest password' : 'Réinitialisez votre mot de passe Zahir Guest'
+  const html = layout(
+    en ? 'Reset your password' : 'Réinitialisez votre mot de passe',
+    [
+      hello,
+      en
+        ? 'We received a request to reset the password of your Zahir Guest account. Click the button below to choose a new one.'
+        : 'Nous avons reçu une demande de réinitialisation du mot de passe de votre compte Zahir Guest. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.',
+      en
+        ? 'This link works only once and for a limited time. If you did not ask for it, ignore this email: your password stays the same.'
+        : "Ce lien ne fonctionne qu'une fois et pendant une durée limitée. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe reste le même.",
+    ],
+    { href: esc(link), label: en ? 'Choose a new password →' : 'Choisir un nouveau mot de passe →' },
+    lang
+  )
+  return send({ name: to.name || to.email, email: to.email }, subject, html)
+}

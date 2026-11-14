@@ -29,6 +29,8 @@ export const MESSAGES = define({
   forbidden: { status: 403, en: 'You are not allowed to do this.', fr: "Vous n'avez pas le droit de faire cela." },
   invalid_request: { status: 400, en: 'Invalid request. Please check the information and try again.', fr: 'Demande invalide. Vérifiez les informations puis réessayez.' },
   not_found: { status: 404, en: 'Not found.', fr: 'Introuvable.' },
+  too_many_attempts: { status: 429, en: 'Too many attempts. Please wait an hour and try again.', fr: 'Trop de tentatives. Patientez une heure puis réessayez.' },
+  invalid_email: { status: 400, en: 'Please enter a valid email address.', fr: 'Veuillez saisir une adresse email valide.' },
   server_error: { status: 500, en: 'Something went wrong on our side. Please try again.', fr: 'Une erreur est survenue de notre côté. Veuillez réessayer.' },
   save_failed: { status: 500, en: 'Your changes could not be saved. Please try again.', fr: "Vos modifications n'ont pas pu être enregistrées. Veuillez réessayer." },
   nothing_to_update: { status: 400, en: 'Nothing to update.', fr: 'Rien à modifier.' },
