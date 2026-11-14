@@ -1,11 +1,11 @@
-# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, fin de la session « email mot de passe oublié »)
+# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, fin de la session « email mot de passe oublié » ; prochaine étape : emails aux couleurs du client)
 
 > À lire en premier au début d'une session ZG, avec `CLAUDE.md`. Remplace `docs/ZG6_BRIEF.md`, gardé comme archive détaillée du mode hors ligne. Ne jamais y écrire d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Où on en est
 **La phase ZG-6 est terminée et en production.** Elle comprenait les emails d'accompagnement de la Découverte, le mode hors ligne de l'audit (stockage local, synchronisation, photos, service worker, appli installable), la sécurité de l'authentification, et les retours des tests d'Arnaud (iPhone, Stripe, marque blanche, langue). **La phase suivante, ZG-7, est une phase de finitions et de vérifications** : traduire les messages d'erreur du serveur, vérifier en production ce qu'un navigateur automatique ne peut pas voir (paiements, tâches planifiées), nettoyer les espaces de test. Les phases d'après (crédits, domaine personnalisé, liaison Za3fran.io) sont dans `docs/FEUILLE_DE_ROUTE.md`.
 
-### En production (dernier commit de `main` : `df0f609`, PR n°36 fusionnée le 14 nov.)
+### En production (dernier commit de code de `main` : `df0f609`, PR n°36 fusionnée le 14 nov. ; PR n°37 et suivantes : documentation)
 - **ZG-5** : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD par Stripe, MAD par YouCan Pay, offre gratuite Découverte (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards), pilote Professional de 14 jours, correctifs RLS.
 - **PR n°16** : emails Découverte (J+2, J+14, quota atteint) et désinscription ; migration 013.
 - **PR n°17** : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`) ; écritures d'audit refusées après soumission ; protection Vercel des versions de test.
@@ -57,6 +57,24 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - Tests : voir `docs/TESTS.md` (21 / 21 sur iPhone émulé réglé en anglais, faux Supabase et faux Brevo en local). Contrôle en production après la fusion : adresse invalide refusée (FR), adresse inconnue → `{ ok: true }` en 3 s, compteurs écrits dans `signup_attempts`, faux lien → « This link has expired or has already been used » et jeton retiré de l'adresse, aucune erreur dans les journaux Vercel. Retour arrière possible : déploiement précédent `a6695e5`. **Reste pour Arnaud** : demander un lien depuis son iPhone (réglé en anglais) pour son compte, vérifier l'email reçu (expéditeur Zahir Guest, langue du compte), ouvrir le lien et changer le mot de passe.
 - La page `/auth/forgot-password` reste volontairement bilingue (affichée avant de connaître la personne).
 
+### 1 quater. Emails aux couleurs du client (marque blanche, niveau 1) — DÉCIDÉ par Arnaud le 14 nov., À FAIRE (prochaine session)
+**Constat (audit du code le 14 nov.)** : la marque blanche (`src/lib/branding.ts`, offres avec `whiteLabel` : Professional, Enterprise, interne, pilote) habille l'application mais presque pas les emails.
+- `src/lib/emailNotifications.ts` (mission d'audit attribuée, audit soumis, rapport disponible) : seul le **nom d'expéditeur** prend `brandName` (`sendEmail(…, tenantId)`) ; l'en-tête (`emailWrapper` : logo SVG et nom « Zahir Guest »), les couleurs or / bleu nuit et le pied de page « zahirguest.com » restent ceux de Zahir Guest ; pas d'adresse de réponse.
+- Entièrement Zahir Guest : invitation (`src/app/api/users/invite/route.ts`, HTML écrit dans la route), renvoi d'invitation (`src/app/api/users/[id]/route.ts`, HTML dans la route), mot de passe oublié (`sendPasswordResetEmail` dans `src/lib/accountEmails.ts`).
+- Restent Zahir Guest **volontairement** (emails de Zahir Guest à son client) : bienvenue, facturation (`billingEmails.ts`), Découverte (`nurtureEmails.ts`), suspension / réactivation (`accountEmails.ts`), support, retours.
+
+**Décisions d'Arnaud** : faire le niveau 1 maintenant ; **garder une mention discrète « Propulsé par Zahir Guest » / « Powered by Zahir Guest »** dans le pied de page (il ne veut pas perdre la marque). Le niveau 2 (envoi depuis le domaine du client, liens sur son domaine : DNS chez le client, Brevo, Vercel) attend une vraie demande Enterprise : c'est l'étape « Domaine personnalisé » de la feuille de route.
+
+**Périmètre du niveau 1** : les 6 emails envoyés aux équipes d'un espace en marque blanche (mission, audit soumis, rapport, invitation, renvoi d'invitation, mot de passe oublié) prennent le **nom, le logo et la couleur principale** de l'espace ; sans marque blanche (Découverte, Hôtel, ou marque blanche perdue après une descente d'offre), rien ne change. Pistes : un seul gabarit d'email partagé qui reçoit la marque (aujourd'hui trois copies : `emailWrapper`, `layout` d'`accountEmails.ts`, HTML des deux routes d'utilisateurs) ; adresse de réponse = un administrateur de l'espace pour les emails de l'espace (à proposer dans le plan) ; mot de passe oublié : marque de l'espace de la personne (le serveur la connaît par `users.tenant_id`), la page `/auth/forgot-password` reste Zahir Guest.
+
+**Points de vigilance (à traiter dans le plan)** :
+- `brandName` et autres textes du client échappés dans l'HTML et dans le sujet (injection) ; nom d'expéditeur sans caractères qui cassent l'en-tête.
+- Logo : URL publique absolue en `https`, format lisible par les messageries (Gmail n'affiche pas le SVG : prévoir le nom en texte si le logo est en SVG ou absent), taille bornée ; vérifier en base où sont stockés les logos (`branding_config.logo_url`) et s'ils sont publics.
+- Couleur : `readableAccent` (déjà utilisé) pour garder le bouton lisible ; fond : garder le bleu nuit (les couleurs de fond « thème » sont un chantier à part).
+- Ne pas casser l'email « mot de passe oublié » (PR n°36 : jeton après `#`, même réponse et même durée que le compte existe ou non : chercher la marque ne doit pas changer la durée perçue, elle est déjà bornée à 2,5 s).
+- Les liens restent sur www.zahirguest.com (niveau 2 pour changer).
+- Modèle : `claude-sonnet-5-5`, effort High. Plan court d'abord, puis code, puis test : faux Brevo en local (méthode de la PR n°36 dans `docs/TESTS.md`), rendu des emails sur iPhone (390 px) avec et sans marque blanche, FR et EN. Aucune migration attendue.
+
 ### 2. Vérifications en production avec Arnaud
 - Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
 - Montée Hôtel → Professional avec une vraie carte : prélèvement immédiat de la différence, facture visible dans Stripe (PR n°31). Non testé de bout en bout (les clés Stripe n'existent qu'en production).
@@ -100,8 +118,9 @@ Reprise de `CLAUDE.md`, plus :
 - Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Pour la prochaine session
-- **Avant tout** : demander à Arnaud le résultat de ses contrôles (super admin avec ses vraies données, lien d'invitation et email « mot de passe oublié » sur son iPhone) ; corriger ce qu'il signale.
-- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort Medium (vérifications en production et nettoyage).
+- **Avant tout** : demander à Arnaud s'il a pu ouvrir le lien « mot de passe oublié » reçu sur son iPhone, changer son mot de passe et se reconnecter (l'email lui-même est validé : capture du 14 nov., anglais, expéditeur Zahir Guest) ; et le résultat de ses contrôles du super admin et du lien d'invitation ; corriger ce qu'il signale.
+- **Travail** : point 1 quater (emails aux couleurs du client, niveau 1, avec la mention « Propulsé par Zahir Guest »). Ensuite seulement : priorités 2 et 3.
+- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High.
 - **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
-  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorités 2 et 3 du brief ZG-7 (vérifications en production : page de paiement Stripe, journaux des tâches planifiées du 15 nov. ; puis nettoyage des espaces et comptes de test), avec un plan court d'abord. Aucun changement en production sans mon accord explicite.
+  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : point 1 quater du brief ZG-7, emails aux couleurs du client (marque blanche, niveau 1) en gardant la mention « Propulsé par Zahir Guest ». Plan court d'abord avec les risques, puis code, relecture de sécurité et test des emails sur iPhone, avec et sans marque blanche, en français et en anglais. Aucun changement en production sans mon accord explicite.
 - **Accords que doit donner Arnaud** : fusion de chaque PR ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
