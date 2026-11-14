@@ -64,7 +64,7 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | :- | :- |
 | Découverte : inscription, bienvenue, questionnaires, pages verrouillées, 1er audit, 2e refusé, 2e établissement, 3e utilisateur, IA, rapport | validé (10 sur 10) |
 | Pilote : fonctions Professional | validé (pilote ouvert par SQL) ; « Open pilot » et « End pilot » : pour Arnaud |
-| YouCan : lancement, montant 10 MAD, fin de période | validé ; reçu et transaction YouCan : pour Arnaud (il faut payer) ; remise du prix de test à 0 : à faire en fin de tests |
+| YouCan : lancement, montant 10 MAD, fin de période | validé ; reçu et transaction YouCan : pour Arnaud (il faut payer) ; remise du prix de test à 0 : faite le 14 nov. (variable à 0, production redéployée) |
 | Stripe : Hôtel mensuel en EUR, passage à Professional 7 établissements | bloqué (page de paiement, voir pièges) |
 | Stripe : prix en USD | partiel : 89 $ affiché, paiement non fait |
 | Landing, calculateur, devises, conditions d'utilisation | validé |

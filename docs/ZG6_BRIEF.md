@@ -12,7 +12,7 @@ Tests d'Arnaud : check-list partagée https://claude.ai/artifact/YPsqEFpS7z3wM2h
 - Bloqués : paiement Stripe (la page répond « Something went wrong » au code `ZAHIRTEST100` sous automatisation) ; reçu et transaction YouCan (il faut payer) ; vérification de la tâche quotidienne `sa-cron` (journaux Vercel muets).
 - À rejouer en production : conflit entre deux appareils, limite de 4 photos par critère, verrouillage de la structure d'un questionnaire utilisé par un audit en cours. Ces rejeux demandent de remettre l'audit de test à zéro (des `DELETE`, que Supabase fait confirmer à Arnaud).
 - Défauts à corriger : « 1 properties » (pluriel), texte de fin de période prépayée avec une date passée, rappel de fin de période seulement sur la page Facturation, prix Stripe converti dans la devise du visiteur, tâches planifiées sans trace dans les journaux.
-- Fin de tests : remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel et redéployer (accord donné d'avance par Arnaud). **Pas encore fait** : le prix de test est toujours actif (10).
+- Fin de tests : remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel et redéployer (accord donné d'avance par Arnaud). **Fait le 14 nov.** : `YOUCANPAY_TEST_AMOUNT_MAD` = 0 dans Vercel, production redéployée (le prix de test YouCan n'agit plus).
 
 ## Priorités ZG-6
 
