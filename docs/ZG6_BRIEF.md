@@ -1,3 +1,5 @@
+> **Archive** (14 nov. 2026) : ZG-6 est terminé. L'état courant est dans `docs/ZG7_BRIEF.md`. Ce fichier garde le détail et les décisions du mode hors ligne.
+
 # Zahir Guest — ZG-6 brief (mis à jour le 14 nov. 2026, après les tests de production)
 
 À lire en premier au début d'une session ZG. Les documents détaillés ZG-5 (statut, grille tarifaire) restent dans le projet claude.ai « Zahir Guest App ».

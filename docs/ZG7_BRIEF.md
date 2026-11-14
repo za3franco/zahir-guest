@@ -1,0 +1,84 @@
+# Zahir Guest — brief ZG-7 (mis à jour le 14 nov. 2026, handoff de la session ZG-6)
+
+> À lire en premier au début d'une session ZG, avec `CLAUDE.md`. Remplace `docs/ZG6_BRIEF.md`, gardé comme archive détaillée du mode hors ligne. Ne jamais y écrire d'adresse email personnelle, de clé ou de mot de passe.
+
+## Où on en est
+**La phase ZG-6 est terminée et en production.** Elle comprenait les emails d'accompagnement de la Découverte, le mode hors ligne de l'audit (stockage local, synchronisation, photos, service worker, appli installable), la sécurité de l'authentification, et les retours des tests d'Arnaud (iPhone, Stripe, marque blanche, langue). **La phase suivante, ZG-7, est une phase de finitions et de vérifications** : traduire les messages d'erreur du serveur, vérifier en production ce qu'un navigateur automatique ne peut pas voir (paiements, tâches planifiées), nettoyer les espaces de test. Les phases d'après (crédits, domaine personnalisé, liaison Za3fran.io) sont dans `docs/FEUILLE_DE_ROUTE.md`.
+
+### En production (dernier commit de `main` : `a87f036`, déployé le 14 nov.)
+- **ZG-5** : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD par Stripe, MAD par YouCan Pay, offre gratuite Découverte (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards), pilote Professional de 14 jours, correctifs RLS.
+- **PR n°16** : emails Découverte (J+2, J+14, quota atteint) et désinscription ; migration 013.
+- **PR n°17** : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`) ; écritures d'audit refusées après soumission ; protection Vercel des versions de test.
+- **PR n°19, 21, 23** : mode hors ligne (migration 014, route `/api/audit/[id]/sync`, IndexedDB, photos, service worker, manifeste, session). Fonctions Vercel en `fra1`. Détail et décisions : `docs/ZG6_BRIEF.md`.
+- **PR n°26** : écran d'audit sur téléphone (note émotionnelle en lignes, retour en haut, « Section X/N », bouton « Précédente »), champs de connexion / inscription stylés.
+- **PR n°28** : « 1 property » au singulier ; avis de fin de période prépayée sans date passée ; les tâches planifiées écrivent une ligne de bilan dans les journaux ; Stripe : pas de conversion automatique en devise locale.
+- **PR n°29** : confirmation du changement d'offre ; bouton Delete pour les espaces de test du super admin ; migration 015 (mode hors ligne actif par défaut).
+- **PR n°30** : la langue FR / EN choisie suit la personne partout (cookie `zg_lang`, `src/lib/lang.ts`), nom « Zahir Guest » sur la page de paiement Stripe (`branding_settings`), confirmation du changement d'offre en fenêtre centrée (texte différent montée / descente).
+- **PR n°31** : marque blanche : « Couleur principale », « Couleur du fond (thème) » (fond sombre teinté, `src/lib/brandColors.ts`), « Reprendre les couleurs de mon logo », aperçu ; montée en gamme facturée tout de suite sur la carte enregistrée (`always_invoice` + `error_if_incomplete`), descente en crédit sur la prochaine facture.
+- **Documentation** : PR n°18, 24, 25, 27 (CLAUDE.md, feuille de route, tests, pratiques, brief).
+- **Migrations appliquées** : 010 à 015 (dernière : 015, 14 nov.).
+
+### Espaces existants (14 nov., sans données personnelles)
+| Espace | Offre | Remarque |
+| :- | :- | :- |
+| Za3fran Consulting | interne | l'espace réel, jamais supprimable |
+| ZG TEST — Claude (ne pas utiliser) | interne | mes audits de test ; supprimable depuis le super admin |
+| ZG TEST Modale (Claude) | Professional (abonnement Stripe fictif) | test de la fenêtre de confirmation et de la marque blanche ; **à supprimer** |
+| Grupo Casa Nono | Professional | espace de test d'Arnaud (nouveau, recréé le 14 nov.) ; **sa suppression par le module annule son abonnement Stripe** |
+
+Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com` (adresses qui ne reçoivent pas de mail ; mots de passe jamais dans le dépôt).
+
+## Priorités ZG-7 (dans l'ordre)
+### 1. Messages d'erreur serveur en français et en anglais — PROCHAINE ÉTAPE
+Décidé par Arnaud le 14 nov. Environ 45 routes `src/app/api/**` renvoient des erreurs seulement en anglais (photos, sync, réponses, IA, rapports, utilisateurs, campagnes, questionnaires…), certaines sont déjà traduites avec `msg(en, fr)` selon `user.default_language`. L'écran super admin est entièrement en anglais. Objectif : tout message vu par un utilisateur suit sa langue.
+- Approche conseillée : un petit helper commun (langue de l'utilisateur, messages dans un seul fichier) plutôt que des `msg()` partout ; lister toutes les routes, puis traduire, puis tester par un parcours d'erreurs en français et en anglais (iPhone réglé en anglais, choix FR).
+- Les routes appelées par le téléphone hors ligne (`/api/audit/*`) renvoient aussi des codes (`audit_closed`, `unknown_standard`…) que l'interface traduit : ne pas les casser.
+- À trancher avec Arnaud : traduire aussi l'écran super admin (outil interne, anglais aujourd'hui).
+
+### 2. Vérifications en production avec Arnaud
+- Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
+- Montée Hôtel → Professional avec une vraie carte : prélèvement immédiat de la différence, facture visible dans Stripe (PR n°31). Non testé de bout en bout (les clés Stripe n'existent qu'en production).
+- Tâches planifiées : lire les journaux Vercel (`[cron billing-reminders] done`, `[cron free-nurture] done`), première exécution attendue le 15 nov. (07:17 et 08:43 UTC).
+- Test Android et test en sous-sol (Arnaud), voir `docs/TESTS.md`.
+
+### 3. Nettoyage
+Supprimer les espaces et comptes de test listés ci-dessus. Piège : un `DELETE` fait apparaître une confirmation Supabase chez Arnaud qui n'arrive pas (4 échecs le 14 nov.) ; solutions : Supabase → Authentication → Users → Delete user, ou le module super admin (espaces).
+
+### 4. Finitions possibles (à décider avec Arnaud)
+- Rappel de fin de période prépayée en haut du tableau de bord (aujourd'hui seulement sur la page Facturation).
+- Thème clair pour la marque blanche : le fond reste sombre aujourd'hui (l'application est conçue sombre) ; un thème clair est un chantier plus lourd.
+- Message quand une 5ᵉ photo est ignorée (aujourd'hui elle l'est sans message).
+
+## Phases suivantes (détail dans `docs/FEUILLE_DE_ROUTE.md`)
+- Suivi des emails de la Découverte (Sonnet) : une semaine après la première inscription, au plus tard le 20 nov.
+- Paiement à l'audit, crédits (Opus) : seulement quand des cabinets s'inscrivent.
+- Domaine personnalisé par client Enterprise (Opus), liaison de compte Za3fran.io (Opus).
+
+## Tests
+- Check-list partagée : https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`). Méthode, accords d'avance, pièges, espaces de test : `docs/TESTS.md`.
+- Validés par Claude : Découverte (10 sur 10), pilote, priorité 1 (emails), landing, YouCan (page, montant, fin de période), mode hors ligne (badge, réponses, conflit, photos, verrou, soumission, déconnexion), sécurité, corrections de l'écran d'audit, marque blanche (version de test), langue (version de test).
+- Validés par Arnaud : test iPhone en mode avion (installation, audit, photos, synchronisation).
+- Bloqués ou non faits : paiement Stripe de bout en bout par Claude (page instable sous automatisation), reçu et transaction YouCan (il faut payer), vérification des tâches planifiées, facturation immédiate avec carte.
+- Pour Arnaud : paiements réels, actions du super admin, Android, sous-sol.
+
+## Références techniques
+- Dépôt `za3franco/zahir-guest` ; site www.zahirguest.com ; Next.js (App Router), Supabase, Vercel, Stripe, YouCan Pay, Brevo.
+- Supabase : projet `fnrafhbautactzhemmjb` (région `eu-central-1`). Vercel : projet `prj_qbLa1WSUk6QOHlG8vrrzAhSAb23z`, équipe `team_mCxAzBP02S8BF3JQddNa47eQ`, fonctions en `fra1`. Stripe : compte `acct_1TVT2jIqDwcwTTU9` (live, partagé avec Za3fran.io ; la page de paiement force le nom « Zahir Guest »).
+- Fichiers clés : `src/lib/auth.ts` (identité), `src/lib/auditAccess.ts` et `src/lib/auditSync.ts` (écritures d'audit), `src/lib/offline/*` (stockage local et synchronisation), `public/sw.js`, `src/lib/plans.ts` (droits des offres), `src/lib/limits.ts`, `src/lib/brandColors.ts` et `src/lib/branding.ts` (marque blanche), `src/lib/lang.ts` (langue), `src/app/api/billing/*` (paiements), `src/app/dashboard/billing/BillingActions.tsx`.
+- Build local : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` factices suffisent ; `tsc --noEmit` puis `next build` avant chaque push. Pas de configuration ESLint.
+- Livraison : une PR par sujet. La branche de travail de la session est `claude/charming-mayer-b9lkq6` : après chaque fusion, la rebaser est impossible sans forcer, donc repartir de `main` puis fusionner l'ancienne branche avec `git merge -s ours` avant de pousser. Migrations dans `sql/NNN_*.sql`, vérification par `execute_sql` juste après `apply_migration`.
+- Versions de test : protégées par Vercel (lien de partage avec `get_access_to_vercel_url`), sans clés Stripe ni YouCan : les paiements ne se testent qu'en production.
+- Hôtes ajoutés à l'environnement cloud pour les tests : voir `docs/TESTS.md`.
+
+## Règles de sécurité
+Reprise de `CLAUDE.md`, plus :
+- Toute modification de production (migration, fusion, variable Vercel, réglage de projet, Stripe en direct, activation d'un espace) demande l'accord explicite d'Arnaud dans la conversation ; un accord donné d'avance ne vaut que pour ce qu'il énumère (voir `docs/TESTS.md`).
+- Annuler un abonnement Stripe de test est autorisé ; ne jamais saisir de coordonnées bancaires, même de test.
+- **Vérifier avant d'affirmer** : ne jamais présenter un espace ou un client comme « réel » sans l'avoir établi (une erreur de ce type a été commise le 14 nov. : un espace de test d'Arnaud avait été pris pour un client).
+- Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
+
+## Pour la prochaine session
+- **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort High (travail large mais mécanique, avec tests). Passer à `claude-opus-5-5` seulement pour les phases de paiement, de domaine ou d'authentification.
+- **Message de lancement** (à coller dans une nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
+  > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorité 1 du brief ZG-7, traduire en français et en anglais tous les messages d'erreur du serveur, selon la langue choisie par l'utilisateur, avec un plan court d'abord, puis un parcours de test sur un iPhone réglé en anglais. Aucun changement en production sans mon accord explicite.
+- **Accords que doit donner Arnaud** : fusion de chaque PR ; traduction ou non de l'écran super admin ; ce qu'il veut parmi les finitions de la priorité 4.

@@ -29,7 +29,7 @@ Une session par étape de la feuille de route (une PR, ou un lot de tests). Chan
 Le contexte est dans `CLAUDE.md` : un message court suffit.
 
 Modèle général :
-> On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG6_BRIEF.md` (ou le brief le plus récent dans `docs/`). Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : [ÉTAPE]. Respecte les règles du dépôt, notamment aucun changement en production sans mon accord explicite.
+> On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md` (ou le brief le plus récent dans `docs/`). Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : [ÉTAPE]. Respecte les règles du dépôt, notamment aucun changement en production sans mon accord explicite.
 
 Remplacer `[ÉTAPE]` par la ligne correspondante de `docs/FEUILLE_DE_ROUTE.md` (chaque étape y a sa phrase prête à coller).
 
