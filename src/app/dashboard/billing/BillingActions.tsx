@@ -23,6 +23,13 @@ const T = {
   renew: { en: 'Renew', fr: 'Renouveler' },
   switchNow: { en: 'Switch to this plan', fr: 'Passer à ce forfait' },
   saving: { en: 'Please wait…', fr: 'Un instant…' },
+  confirmTitle: { en: 'Confirm the plan change', fr: 'Confirmer le changement d’offre' },
+  confirmBody: {
+    en: 'takes effect immediately. The difference is prorated and added to your next invoice.',
+    fr: 'prend effet immédiatement. La différence est calculée au prorata et ajoutée à votre prochaine facture.',
+  },
+  confirmYes: { en: 'Confirm the change', fr: 'Confirmer le changement' },
+  confirmNo: { en: 'Cancel', fr: 'Annuler' },
   updated: { en: 'Subscription updated. The change is prorated on your next invoice.', fr: 'Abonnement modifié. La différence est calculée au prorata sur votre prochaine facture.' },
   demo: { en: 'Book a call', fr: 'Prendre rendez-vous' },
   entFor: { en: '50 properties and more, annual contract, local invoicing.', fr: '50 établissements et plus, contrat annuel, facturation locale.' },
@@ -125,6 +132,7 @@ export function BillingPlans({
   const [addCount, setAddCount] = useState(1)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [confirmChange, setConfirmChange] = useState<null | { tier: 'starter' | 'professional'; interval: string; properties: number; text: string }>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
   const t = (k: { en: string; fr: string }) => k[lang]
@@ -173,7 +181,10 @@ export function BillingPlans({
     let hint: string | null = null
     if (state.mode === 'stripe') {
       label = sameAsNow ? t(T.current) : t(T.update)
-      action = () => go(tier, '/api/billing/change', { tier, interval: iv, properties: n })
+      action = () => setConfirmChange({
+        tier, interval: iv, properties: n,
+        text: `${PLAN_NAMES[tier][lang]}, ${n} ${lang === 'en' ? (n > 1 ? 'properties' : 'property') : (n > 1 ? 'établissements' : 'établissement')}, ${money(q.total)} ${iv === 'annual' ? (lang === 'en' ? 'per year' : 'par an') : (lang === 'en' ? 'per month' : 'par mois')}`,
+      })
     } else if (state.mode === 'youcan' && state.youcanRunning) {
       if (state.currentTier === tier && state.periodEnd) {
         label = t(T.renew)
@@ -281,6 +292,22 @@ export function BillingPlans({
           <button type="button" className="btn btn-primary btn-sm" disabled={busy !== null} onClick={() => go('extra', '/api/billing/checkout', { kind: 'extra', count: addCount, currency: 'MAD' })}>
             {busy === 'extra' ? t(T.saving) : `${t(T.add)} · ${formatMoney(addPrice, 'MAD', lang)}`}
           </button>
+        </div>
+      )}
+
+      {confirmChange && (
+        <div className={styles.planCard} role="alertdialog" aria-labelledby="confirm-change-title" style={{ marginTop: 16 }}>
+          <h3 id="confirm-change-title" className={styles.planName}>{t(T.confirmTitle)}</h3>
+          <p className={styles.planNote}>
+            <strong>{confirmChange.text}</strong> {t(T.confirmBody)}
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-primary" disabled={busy !== null}
+              onClick={() => { const c = confirmChange; setConfirmChange(null); void go(c.tier, '/api/billing/change', { tier: c.tier, interval: c.interval, properties: c.properties }) }}>
+              {t(T.confirmYes)}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => setConfirmChange(null)}>{t(T.confirmNo)}</button>
+          </div>
         </div>
       )}
 

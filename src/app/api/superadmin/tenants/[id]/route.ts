@@ -41,7 +41,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     .eq('id', params.id)
     .maybeSingle()
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
-  if (tenant.subscription_tier === 'za3fran_internal' || tenant.id === admin.tenant_id) {
+  // Only the Za3fran workspace itself (and the admin's own) is protected; other internal-tier workspaces are test spaces
+  if (tenant.id === 'a0000000-0000-0000-0000-000000000001' || tenant.id === admin.tenant_id) {
     return NextResponse.json({ error: 'The internal workspace cannot be deleted.' }, { status: 400 })
   }
   if (typeof confirm !== 'string' || confirm.trim() !== tenant.name) {

@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import styles from './superadmin.module.css'
 
-export default function TenantActions({ tenantId, name, suspended, internal, pilot, free, offline }: {
+export default function TenantActions({ tenantId, name, suspended, internal, main, pilot, free, offline }: {
   tenantId: string
   name: string
   suspended: boolean
   internal: boolean
+  /** The Za3fran workspace itself: never deletable. Other internal-tier workspaces are test spaces. */
+  main?: boolean
   /** A Professional pilot is running */
   pilot?: boolean
   /** The workspace is on the free plan (pilot can be opened) */
@@ -145,7 +147,7 @@ export default function TenantActions({ tenantId, name, suspended, internal, pil
           {suspended ? 'Reactivate' : 'Suspend'}
         </button>
       )}
-      {!internal && (
+      {!main && (
         <button type="button" className={`${styles.btn} ${styles.btnDanger}`} disabled={busy} onClick={remove}>Delete</button>
       )}
       {error && <span className={styles.note}>{error}</span>}
