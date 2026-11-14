@@ -4,13 +4,18 @@ import { createClient } from '@supabase/supabase-js'
 import { loadSales, type SalesData, type SubRow } from '@/lib/sales'
 import { listMonthlyValue, planName } from '@/lib/plans'
 import { EUR_PER_UNIT, isCurrency } from '@/lib/currency'
+import { SA, eurCents, num, pct, day, monthLabel, dateTime, localPlan, type Lang } from '@/lib/superadminText'
+import { getSuperAdmin } from '../session'
 import styles from '../superadmin.module.css'
 
-const eur = (cents: number) => `€${(cents / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`
-const day = (ms: number | null) => (ms ? new Date(ms).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
-const pct = (n: number) => `${(n * 100).toLocaleString('en-GB', { maximumFractionDigits: 1 })}%`
+/** "déc. 25" → ["déc.", " 25"]: the year is hidden on narrow screens so labels do not overlap */
+const splitMonth = (label: string): [string, string] => {
+  const m = /^(.*?)([\s\u00a0\u202f]\d+)$/.exec(label)
+  return m ? [m[1], m[2]] : [label, '']
+}
 
-function Bars({ title, points, note }: { title: string; points: { label: string; value: number }[]; note?: string }) {
+function Bars({ title, points, note, lang }: { title: string; points: { label: string; value: number }[]; note?: string; lang: Lang }) {
+  const eur = (cents: number) => eurCents(cents, lang)
   const max = Math.max(1, ...points.map(p => p.value))
   return (
     <div className={styles.chartCard}>
@@ -20,7 +25,7 @@ function Bars({ title, points, note }: { title: string; points: { label: string;
           <div key={p.label} className={styles.barCol} title={`${p.label}: ${eur(p.value)}`}>
             <span className={styles.barValue}>{p.value ? eur(p.value) : ''}</span>
             <div className={styles.bar} style={{ height: `${Math.max(2, (p.value / max) * 100)}%` }} />
-            <span className={styles.barLabel}>{p.label}</span>
+            <span className={styles.barLabel}>{splitMonth(p.label)[0]}<span className={styles.barYear}>{splitMonth(p.label)[1]}</span></span>
           </div>
         ))}
       </div>
@@ -29,21 +34,23 @@ function Bars({ title, points, note }: { title: string; points: { label: string;
   )
 }
 
-function SubTable({ rows, dateLabel, date, empty }: { rows: SubRow[]; dateLabel: string; date: (r: SubRow) => number | null; empty: string }) {
+function SubTable({ rows, dateLabel, date, empty, lang }: { rows: SubRow[]; dateLabel: string; date: (r: SubRow) => number | null; empty: string; lang: Lang }) {
+  const t = SA[lang]
+  const eur = (cents: number) => eurCents(cents, lang)
   if (!rows.length) return <p className={styles.note}>{empty}</p>
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
-        <thead><tr><th>Customer</th><th>Plan</th><th>Billing</th><th>Amount</th><th>MRR</th><th>{dateLabel}</th></tr></thead>
+        <thead><tr><th>{t.thCustomer}</th><th>{t.thPlan}</th><th>{t.thBilling}</th><th>{t.thAmount}</th><th>{t.thMrr}</th><th>{dateLabel}</th></tr></thead>
         <tbody>
           {rows.map(r => (
             <tr key={r.id}>
               <td className={styles.nameCell}>{r.customerName}</td>
-              <td>{r.plan}</td>
-              <td>{r.interval === 'year' ? 'Annual' : 'Monthly'}</td>
+              <td>{localPlan(r.plan, lang)}</td>
+              <td>{r.interval === 'year' ? t.annual : t.monthly}</td>
               <td>{eur(r.periodCents)}</td>
               <td>{eur(r.mrrCents)}</td>
-              <td>{day(date(r))}</td>
+              <td>{day(date(r), lang)}</td>
             </tr>
           ))}
         </tbody>
@@ -53,6 +60,10 @@ function SubTable({ rows, dateLabel, date, empty }: { rows: SubRow[]; dateLabel:
 }
 
 export default async function SalesPage() {
+  const { lang } = await getSuperAdmin()
+  const t = SA[lang]
+  const eur = (cents: number) => eurCents(cents, lang)
+  const pctL = (n: number) => pct(n, lang)
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data: tenants } = await supabase
     .from('tenants')
@@ -71,7 +82,8 @@ export default async function SalesPage() {
       .gte('paid_at', new Date(Date.now() - 366 * 86400_000).toISOString())
     sales = await loadSales(byCustomer, (ycp ?? []) as any)
   } catch (e: any) {
-    error = e?.message ?? 'Unknown error'
+    console.error('[superadmin/sales] could not load Stripe data:', e?.message ?? e)
+    error = t.loadSalesFailed
   }
 
   // Direct contracts (billed outside Stripe)
@@ -100,66 +112,66 @@ export default async function SalesPage() {
 
   return (
     <div>
-      <h1 className={styles.title}>Sales</h1>
-      {error && <div className={styles.error}>Could not load Stripe data: {error}</div>}
+      <h1 className={styles.title}>{t.salesTitle}</h1>
+      {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.stats}>
         <div className={styles.stat}>
           <span className={styles.statValue}>{eur(totalMrr)}</span>
-          <span className={styles.statLabel}>MRR</span>
-          <span className={styles.statNote}>Stripe {eur(sales?.mrrCents ?? 0)} + YouCan (MAD) {eur(youcanMrrCents)} + direct {eur(directMrrCents)} · ARR ≈ {eur(totalMrr * 12)}</span>
+          <span className={styles.statLabel}>{t.sMrr}</span>
+          <span className={styles.statNote}>{t.sMrrNote(eur(sales?.mrrCents ?? 0), eur(youcanMrrCents), eur(directMrrCents), eur(totalMrr * 12))}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{eur(sales?.revenue30Cents ?? 0)}</span>
-          <span className={styles.statLabel}>Collected, last 30 days</span>
-          <span className={styles.statNote}>{eur(sales?.revenueYtdCents ?? 0)} this year · {eur(sales?.revenue12Cents ?? 0)} over 12 months (Stripe + YouCan, excl. tax)</span>
+          <span className={styles.statLabel}>{t.sCollected}</span>
+          <span className={styles.statNote}>{t.sCollectedNote(eur(sales?.revenueYtdCents ?? 0), eur(sales?.revenue12Cents ?? 0))}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{(sales?.activeCount ?? 0) + direct.length + youcan.length}</span>
-          <span className={styles.statLabel}>Paying customers</span>
-          <span className={styles.statNote}>{sales?.activeCount ?? 0} Stripe + {youcan.length} YouCan + {direct.length} direct · avg {eur(sales?.arpaCents ?? 0)}/month (Stripe)</span>
+          <span className={styles.statLabel}>{t.sPaying}</span>
+          <span className={styles.statNote}>{t.sPayingNote(sales?.activeCount ?? 0, youcan.length, direct.length, eur(sales?.arpaCents ?? 0))}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{thisMonth ? `${thisMonth.newCount} / ${thisMonth.churnCount}` : '—'}</span>
-          <span className={styles.statLabel}>New / lost this month</span>
-          <span className={styles.statNote}>+{eur(thisMonth?.newMrrCents ?? 0)} / −{eur(thisMonth?.churnMrrCents ?? 0)} MRR · churn {pct(churnRate(thisMonth))} (last month {pct(churnRate(lastMonth))})</span>
+          <span className={styles.statLabel}>{t.sNewLost}</span>
+          <span className={styles.statNote}>{t.sNewLostNote(eur(thisMonth?.newMrrCents ?? 0), eur(thisMonth?.churnMrrCents ?? 0), pctL(churnRate(thisMonth)), pctL(churnRate(lastMonth)))}</span>
         </div>
         <div className={styles.stat}>
-          <span className={styles.statValue}>{trialCohort.length ? pct(converted.length / trialCohort.length) : '—'}</span>
-          <span className={styles.statLabel}>Sign-up → paid (90 days)</span>
-          <span className={styles.statNote}>{converted.length} of {trialCohort.length} sign-ups · {trialsRunning.length} pilots running, {trialsEnding7.length} ending within 7 days</span>
+          <span className={styles.statValue}>{trialCohort.length ? pctL(converted.length / trialCohort.length) : '—'}</span>
+          <span className={styles.statLabel}>{t.sConversion}</span>
+          <span className={styles.statNote}>{t.sConversionNote(converted.length, trialCohort.length, trialsRunning.length, trialsEnding7.length)}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statValue}>{(sales?.paymentIssues.length ?? 0) + (sales?.openInvoicesCount ?? 0)}</span>
-          <span className={styles.statLabel}>Payment issues</span>
-          <span className={styles.statNote}>{sales?.paymentIssues.length ?? 0} overdue subscriptions · {sales?.openInvoicesCount ?? 0} open invoices ({eur(sales?.openInvoicesCents ?? 0)})</span>
+          <span className={styles.statLabel}>{t.sIssues}</span>
+          <span className={styles.statNote}>{t.sIssuesNote(sales?.paymentIssues.length ?? 0, sales?.openInvoicesCount ?? 0, eur(sales?.openInvoicesCents ?? 0))}</span>
         </div>
       </div>
 
       {sales && (
         <>
           <div className={styles.chartsGrid}>
-            <Bars title="Revenue collected per month" points={sales.months.map(m => ({ label: m.label, value: m.revenueCents }))} note="Paid Zahir Guest invoices, after discounts, excluding tax." />
-            <Bars title="MRR at the start of each month" points={sales.months.map(m => ({ label: m.label, value: m.mrrStartCents }))} note="Stripe subscriptions running on the 1st, at their current price (plan changes are not replayed). Direct contracts excluded." />
+            <Bars lang={lang} title={t.chartRevenue} points={sales.months.map(m => ({ label: monthLabel(m.key, lang), value: m.revenueCents }))} note={t.chartRevenueNote} />
+            <Bars lang={lang} title={t.chartMrr} points={sales.months.map(m => ({ label: monthLabel(m.key, lang), value: m.mrrStartCents }))} note={t.chartMrrNote} />
           </div>
 
-          <h2 className={styles.subtitle}>Renewals in the next 30 days ({sales.renewals30.length})</h2>
-          <SubTable rows={sales.renewals30} dateLabel="Renews on" date={r => r.periodEnd} empty="No renewal in the next 30 days." />
+          <h2 className={styles.subtitle}>{t.renewals(sales.renewals30.length)}</h2>
+          <SubTable lang={lang} rows={sales.renewals30} dateLabel={t.renewsOn} date={r => r.periodEnd} empty={t.noRenewals} />
 
-          <h2 className={styles.subtitle}>Scheduled cancellations ({sales.scheduledCancellations.length})</h2>
-          <SubTable rows={sales.scheduledCancellations} dateLabel="Ends on" date={r => r.cancelAt ?? r.periodEnd} empty="No subscription is set to end." />
+          <h2 className={styles.subtitle}>{t.cancellations(sales.scheduledCancellations.length)}</h2>
+          <SubTable lang={lang} rows={sales.scheduledCancellations} dateLabel={t.endsOn} date={r => r.cancelAt ?? r.periodEnd} empty={t.noCancellations} />
 
-          <h2 className={styles.subtitle}>Payment issues ({sales.paymentIssues.length})</h2>
-          <SubTable rows={sales.paymentIssues} dateLabel="Period ends" date={r => r.periodEnd} empty="No overdue subscription." />
+          <h2 className={styles.subtitle}>{t.issues(sales.paymentIssues.length)}</h2>
+          <SubTable lang={lang} rows={sales.paymentIssues} dateLabel={t.periodEnds} date={r => r.periodEnd} empty={t.noIssues} />
 
-          <h2 className={styles.subtitle}>Month by month</h2>
+          <h2 className={styles.subtitle}>{t.monthByMonth}</h2>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
-              <thead><tr><th>Month</th><th>Revenue</th><th>MRR on the 1st</th><th>New</th><th>New MRR</th><th>Lost</th><th>Lost MRR</th><th>Net MRR</th><th>Churn</th></tr></thead>
+              <thead><tr><th>{t.thMonth}</th><th>{t.thRevenue}</th><th>{t.thMrrFirst}</th><th>{t.thNew}</th><th>{t.thNewMrr}</th><th>{t.thLost}</th><th>{t.thLostMrr}</th><th>{t.thNet}</th><th>{t.thChurn}</th></tr></thead>
               <tbody>
                 {[...sales.months].reverse().map(m => (
                   <tr key={m.key}>
-                    <td className={styles.nameCell}>{m.label}</td>
+                    <td className={styles.nameCell}>{monthLabel(m.key, lang)}</td>
                     <td>{eur(m.revenueCents)}</td>
                     <td>{eur(m.mrrStartCents)}</td>
                     <td>{m.newCount}</td>
@@ -167,7 +179,7 @@ export default async function SalesPage() {
                     <td>{m.churnCount}</td>
                     <td>{eur(m.churnMrrCents)}</td>
                     <td>{m.newMrrCents - m.churnMrrCents >= 0 ? '+' : '−'}{eur(Math.abs(m.newMrrCents - m.churnMrrCents))}</td>
-                    <td>{pct(churnRate(m))}</td>
+                    <td>{pctL(churnRate(m))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -176,27 +188,27 @@ export default async function SalesPage() {
 
           <div className={styles.chartsGrid}>
             <div>
-              <h2 className={styles.subtitle}>By plan</h2>
+              <h2 className={styles.subtitle}>{t.byPlan}</h2>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
-                  <thead><tr><th>Plan</th><th>Customers</th><th>MRR</th><th>Share</th></tr></thead>
+                  <thead><tr><th>{t.thPlan}</th><th>{t.thCustomers}</th><th>{t.thMrr}</th><th>{t.thShare}</th></tr></thead>
                   <tbody>
                     {sales.byPlan.length ? sales.byPlan.map(g => (
-                      <tr key={g.plan}><td className={styles.nameCell}>{g.plan}</td><td>{g.count}</td><td>{eur(g.mrrCents)}</td><td>{sales!.mrrCents ? pct(g.mrrCents / sales!.mrrCents) : '—'}</td></tr>
-                    )) : <tr><td colSpan={4} className={styles.note}>No paying subscription yet.</td></tr>}
+                      <tr key={g.plan}><td className={styles.nameCell}>{localPlan(g.plan, lang)}</td><td>{g.count}</td><td>{eur(g.mrrCents)}</td><td>{sales!.mrrCents ? pctL(g.mrrCents / sales!.mrrCents) : '—'}</td></tr>
+                    )) : <tr><td colSpan={4} className={styles.note}>{t.noPaying}</td></tr>}
                   </tbody>
                 </table>
               </div>
             </div>
             <div>
-              <h2 className={styles.subtitle}>Monthly vs annual</h2>
+              <h2 className={styles.subtitle}>{t.byInterval}</h2>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
-                  <thead><tr><th>Billing</th><th>Customers</th><th>MRR</th><th>Share</th></tr></thead>
+                  <thead><tr><th>{t.thBilling}</th><th>{t.thCustomers}</th><th>{t.thMrr}</th><th>{t.thShare}</th></tr></thead>
                   <tbody>
                     {sales.byInterval.length ? sales.byInterval.map(g => (
-                      <tr key={g.interval}><td className={styles.nameCell}>{g.interval}</td><td>{g.count}</td><td>{eur(g.mrrCents)}</td><td>{sales!.mrrCents ? pct(g.mrrCents / sales!.mrrCents) : '—'}</td></tr>
-                    )) : <tr><td colSpan={4} className={styles.note}>No paying subscription yet.</td></tr>}
+                      <tr key={g.interval}><td className={styles.nameCell}>{g.interval === 'Annual' ? t.annual : t.monthly}</td><td>{g.count}</td><td>{eur(g.mrrCents)}</td><td>{sales!.mrrCents ? pctL(g.mrrCents / sales!.mrrCents) : '—'}</td></tr>
+                    )) : <tr><td colSpan={4} className={styles.note}>{t.noPaying}</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -205,17 +217,17 @@ export default async function SalesPage() {
 
           {direct.length > 0 && (
             <>
-              <h2 className={styles.subtitle}>Direct contracts ({direct.length})</h2>
+              <h2 className={styles.subtitle}>{t.directContracts(direct.length)}</h2>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
-                  <thead><tr><th>Customer</th><th>Plan</th><th>Monthly value</th><th>Since</th></tr></thead>
+                  <thead><tr><th>{t.thCustomer}</th><th>{t.thPlan}</th><th>{t.thMonthlyValue}</th><th>{t.thSince}</th></tr></thead>
                   <tbody>
-                    {direct.map(t => (
-                      <tr key={t.id}>
-                        <td className={styles.nameCell}>{t.name}</td>
-                        <td>{planName(t.subscription_tier, 'en') ?? t.subscription_tier}</td>
-                        <td>{t.contract_mrr_eur != null ? `€${Number(t.contract_mrr_eur).toLocaleString('en-GB')}` : `list price`}</td>
-                        <td>{day(new Date(t.created_at).getTime())}</td>
+                    {direct.map(d => (
+                      <tr key={d.id}>
+                        <td className={styles.nameCell}>{d.name}</td>
+                        <td>{planName(d.subscription_tier, lang) ?? d.subscription_tier}</td>
+                        <td>{d.contract_mrr_eur != null ? eurCents(Number(d.contract_mrr_eur) * 100, lang) : t.listPrice}</td>
+                        <td>{day(d.created_at, lang)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -224,23 +236,23 @@ export default async function SalesPage() {
             </>
           )}
 
-          <h2 className={styles.subtitle}>All subscriptions ({sales.subs.length})</h2>
+          <h2 className={styles.subtitle}>{t.allSubs(sales.subs.length)}</h2>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
-              <thead><tr><th>Customer</th><th>Plan</th><th>Billing</th><th>MRR</th><th>Status</th><th>Started</th><th>Ended</th></tr></thead>
+              <thead><tr><th>{t.thCustomer}</th><th>{t.thPlan}</th><th>{t.thBilling}</th><th>{t.thMrr}</th><th>{t.thStatus}</th><th>{t.thStarted}</th><th>{t.thEnded}</th></tr></thead>
               <tbody>
                 {sales.subs.slice(0, 100).map(r => (
                   <tr key={r.id}>
                     <td className={styles.nameCell}>{r.customerName}</td>
-                    <td>{r.plan}</td>
-                    <td>{r.interval === 'year' ? 'Annual' : 'Monthly'}</td>
+                    <td>{localPlan(r.plan, lang)}</td>
+                    <td>{r.interval === 'year' ? t.annual : t.monthly}</td>
                     <td>{eur(r.mrrCents)}</td>
                     <td>
-                      <span className={`${styles.pill} ${r.status === 'active' ? styles.pillOk : ['past_due', 'unpaid', 'canceled'].includes(r.status) ? styles.pillBad : styles.pillNeutral}`}>{r.status}</span>
-                      {r.cancelAtPeriodEnd && <span className={`${styles.pill} ${styles.pillBad}`} style={{ marginLeft: 6 }}>ends</span>}
+                      <span className={`${styles.pill} ${r.status === 'active' ? styles.pillOk : ['past_due', 'unpaid', 'canceled'].includes(r.status) ? styles.pillBad : styles.pillNeutral}`}>{t.status[r.status] ?? r.status}</span>
+                      {r.cancelAtPeriodEnd && <span className={`${styles.pill} ${styles.pillBad}`} style={{ marginLeft: 6 }}>{t.ends}</span>}
                     </td>
-                    <td>{day(r.created)}</td>
-                    <td>{day(r.endedAt)}</td>
+                    <td>{day(r.created, lang)}</td>
+                    <td>{day(r.endedAt, lang)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -248,10 +260,10 @@ export default async function SalesPage() {
           </div>
 
           <p className={styles.footnote}>
-            Source: Stripe (live), Zahir Guest prices only — the Stripe account is shared with Za3fran. Amounts in euros, after recurring discounts, excluding tax.
-            {` Amounts in USD and MAD are converted to EUR at fixed rates (1 $ = 0.90 €, 1 MAD = 0.10 €).`}
-            {sales.byCurrency.length > 0 && ` Stripe MRR by currency: ${sales.byCurrency.map(c => `${c.currency} ${(c.nativeMrrCents / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 })} (${c.count})`).join(' · ')}.`}
-            {' '}Updated {new Date(sales.generatedAt).toLocaleString('en-GB')} — reload the page to refresh.
+            {t.salesFootnote}
+            {' '}{t.salesRates}
+            {sales.byCurrency.length > 0 && ` ${t.salesByCurrency(sales.byCurrency.map(c => `${c.currency} ${num(c.nativeMrrCents / 100, lang)} (${c.count})`).join(' · '))}`}
+            {' '}{t.salesUpdated(dateTime(sales.generatedAt, lang))}
           </p>
         </>
       )}

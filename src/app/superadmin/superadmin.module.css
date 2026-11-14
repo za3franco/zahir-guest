@@ -58,3 +58,9 @@
 .barValue { font-size: 0.625rem; color: var(--color-sand); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .barLabel { font-size: 0.625rem; color: var(--color-sand); white-space: nowrap; }
 @media (max-width: 800px) { .chartsGrid { grid-template-columns: 1fr; } .barValue { display: none; } .tabs { margin-left: 0; } }
+.langSwitch { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-full); padding: 2px; }
+.langOpt { background: none; border: none; cursor: pointer; font: inherit; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; color: var(--color-sand); padding: 4px 10px; border-radius: var(--radius-full); }
+.langOpt:hover:not(:disabled) { color: var(--color-ivory); }
+.langOptActive { color: var(--color-gold); background: rgba(200,164,90,0.12); }
+.langOpt:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 800px) { .barYear { display: none; } }

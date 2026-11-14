@@ -3,8 +3,10 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@supabase/supabase-js'
 import { effectivePlan, listMonthlyValue, planName } from '@/lib/plans'
 import { EUR_PER_UNIT, isCurrency } from '@/lib/currency'
+import { SA, eur, day } from '@/lib/superadminText'
 import TenantActions from './TenantActions'
 import CreateTenantForm from './CreateTenantForm'
+import { getSuperAdmin } from './session'
 import styles from './superadmin.module.css'
 
 interface Row {
@@ -28,9 +30,6 @@ interface Row {
   extra_properties?: number | null
 }
 
-const eur = (n: number) => `€${Math.round(n).toLocaleString('en-GB')}`
-const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
-
 // Monthly-equivalent revenue of a paying tenant, from its plan and billing interval.
 function monthlyValue(r: Row): number {
   if (r.subscription_tier === 'za3fran_internal') return 0
@@ -43,12 +42,15 @@ function monthlyValue(r: Row): number {
 }
 
 export default async function SuperAdminPage() {
+  const { lang } = await getSuperAdmin()
+  const t = SA[lang]
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { data, error } = await supabase
     .from('superadmin_tenant_stats')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(500)
+  if (error) console.error('[superadmin] could not load tenants:', error.message)
   const rows = (data ?? []) as Row[]
 
   const customers = rows.filter(r => r.subscription_tier !== 'za3fran_internal')
@@ -62,18 +64,18 @@ export default async function SuperAdminPage() {
   const atRisk = customers.filter(r => ['past_due', 'unpaid'].includes(r.subscription_status ?? '')).length
 
   const stats = [
-    { label: 'MRR (estimated)', value: eur(mrr), note: `ARR ≈ ${eur(mrr * 12)}` },
-    { label: 'Paying customers', value: String(paying), note: `${customers.length} customers in total` },
-    { label: 'Active pilots', value: String(trialing.length), note: `${soon.length} ending within 3 days` },
-    { label: 'New (30 days)', value: String(newThisMonth), note: 'signups + paid checkouts' },
-    { label: 'Audits this month', value: String(auditsMonth), note: 'campaigns created, all tenants' },
-    { label: 'Payment issues', value: String(atRisk), note: 'past due / unpaid' },
+    { label: t.statMrr, value: eur(mrr, lang), note: t.statMrrNote(eur(mrr * 12, lang)) },
+    { label: t.statPaying, value: String(paying), note: t.statPayingNote(customers.length) },
+    { label: t.statPilots, value: String(trialing.length), note: t.statPilotsNote(soon.length) },
+    { label: t.statNew, value: String(newThisMonth), note: t.statNewNote },
+    { label: t.statAudits, value: String(auditsMonth), note: t.statAuditsNote },
+    { label: t.statIssues, value: String(atRisk), note: t.statIssuesNote },
   ]
 
   return (
     <div>
-      <h1 className={styles.title}>Platform overview</h1>
-      {error && <div className={styles.error}>Could not load tenants: {error.message}</div>}
+      <h1 className={styles.title}>{t.overviewTitle}</h1>
+      {error && <div className={styles.error}>{t.loadTenantsFailed}</div>}
 
       <div className={styles.stats}>
         {stats.map(s => (
@@ -86,46 +88,46 @@ export default async function SuperAdminPage() {
       </div>
 
       <div className={styles.sectionHead}>
-        <h2 className={styles.subtitle}>Tenants ({rows.length})</h2>
-        <CreateTenantForm />
+        <h2 className={styles.subtitle}>{t.workspaces(rows.length)}</h2>
+        <CreateTenantForm lang={lang} />
       </div>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Tenant</th><th>Plan</th><th>Status</th><th>Users</th><th>Properties</th>
-              <th>Audits (month / total)</th><th>Created</th><th>Trial ends / renews</th><th></th>
+              <th>{t.thWorkspace}</th><th>{t.thPlan}</th><th>{t.thStatus}</th><th>{t.thUsers}</th><th>{t.thProperties}</th>
+              <th>{t.thAudits}</th><th>{t.thCreated}</th><th>{t.thTrialEnds}</th><th></th>
             </tr>
           </thead>
           <tbody>
             {rows.map(r => {
               const internal = r.subscription_tier === 'za3fran_internal'
-              const plan = planName(r.subscription_tier, 'en') ?? (internal ? 'Internal' : '—')
+              const plan = planName(r.subscription_tier, lang) ?? (internal ? t.internalPlan : '—')
               const status = r.subscription_status ?? '—'
               const isTrial = status === 'trialing' && !r.stripe_subscription_id
               return (
                 <tr key={r.id}>
                   <td className={styles.nameCell}>{r.name}</td>
-                  <td>{plan}{r.billing_mode === 'direct' ? ' · direct contract' : r.billing_interval ? ` · ${r.billing_interval}` : ''}</td>
+                  <td>{plan}{r.billing_mode === 'direct' ? ` · ${t.directContract}` : r.billing_interval ? ` · ${r.billing_interval === 'month' ? t.intervalMonth : r.billing_interval === 'year' ? t.intervalYear : r.billing_interval}` : ''}</td>
                   <td>
                     <span className={`${styles.pill} ${status === 'active' ? styles.pillOk : ['suspended', 'canceled', 'trial_expired', 'unpaid', 'past_due'].includes(status) ? styles.pillBad : styles.pillNeutral}`}>
-                      {isTrial ? 'trial' : status}
+                      {isTrial ? t.status.trial : (t.status[status] ?? status)}
                     </span>
-                    {r.cancel_at_period_end && <span className={`${styles.pill} ${styles.pillBad}`} style={{ marginLeft: 6 }}>cancelled — ends</span>}
+                    {r.cancel_at_period_end && <span className={`${styles.pill} ${styles.pillBad}`} style={{ marginLeft: 6 }}>{t.cancelledEnds}</span>}
                   </td>
                   <td>{r.users_count}</td>
                   <td>{r.properties_count}</td>
                   <td>{r.campaigns_month} / {r.campaigns_count}</td>
-                  <td>{day(r.created_at)}</td>
-                  <td>{isTrial ? day(r.trial_ends_at) : day(r.current_period_end)}</td>
-                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} main={r.id === 'a0000000-0000-0000-0000-000000000001'} pilot={isTrial} free={effectivePlan(r as any).kind === 'free'} offline={!!(r as any).offline_audit_enabled} /></td>
+                  <td>{day(r.created_at, lang)}</td>
+                  <td>{isTrial ? day(r.trial_ends_at, lang) : day(r.current_period_end, lang)}</td>
+                  <td><TenantActions tenantId={r.id} name={r.name} suspended={status === 'suspended'} internal={internal} main={r.id === 'a0000000-0000-0000-0000-000000000001'} pilot={isTrial} free={effectivePlan(r as any).kind === 'free'} offline={!!(r as any).offline_audit_enabled} lang={lang} /></td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
-      <p className={styles.footnote}>MRR is computed from each tenant&apos;s plan and billing interval (annual plans divided by 12), counting active and past-due subscriptions; direct contracts count their contract value (or the list price if none was entered). Stripe remains the source of truth for actual revenue.</p>
+      <p className={styles.footnote}>{t.overviewFootnote}</p>
     </div>
   )
 }
