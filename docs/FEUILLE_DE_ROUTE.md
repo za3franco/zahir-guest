@@ -33,6 +33,11 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 - Modèle : Sonnet 5.5, Medium. À faire une semaine après la première inscription Découverte, et au plus tard le 20 nov. si aucun espace n'est inscrit : demander de vérifier dans les journaux Vercel que `/api/cron/free-nurture` répond 200 chaque jour, combien d'emails sont partis, s'il y a eu des désinscriptions, et ce que dit le tableau « Ventes » (conversion inscription vers payant sur 90 jours).
 - À ajouter au lancement : « Fais le suivi des emails d'accompagnement de la Découverte : journaux de la tâche quotidienne, envois, désinscriptions, conversion. »
 
+## Décisions d'Arnaud du 14 nov. (soir)
+- **Fait** : formulaire « Parlons-en » (PR n°47) ; paliers Professional 5 à 15 établissements, Enterprise dès 1 490 € pour 20 inclus, sur devis au-delà, plus de 100 en conversation directe.
+- **Mises en attente** : crédits à l'audit (attendre des cabinets inscrits), domaine personnalisé (sur une vraie demande Enterprise).
+- **Abandonnés** : liaison de compte Za3fran.io (l'encart de pub sur Za3fran.io suffit), thème clair de la marque blanche (le build actuel suffit).
+
 ## Plus tard
 ### Paiement à l'audit (crédits)
 - Ne démarrer que lorsque des cabinets s'inscrivent. Hypothèse non testée : environ 9 € par audit publié au-delà du volume inclus, pour les opérateurs du programme Ministère et les cabinets.
