@@ -5,6 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import { checkPlanLimit } from '@/lib/limits'
 import { ASSIGNABLE_ROLES, ROLE_LABELS, isAdminRole } from '@/lib/access'
 import { sendInvitationEmail } from '@/lib/accountEmails'
+import { SITE_URL } from '@/lib/site'
+import { passwordLinkUrl } from '@/lib/authLinks'
 
 export async function POST(request: Request) {
   const currentUser = await requireUser()
@@ -77,28 +79,24 @@ export async function POST(request: Request) {
     return serverError(lang, dbError, 'users/invite')
   }
 
-  // 3. Generate a password reset link — this is the "set your password" link
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
+  // 3. Generate the "set your password" link. Only the hashed token is kept: the link points straight at our page
+  // with the token after the '#' (see src/lib/authLinks.ts), not at the Supabase verify address that carries it in the URL.
+  const emailLang: 'en' | 'fr' = default_language === 'en' ? 'en' : 'fr'
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-  type: 'recovery',
-  email,
-  options: { redirectTo: `${appUrl}/auth/set-password` },
-})
+    type: 'recovery',
+    email,
+    options: { redirectTo: `${SITE_URL}/auth/set-password` },
+  })
 
-  if (linkError || !linkData) {
-  console.error('Link generation error:', JSON.stringify(linkError))
-  // User was created — still return success, admin can resend manually
-  return NextResponse.json({ ok: true, userId, warning: 'User created but email failed' })
-}
-
-  const inviteLink = linkData.properties?.action_link
-  if (!inviteLink) {
-    console.error('Link generation error: no action link returned')
+  const hashedToken = linkData?.properties?.hashed_token
+  if (linkError || !hashedToken) {
+    console.error('[users/invite] link not created for user', userId, linkError?.message ?? 'no token')
+    // User was created — still return success, admin can resend manually
     return NextResponse.json({ ok: true, userId, warning: 'User created but email failed' })
   }
+  const inviteLink = passwordLinkUrl(hashedToken, emailLang, 'invite')
 
   // 4. Send the invitation by Brevo, in the look of the workspace (name, logo, colour when white label)
-  const emailLang: 'en' | 'fr' = default_language === 'en' ? 'en' : 'fr'
   const sent = await sendInvitationEmail({
     tenantId: currentUser.tenant_id,
     to: { name: String(name), email },

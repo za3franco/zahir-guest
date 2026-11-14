@@ -3,6 +3,8 @@
 // Rolls everything back if any step fails, so no half-created workspace is left behind.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { SITE_URL } from '@/lib/site'
+import { passwordLinkUrl } from '@/lib/authLinks'
 
 export function slugify(input: string): string {
   const base = input
@@ -81,13 +83,14 @@ export async function createTenantWithAdmin(
   // 4) Set-password link (best effort: the account exists even if this fails)
   let setPasswordLink: string | null = null
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com'
     const { data: linkData } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email,
-      options: { redirectTo: `${appUrl}/auth/set-password` },
+      options: { redirectTo: `${SITE_URL}/auth/set-password` },
     })
-    setPasswordLink = linkData?.properties?.action_link ?? null
+    // Token after the '#', in the workspace language (see src/lib/authLinks.ts)
+    const hashedToken = linkData?.properties?.hashed_token
+    setPasswordLink = hashedToken ? passwordLinkUrl(hashedToken, lang === 'en' ? 'en' : 'fr', 'invite') : null
   } catch (err) {
     console.error('[createTenantWithAdmin] link generation failed:', err)
   }
