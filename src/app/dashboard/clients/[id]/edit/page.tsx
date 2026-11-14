@@ -7,7 +7,8 @@ import { isAdminRole } from '@/lib/access'
 import type { ClientRow } from '@/lib/clients'
 import ClientForm from '../../_components/ClientForm'
 
-export default async function EditClientPage({ params }: { params: { id: string } }) {
+export default async function EditClientPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   if (!isAdminRole(user.role)) redirect('/dashboard')
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

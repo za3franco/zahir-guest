@@ -31,7 +31,8 @@ async function removeAll(supabase: any, bucket: string, prefix: string) {
 
 // Super admin: permanently delete a workspace and everything in it.
 // Body: { confirm: <exact tenant name> }. Running Stripe subscriptions are cancelled immediately (no refund).
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const admin = await requireSuperAdmin()
   const lang = langOf(admin)
   const { confirm } = await request.json().catch(() => ({}))

@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic'
 
 // Super admin: switches the offline audit mode (ZG-6) on or off for a workspace. Body: { enabled: boolean }.
 // Turning it off also makes the phones of that workspace drop the offline app cache at their next visit.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const admin = await requireSuperAdmin()
   const lang = langOf(admin)
   const body = await request.json().catch(() => ({}))

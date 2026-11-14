@@ -9,7 +9,8 @@ import { loadTemplateTree } from '@/lib/questionnaireTree'
 import { loadLibrary } from '@/lib/questionnaireLibrary'
 import QuestionnaireEditor from '../../_components/QuestionnaireEditor'
 
-export default async function EditQuestionnairePage({ params }: { params: { id: string } }) {
+export default async function EditQuestionnairePage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   if (!isAdminRole(user.role)) redirect('/dashboard')
   if (!(await hasFullLibrary(user.tenant_id))) redirect('/dashboard/questionnaires?locked=1')

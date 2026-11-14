@@ -6,11 +6,8 @@ import { canViewProperty, isAdminRole, isViewer } from '@/lib/access'
 import { notFound, redirect } from 'next/navigation'
 import ReportDetail from './_components/ReportDetail'
 
-export default async function ReportDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function ReportDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+  const params = await paramsP
   const user = await requireUser()
 
   if (!isViewer(user.role) && !isAdminRole(user.role)) {

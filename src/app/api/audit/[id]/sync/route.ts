@@ -19,7 +19,8 @@ async function loadCampaign(supabase: ReturnType<typeof db>, id: string) {
 }
 
 // Current state of the audit on the server (answers, ratings, photos, status) so a phone can catch up.
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   const supabase = db()
@@ -35,7 +36,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 // Queued changes from a phone: { ops: [{ op_id, kind: 'response' | 'rating', ..., client_updated_at }] }.
 // Each op is applied only if it is the most recent change for its standard / section.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   const body = await request.json().catch(() => null)

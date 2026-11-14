@@ -16,7 +16,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 // Add a photo to a standard (multipart: standard_id + file [+ photo_id]). The browser already shrinks the image.
 // photo_id (created on the phone, offline mode) makes the upload safe to repeat: a photo already received is not
 // stored twice.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   const msg = (en: string, fr: string) => (lang === 'en' ? en : fr)
@@ -98,7 +99,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
 }
 
 // Remove a photo: /api/audit/[id]/photos?photo_id=...
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   const photoId = new URL(request.url).searchParams.get('photo_id') ?? ''

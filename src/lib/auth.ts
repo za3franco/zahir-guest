@@ -54,7 +54,8 @@ async function loadRealUser(): Promise<User> {
   // Session cookies: sb-<project ref>-auth-token, possibly split into .0, .1 ... chunks.
   // The middleware has already refreshed an expired session before this runs.
   const grouped: Record<string, string> = {}
-  for (const c of cookies().getAll().filter(c => c.name.startsWith('sb-')).sort((a, b) => a.name.localeCompare(b.name))) {
+  const jar = await cookies()
+  for (const c of jar.getAll().filter(c => c.name.startsWith('sb-')).sort((a, b) => a.name.localeCompare(b.name))) {
     const base = c.name.replace(/\.\d+$/, '')
     grouped[base] = (grouped[base] ?? '') + c.value
   }
@@ -87,7 +88,7 @@ async function loadRealUser(): Promise<User> {
 export async function requireUser(): Promise<User> {
   const real = await loadRealUser()
   if (real.role === 'super_admin') {
-    const target = cookies().get(IMPERSONATE_COOKIE)?.value
+    const target = (await cookies()).get(IMPERSONATE_COOKIE)?.value
     if (target && /^[0-9a-f-]{36}$/i.test(target)) {
       return { ...real, tenant_id: target, role: 'tenant_admin', impersonating_tenant_id: target }
     }

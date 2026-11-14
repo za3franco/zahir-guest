@@ -6,7 +6,8 @@ import { notFound, redirect } from 'next/navigation'
 import AuditInterface from './_components/AuditInterface'
 import { isAuditOpen } from '@/lib/auditAccess'
 
-export default async function AuditPage({ params }: { params: { id: string } }) {
+export default async function AuditPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
 
   // Only auditors can access this

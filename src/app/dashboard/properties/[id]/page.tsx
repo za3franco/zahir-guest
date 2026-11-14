@@ -68,11 +68,8 @@ const PROPERTY_TYPE_ICONS: Record<string, string> = {
   hotel: '🏨', riad: '🏯', resort: '🌴', guesthouse: '🏠', apartment: '🏢', other: '🏛️',
 }
 
-export default async function PropertyDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function PropertyDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+  const params = await paramsP
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]

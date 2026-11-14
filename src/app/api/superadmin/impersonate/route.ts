@@ -19,7 +19,8 @@ export async function POST(request: Request) {
   const { data: tenant } = await supabase.from('tenants').select('id, name').eq('id', tenantId).maybeSingle()
   if (!tenant) return apiError(lang, 'workspace_not_found')
 
-  cookies().set(IMPERSONATE_COOKIE, tenantId, {
+  const jar = await cookies()
+  jar.set(IMPERSONATE_COOKIE, tenantId, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
@@ -34,8 +35,9 @@ export async function POST(request: Request) {
 export async function DELETE() {
   const admin = await requireSuperAdmin()
   const lang = langOf(admin)
-  const current = cookies().get(IMPERSONATE_COOKIE)?.value
-  cookies().set(IMPERSONATE_COOKIE, '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 0 })
+  const jar = await cookies()
+  const current = jar.get(IMPERSONATE_COOKIE)?.value
+  jar.set(IMPERSONATE_COOKIE, '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 0 })
   await logAdminAction(admin.id, 'impersonate_stop', current ?? null)
   return NextResponse.json({ ok: true })
 }
