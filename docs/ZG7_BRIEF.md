@@ -5,7 +5,7 @@
 ## Où on en est
 **La phase ZG-6 est terminée et en production.** Elle comprenait les emails d'accompagnement de la Découverte, le mode hors ligne de l'audit (stockage local, synchronisation, photos, service worker, appli installable), la sécurité de l'authentification, et les retours des tests d'Arnaud (iPhone, Stripe, marque blanche, langue). **La phase suivante, ZG-7, est une phase de finitions et de vérifications** : traduire les messages d'erreur du serveur, vérifier en production ce qu'un navigateur automatique ne peut pas voir (paiements, tâches planifiées), nettoyer les espaces de test. Les phases d'après (crédits, domaine personnalisé, liaison Za3fran.io) sont dans `docs/FEUILLE_DE_ROUTE.md`.
 
-### En production (dernier commit de `main` : `18b01f4`, PR n°33 fusionnée le 14 nov.)
+### En production (dernier commit de `main` : `d75f0c6`, PR n°34 fusionnée le 14 nov.)
 - **ZG-5** : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD par Stripe, MAD par YouCan Pay, offre gratuite Découverte (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards), pilote Professional de 14 jours, correctifs RLS.
 - **PR n°16** : emails Découverte (J+2, J+14, quota atteint) et désinscription ; migration 013.
 - **PR n°17** : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`) ; écritures d'audit refusées après soumission ; protection Vercel des versions de test.
@@ -15,6 +15,8 @@
 - **PR n°29** : confirmation du changement d'offre ; bouton Delete pour les espaces de test du super admin ; migration 015 (mode hors ligne actif par défaut).
 - **PR n°30** : la langue FR / EN choisie suit la personne (**correction du 14 nov. : le cookie `zg_lang` et `src/lib/lang.ts` cités ici n'existent pas dans `main`, la PR n°30 ne contient que la facturation ; la langue d'un utilisateur connecté est la colonne `users.default_language`, changée par le bouton FR / EN du menu**), nom « Zahir Guest » sur la page de paiement Stripe (`branding_settings`), confirmation du changement d'offre en fenêtre centrée (texte différent montée / descente).
 - **PR n°31** : marque blanche : « Couleur principale », « Couleur du fond (thème) » (fond sombre teinté, `src/lib/brandColors.ts`), « Reprendre les couleurs de mon logo », aperçu ; montée en gamme facturée tout de suite sur la carte enregistrée (`always_invoice` + `error_if_incomplete`), descente en crédit sur la prochaine facture.
+- **PR n°33** : messages d'erreur du serveur en français et en anglais (catalogue `src/lib/apiErrors.ts`, 45 routes).
+- **PR n°34** : écran super admin et page `/auth/set-password` en français et en anglais (détail au point 1 bis).
 - **Documentation** : PR n°18, 24, 25, 27 (CLAUDE.md, feuille de route, tests, pratiques, brief).
 - **Migrations appliquées** : 010 à 015 (dernière : 015, 14 nov.).
 
@@ -37,11 +39,11 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - **Reste hors périmètre** : 5 messages de réussite / états ; la page `/auth/forgot-password` (mot de passe oublié) est encore en anglais seulement.
 - Tests : voir `docs/TESTS.md` (37 / 37, iPhone en anglais).
 
-### 1 bis. Écran super admin et page `/auth/set-password` en français et en anglais — FAIT sur la branche `claude/ecstatic-noether-glrn1q`, PR à ouvrir et fusion à décider par Arnaud
+### 1 bis. Écran super admin et page `/auth/set-password` en français et en anglais — FAIT et fusionné (PR n°34, `main` `d75f0c6`, en ligne le 14 nov.)
 - `src/lib/superadminText.ts` : tous les textes de l'écran super admin (FR / EN, une seule source ; `fr` est typé comme `en`, un oubli ne compile pas) et les formats de dates, montants (« 1 235 € » / « €1,235 ») et pourcentages. `src/app/superadmin/session.ts` charge le super admin une seule fois par requête. Langue = `users.default_language` ; bouton FR | EN dans l'en-tête (réutilise `/api/user/language`).
 - Couvre : en-tête, onglets, vue d'ensemble, formulaire « Nouvel espace », actions et fenêtres de confirmation, page Ventes (tableaux, graphiques, notes). Les erreurs de chargement ne montrent plus le texte brut de Supabase / Stripe (il va dans les journaux). Les actions de ligne passent par un seul appel : un réseau coupé ne laisse plus un bouton bloqué.
 - `/auth/set-password` : page serveur (`page.tsx`) qui démarre dans la langue du navigateur (en-tête `Accept-Language`, pas de flash de français sur un iPhone anglais), puis le formulaire (`SetPasswordForm.tsx`) adopte la langue enregistrée pour la personne invitée (`/api/user/me`), sauf si elle a cliqué FR / EN ; bouton FR | EN ; erreurs Supabase traduites (`authErrorText`), lien expiré expliqué ; champ à 16 px (l'iPhone ne zoome plus) et `autocomplete="new-password"`.
-- Test : voir `docs/TESTS.md` (54 vérifications automatiques en local, profil iPhone réglé en anglais). **Non testé sur de vraies données ni sur un vrai iPhone** : à faire par Arnaud avec son compte super admin sur la version de test, puis un lien d'invitation réel.
+- Test : voir `docs/TESTS.md` (54 vérifications automatiques en local, profil iPhone réglé en anglais). Après la fusion : la page `/auth/set-password` répond bien en français et en anglais en production. **Reste pour Arnaud** : l'écran super admin avec ses vraies données (bouton FR | EN) et un vrai lien d'invitation ouvert sur son iPhone réglé en anglais. Retour arrière possible : déploiement précédent `18b01f4`.
 
 ### 2. Vérifications en production avec Arnaud
 - Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
@@ -86,8 +88,8 @@ Reprise de `CLAUDE.md`, plus :
 - Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Pour la prochaine session
-- **Avant tout** : Arnaud décide de la PR « super admin et lien d'invitation » (branche `claude/ecstatic-noether-glrn1q`) : ouverture de la PR, test sur la version de test avec son compte super admin, fusion avec son accord explicite. Après la fusion, repartir de `main`.
+- **Avant tout** : demander à Arnaud le résultat de ses deux contrôles (super admin avec ses vraies données, lien d'invitation sur son iPhone) ; corriger ce qu'il signale.
 - **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort Medium (vérifications en production et nettoyage).
 - **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
   > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorités 2 et 3 du brief ZG-7 (vérifications en production : page de paiement Stripe, journaux des tâches planifiées du 15 nov. ; puis nettoyage des espaces et comptes de test), avec un plan court d'abord. Aucun changement en production sans mon accord explicite.
-- **Accords que doit donner Arnaud** : ouverture et fusion de la PR ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
+- **Accords que doit donner Arnaud** : fusion de chaque PR ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
