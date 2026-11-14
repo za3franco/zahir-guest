@@ -265,7 +265,8 @@
   font-family: var(--font-body);
   font-size: 0.875rem;
   line-height: 1.6;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: 96px;
   resize: none;
   width: 100%;
   box-sizing: border-box;
@@ -274,6 +275,7 @@
 .notesInput:focus {
   outline: none;
   border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(200, 164, 90, 0.18);
 }
 
 /* Emotional rating */
@@ -362,10 +364,35 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.nextBtn {
-  width: 100%;
+.navRow {
+  display: flex;
+  gap: var(--space-3);
   max-width: 680px;
   margin: 0 auto;
+}
+
+.prevBtn {
+  flex: 0 0 auto;
+  padding: var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-sand);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prevBtn:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+.nextBtn {
+  flex: 1;
+  min-width: 0;
   display: block;
   padding: var(--space-4);
   background: var(--color-gold);
@@ -386,4 +413,22 @@
 /* Phones: no sidebar on screen, the Next bar spans the full width */
 @media (max-width: 768px) {
   .navigation { left: 0; padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); }
+}
+
+/* Phones: five narrow columns cut the labels; stack the ratings as full-width rows */
+@media (max-width: 520px) {
+  .emotionalButtons { grid-template-columns: 1fr; }
+  .emotionalBtn {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    min-height: 48px;
+  }
+  .emotionalScore { min-width: 1.5rem; text-align: center; }
+  .emotionalLabel {
+    font-size: 0.8125rem;
+    text-align: left;
+    letter-spacing: 0.02em;
+  }
 }

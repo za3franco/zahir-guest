@@ -21,6 +21,8 @@ const T = {
   },
   back: { en: '← Overview', fr: '← Vue d\'ensemble' },
   next: { en: 'Next section →', fr: 'Section suivante →' },
+  prev: { en: '← Previous', fr: '← Précédente' },
+  sectionOf: { en: 'Section', fr: 'Section' },
   finish: { en: 'Review & submit →', fr: 'Vérifier et soumettre →' },
   saving: { en: 'Saving…', fr: 'Enregistrement…' },
   saved: { en: 'Saved', fr: 'Enregistré' },
@@ -44,6 +46,10 @@ interface Props {
   onBack: () => void
   onNext: () => void
   hasNext: boolean
+  /** Previous section (null on the first one: the button is hidden) */
+  onPrev?: (() => void) | null
+  /** Position of this section in the questionnaire, e.g. 3 of 9 */
+  position?: { index: number; total: number }
   saving: boolean
   saveStatus?: React.ReactNode
   lang: string
@@ -66,6 +72,8 @@ export default function SectionAudit({
   onBack,
   onNext,
   hasNext,
+  onPrev,
+  position,
   saving,
   saveStatus,
   lang,
@@ -109,12 +117,12 @@ export default function SectionAudit({
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} id="audit-section-top">
       {/* Header */}
       <div className={styles.header}>
         <button onClick={onBack} className={styles.backBtn}>{t(T.back)}</button>
         <div className={styles.headerCenter}>
-          {domain && <span className={styles.domainLabel}>{domainName}</span>}
+          {domain && <span className={styles.domainLabel}>{position ? `${t(T.sectionOf)} ${position.index}/${position.total} · ` : ''}{domainName}</span>}
           <h1 className={styles.sectionTitle}>{sectionName}</h1>
         </div>
         <div className={styles.progressPill}>
@@ -251,9 +259,14 @@ export default function SectionAudit({
       {/* Navigation */}
       <div className={styles.navigation}>
         {saveStatus}
-        <button onClick={onNext} className={styles.nextBtn}>
-          {hasNext ? t(T.next) : t(T.finish)}
-        </button>
+        <div className={styles.navRow}>
+          {onPrev && (
+            <button onClick={onPrev} className={styles.prevBtn}>{t(T.prev)}</button>
+          )}
+          <button onClick={onNext} className={styles.nextBtn}>
+            {hasNext ? t(T.next) : t(T.finish)}
+          </button>
+        </div>
       </div>
     </div>
   )
