@@ -45,6 +45,12 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - `/auth/set-password` : page serveur (`page.tsx`) qui démarre dans la langue du navigateur (en-tête `Accept-Language`, pas de flash de français sur un iPhone anglais), puis le formulaire (`SetPasswordForm.tsx`) adopte la langue enregistrée pour la personne invitée (`/api/user/me`), sauf si elle a cliqué FR / EN ; bouton FR | EN ; erreurs Supabase traduites (`authErrorText`), lien expiré expliqué ; champ à 16 px (l'iPhone ne zoome plus) et `autocomplete="new-password"`.
 - Test : voir `docs/TESTS.md` (54 vérifications automatiques en local, profil iPhone réglé en anglais). Après la fusion : la page `/auth/set-password` répond bien en français et en anglais en production. **Reste pour Arnaud** : l'écran super admin avec ses vraies données (bouton FR | EN) et un vrai lien d'invitation ouvert sur son iPhone réglé en anglais. Retour arrière possible : déploiement précédent `18b01f4`.
 
+### 1 ter. Email « mot de passe oublié » aux couleurs de Zahir Guest — À DÉCIDER (constaté par Arnaud sur iPhone le 14 nov.)
+- Constat : la page `/auth/forgot-password` appelle `supabase.auth.resetPasswordForEmail`, donc l'email vient de Supabase Auth (expéditeur « Supabase Auth », texte anglais standard, « powered by Supabase »). Les emails d'invitation (`/api/users/invite`) et de bienvenue partent déjà de Zahir Guest par Brevo.
+- Option A (conseillée, tout dans le code) : une route serveur qui génère le lien (`auth.admin.generateLink`, type `recovery`) et envoie un email Brevo dans la langue de la personne, comme l'invitation ; réponse toujours identique, que le compte existe ou non (pas de fuite d'information), limitation du nombre de demandes. Touche l'authentification : modèle `claude-opus-5-5`, effort High, plan d'abord, relecture de sécurité.
+- Option B (réglage Supabase, sans code) : SMTP personnalisé (Brevo) et modèle d'email personnalisé dans Supabase → Authentication. Modification de production à faire avec l'accord explicite d'Arnaud ; le modèle ne peut pas suivre la langue de la personne sans code.
+- La page `/auth/forgot-password` reste volontairement bilingue (affichée avant de connaître la langue).
+
 ### 2. Vérifications en production avec Arnaud
 - Page de paiement Stripe : doit afficher « Zahir Guest », 79,00 € sans choix de devise (PR n°30, n°28).
 - Montée Hôtel → Professional avec une vraie carte : prélèvement immédiat de la différence, facture visible dans Stripe (PR n°31). Non testé de bout en bout (les clés Stripe n'existent qu'en production).
