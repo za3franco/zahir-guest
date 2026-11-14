@@ -1,5 +1,6 @@
 'use client'
 
+import { langFromCookieString, rememberLang } from '@/lib/lang'
 import { useEffect, useState } from 'react'
 import { FREE_FEATURES } from '@/lib/plans'
 import { currencyFromCookieString, type Currency } from '@/lib/currency'
@@ -40,7 +41,10 @@ export default function SignupPage() {
   const [currency, setCurrency] = useState<Currency>('EUR')
   useEffect(() => {
     setCurrency(currencyFromCookieString(document.cookie))
-    if (navigator.language?.toLowerCase().startsWith('en')) setLang('en')
+    // The language already chosen on the site wins; the phone's language only decides a first visit
+    const chosen = langFromCookieString(document.cookie)
+    if (chosen) setLang(chosen)
+    else if (navigator.language?.toLowerCase().startsWith('en')) setLang('en')
   }, [])
   const [website, setWebsite] = useState('') // honeypot
   const [loading, setLoading] = useState(false)
@@ -88,7 +92,7 @@ export default function SignupPage() {
               <button
                 key={l}
                 type="button"
-                onClick={() => setLang(l)}
+                onClick={() => { setLang(l); rememberLang(l) }}
                 className={`${styles.langBtn} ${lang === l ? styles.langBtnActive : ''}`}
               >
                 {l.toUpperCase()}
