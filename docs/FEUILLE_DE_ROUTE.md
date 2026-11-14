@@ -15,11 +15,9 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 
 ### 1 bis à 1 ter. Super admin et `/auth/set-password` traduits (PR n°34), email « mot de passe oublié » par Brevo dans la langue du compte (PR n°36) : FAITS et en production
 
-### 1 quater. Emails aux couleurs du client (marque blanche, niveau 1) : PROCHAINE ÉTAPE (décidée le 14 nov.)
-- Modèle : Sonnet 5.5, High. Détail, périmètre et points de vigilance : `docs/ZG7_BRIEF.md`, point 1 quater.
-- La session : les 6 emails envoyés aux équipes d'un espace en marque blanche (mission, audit soumis, rapport, invitation, renvoi d'invitation, mot de passe oublié) prennent le nom, le logo et la couleur de l'espace, avec une mention « Propulsé par Zahir Guest » ; un seul gabarit d'email partagé ; tests avec un faux Brevo.
-- Arnaud : accord pour la fusion ; vérifier sur son iPhone un email d'un espace en marque blanche.
-- À ajouter au lancement : « Point 1 quater du brief ZG-7, emails aux couleurs du client (marque blanche, niveau 1) en gardant la mention « Propulsé par Zahir Guest ». »
+### 1 quater. Emails aux couleurs du client (marque blanche, niveau 1) : CODÉ ET TESTÉ, PR à fusionner par Arnaud
+- Les 6 emails envoyés aux équipes d'un espace en marque blanche (mission, audit soumis, rapport, invitation, compte supprimé, mot de passe oublié) prennent le nom, le logo et la couleur de l'espace, avec « Propulsé par Zahir Guest » en pied de page ; un seul gabarit (`src/lib/emailLayout.ts`) ; testé avec un faux Brevo et rendu sur iPhone émulé. Détail : `docs/ZG7_BRIEF.md`, point 1 quater.
+- Arnaud : accord pour la fusion ; vérifier sur son iPhone un vrai email d'un espace en marque blanche (inviter une personne dans l'espace Casa Nono).
 
 ### 2. Vérifications en production
 - Modèle : Sonnet 5.5, Medium. Page de paiement Stripe (« Zahir Guest », 79,00 € sans choix de devise), journaux des tâches planifiées (`[cron … ] done`), montée Hôtel vers Professional avec une vraie carte.

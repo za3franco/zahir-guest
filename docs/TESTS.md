@@ -1,6 +1,6 @@
 # Tests Zahir Guest : méthode et statut
 
-Dernière mise à jour : 14 nov. 2026 (après les rejeux en production et le test iPhone d'Arnaud). La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
+Dernière mise à jour : 14 nov. 2026 (après les emails aux couleurs du client). La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
 
 ## Principe
 Claude fait seul tout ce qui peut l'être. Arnaud ne garde que ce qui demande sa carte bancaire, son compte super admin ou son téléphone. On ne coche un test que s'il a été réellement vérifié, avec une note datée qui dit quoi, comment et ce qui n'a pas été vu.
@@ -123,6 +123,24 @@ Méthode : build de production local (variables factices), faux Supabase local (
 | Lien d'invitation (ancien chemin, jetons dans le `#`) toujours accepté | validé en local |
 | En production après la fusion : adresse invalide refusée, adresse inconnue → réponse normale, compteurs écrits, faux lien → message « already been used » sur iPhone anglais, pas d'erreur dans les journaux | validé le 14 nov. |
 | Vrai email Brevo et vrai iPhone, en production après la fusion | pour Arnaud |
+
+## Emails aux couleurs du client (14 nov., point 1 quater, branche `claude/zahir-guest-white-label-emails-qvvw8v`)
+Méthode : `tsc --noEmit` et `next build` (variables factices). Banc d'essai hors dépôt : faux Supabase et faux Brevo en mémoire (le `fetch` est remplacé, aucun appel réel, aucune donnée ni clé de production), 8 espaces fictifs (Professional avec logo, couleur sombre, couleur claire, nom de marque piégé, Hôtel avec réglages gardés, Professional sans personnalisation, interne, lecture de marque en erreur) ; les 6 emails en français et en anglais ; rendu dans Chromium en profil iPhone 14 (390 px, `deviceScaleFactor` 2, WebKit non installé ici). Parcours HTTP du mot de passe oublié sur le build de production local avec un faux Supabase (serveur local) et un faux Brevo (préchargement qui enregistre l'appel).
+| Test | Statut |
+| :- | :- |
+| 6 emails × FR / EN sans marque blanche (aucun espace, Hôtel avec réglages gardés, Professional sans personnalisation, lecture de marque en erreur, espace interne) : expéditeur Zahir Guest, couleur or, pas de logo client, pas de mention « Propulsé par », pas d'adresse de réponse | validé (script) |
+| 6 emails × FR / EN avec marque blanche : expéditeur = marque (adresse inchangée), nom et logo https dans l'en-tête, couleur du client sur le bouton, mention « Propulsé par » / « Powered by » avec lien www.zahirguest.com, plus de logo ni de couleur Zahir Guest, liens seulement sur www.zahirguest.com, sujet avec la marque (invitation, mot de passe oublié, compte supprimé), jeton du mot de passe oublié intact après le `#` | validé (script) |
+| Adresse de réponse : l'administrateur qui agit (mission, invitation, compte supprimé), le plus ancien administrateur (audit soumis, rapport), aucune pour le mot de passe oublié | validé (script) |
+| Couleur sombre éclaircie, couleur claire : texte du bouton foncé | validé (script et rendu) |
+| Nom de marque piégé (`"><img onerror>`, retour à la ligne, `Bcc:`, `<b>`) : texte inoffensif dans l'email, sujet et expéditeur sans retour à la ligne ni `< > " @ , ; :`, logo hors de notre stockage refusé | validé (script et rendu) |
+| Textes saisis piégés (nom de personne, établissement, ville, campagne avec `<script>`, `<img onerror>`, `&`, `"`) : tout échappé, aussi sans marque blanche | validé (script) |
+| URL de logo : refusés `http`, hôte voisin (`fake.supabase.test.evil.com`), identifiant dans l'URL, port, autre bucket, SVG, `..`, `javascript:`, `data:`, guillemet, valeur non texte ; acceptés png / jpg avec paramètres ignorés | validé (script, 14 cas) |
+| Total du script | **632 / 632** |
+| Rendu iPhone 390 px (32 emails : avec et sans marque blanche, FR et EN, couleurs extrêmes, nom piégé, textes piégés) : pas de défilement latéral, logo chargé (36 px), bouton lisible, pied de page « Propulsé par Zahir Guest » | validé |
+| Parcours HTTP « mot de passe oublié » sur le build local : compte d'un espace en marque blanche (anglais) → email aux couleurs de l'espace, sujet « Reset your … password », jeton après `#` ; compte d'un espace Hôtel (français) → email Zahir Guest sans trace de la marque gardée ; adresse inconnue → aucun email ; les trois : `{ ok: true }` 200 en 2,51 à 2,54 s | validé en local |
+| Limite du test HTTP : le faux Supabase est en `http`, donc le logo y est (volontairement) refusé ; le logo affiché est vérifié dans le banc d'essai (URL `https`) | |
+| Vrai email Brevo reçu et ouvert (Gmail, Mail iPhone), en production après la fusion, espace Casa Nono (logo, orange) : invitation d'une personne, mission, FR et EN | pour Arnaud |
+| Piège : une URL de logo doit avoir l'hôte exact de `NEXT_PUBLIC_SUPABASE_URL` et le chemin `/storage/v1/object/public/tenant-logos/` ; un logo téléversé par l'écran Marque est toujours de cette forme | |
 
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
