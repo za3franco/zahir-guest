@@ -163,13 +163,12 @@ export default function AuditInterface({
   const saving = view.sending || view.pending > 0
 
   // Every change of screen or section starts at the top. html and body both hide horizontal overflow, so on
-  // phones the page may scroll in either of them: reset all, and bring the section header into view.
+  // phones the page may scroll in either of them: reset all, so the new section starts at its very top.
   useEffect(() => {
     const top = () => {
       window.scrollTo(0, 0)
       document.documentElement.scrollTop = 0
       document.body.scrollTop = 0
-      document.getElementById('audit-section-top')?.scrollIntoView({ block: 'start' })
     }
     top()
     const id = requestAnimationFrame(top) // again once the new section has been laid out
