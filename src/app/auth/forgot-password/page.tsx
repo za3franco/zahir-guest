@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
                 <br /><br />
                 If an account exists for this address, a reset link has just been sent. Check your inbox (and spam folder).
               </p>
-              <a href="/login" className="btn btn-secondary w-full" style={{ marginTop: '1.5rem' }}>
+              <a href="/login" className={`btn btn-secondary ${styles.confirmBack}`}>
                 ← Retour à la connexion / Back to login
               </a>
             </>
