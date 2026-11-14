@@ -85,6 +85,8 @@ export async function POST(request: Request) {
       line_items: items,
       currency: currency.toLowerCase(),
       allow_promotion_codes: true,
+      // The app already offers EUR / USD / MAD: charge in the chosen currency, no automatic conversion to the visitor's
+      adaptive_pricing: { enabled: false },
       payment_method_collection: 'if_required',
       client_reference_id: tenant.id,
       metadata: meta,

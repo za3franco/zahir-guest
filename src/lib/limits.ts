@@ -19,6 +19,14 @@ const RESOURCE_LABEL: Record<LimitedResource, { en: string; fr: string }> = {
   ai: { en: 'AI summaries this month', fr: 'synthèses IA ce mois-ci' },
 }
 
+/** Singular forms, used when the limit is 1 ("1 property", not "1 properties"). */
+const RESOURCE_LABEL_ONE: Record<LimitedResource, { en: string; fr: string }> = {
+  properties: { en: 'property', fr: 'établissement' },
+  users: { en: 'user', fr: 'utilisateur' },
+  audits: { en: 'audit this month', fr: 'audit ce mois-ci' },
+  ai: { en: 'AI summary this month', fr: 'synthèse IA ce mois-ci' },
+}
+
 const TENANT_BILLING_COLUMNS =
   'subscription_tier, subscription_status, trial_ends_at, stripe_subscription_id, billing_mode, current_period_end, extra_properties'
 
@@ -95,7 +103,7 @@ export async function checkPlanLimit(
   if (current >= max) {
     const label = perQuarter
       ? lang === 'en' ? `audit${max > 1 ? 's' : ''} per quarter` : `audit${max > 1 ? 's' : ''} par trimestre`
-      : RESOURCE_LABEL[resource][lang]
+      : (max === 1 ? RESOURCE_LABEL_ONE : RESOURCE_LABEL)[resource][lang]
     const free = plan.kind === 'free'
     return {
       allowed: false,

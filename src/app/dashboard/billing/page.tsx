@@ -41,6 +41,10 @@ const T = {
     en: 'Renew below to keep creating properties, users and campaigns. Without renewal, creation pauses on',
     fr: 'Renouvelez ci-dessous pour continuer à créer établissements, utilisateurs et campagnes. Sans renouvellement, la création sera suspendue le',
   },
+  prepaidGraceOver: {
+    en: 'Creating properties, users and campaigns is paused. Your data is kept: renew below to resume.',
+    fr: 'La création d’établissements, d’utilisateurs et de campagnes est suspendue. Vos données sont conservées : renouvelez ci-dessous pour reprendre.',
+  },
   unlimited: { en: 'Unlimited', fr: 'Illimité' },
   success: {
     en: 'Thank you! Your subscription is being activated. This page updates within a minute.',
@@ -151,7 +155,9 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
       {!isInternal && !isDirect && prepaidEnded && tenant?.subscription_status === 'active' && (
         <div className={`${styles.notice} ${styles.noticeWarn}`} role="alert">
           <strong>{t(T.prepaidEndedTitle)}</strong>
-          <p>{t(T.prepaidEnded)} {fmt(graceEnd)}.</p>
+          {graceEnd && new Date(graceEnd).getTime() > Date.now()
+            ? <p>{t(T.prepaidEnded)} {fmt(graceEnd)}.</p>
+            : <p>{t(T.prepaidGraceOver)}</p>}
         </div>
       )}
 
