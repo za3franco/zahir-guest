@@ -1,6 +1,6 @@
 # Tests Zahir Guest : méthode et statut
 
-Dernière mise à jour : 14 nov. 2026. La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
+Dernière mise à jour : 14 nov. 2026 (après les rejeux en production et le test iPhone d'Arnaud). La check-list vivante d'Arnaud est l'artefact https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note`). Ce fichier explique comment on teste ; la check-list dit où on en est.
 
 ## Principe
 Claude fait seul tout ce qui peut l'être. Arnaud ne garde que ce qui demande sa carte bancaire, son compte super admin ou son téléphone. On ne coche un test que s'il a été réellement vérifié, avec une note datée qui dit quoi, comment et ce qui n'a pas été vu.
@@ -47,10 +47,11 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | :- | :- |
 | Faux jeton refusé, versions de test protégées, audit soumis figé | validé |
 | Badge « Disponible hors ligne », réponses hors ligne, fermer puis rouvrir, soumission bloquée hors ligne | validé sur version de test et en production |
-| Conflit entre deux appareils, questionnaire verrouillé | validé sur version de test (conflit) et par lecture du code (verrou) ; à rejouer en production |
-| Photos hors ligne, envoi sans doublon, suppression hors ligne | validé ; limite de 4 par critère : à rejouer |
+| Conflit entre deux appareils, questionnaire verrouillé | validé en production le 14 nov. (la modification la plus récente gagne, message affiché ; verrou 409 `structure_locked` avec un audit attribué, texte modifiable) |
+| Photos hors ligne, envoi sans doublon, suppression hors ligne, limite de 4 par critère | validé (limite : la 5e photo est ignorée sans message) |
 | Audit ouvert sans réseau, page « Hors ligne », déconnexion, interrupteur d'arrêt | validé |
-| Installer l'appli (iPhone, Android), test en sous-sol | pour Arnaud |
+| Test iPhone en mode avion (installation, audit, photos, synchronisation, soumission) | validé par Arnaud le 14 nov. ; ses remarques sont corrigées (PR n°26) |
+| Android, test en sous-sol | pour Arnaud |
 
 ### Priorité 1 : emails de la Découverte
 | Test | Statut |
@@ -71,6 +72,7 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | Tâche quotidienne de rappels (`sa-cron`) | non vérifiable d'ici : voir l'onglet Cron Jobs de Vercel |
 
 ## Défauts relevés par les tests (non corrigés)
+(Les trois remarques du test iPhone, note émotionnelle, retour en haut, section précédente, et le style des champs de connexion sont corrigés par la PR n°26.)
 - Message de limite « 1 properties » : pluriel mal accordé (`src/lib/limits.ts`).
 - Fin de période prépayée : à J+9 le texte indique encore « creation pauses on 11 November » (date passée), et le rappel n'est que sur la page Facturation, pas en haut du tableau de bord.
 - Stripe affiche le prix converti dans la devise du visiteur (adaptive pricing) : à décider si on le garde pour des clients en EUR ou USD.
