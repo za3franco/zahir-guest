@@ -10,6 +10,7 @@ import ProductTour from '@/components/help/ProductTour'
 import { helpRoleFor } from '@/lib/helpContent'
 import { createClient } from '@supabase/supabase-js'
 import { brandingFromTenant, DEFAULT_ACCENT } from '@/lib/branding'
+import { themeVars } from '@/lib/brandColors'
 import { SUPPORT_EMAIL } from '@/lib/site'
 import styles from './layout.module.css'
 
@@ -73,10 +74,11 @@ export default async function DashboardLayout({
     )
   }
 
-  // White-label accent: override the gold token for the whole app shell
-  const shellStyle = branding.whiteLabel && branding.accent !== DEFAULT_ACCENT
-    ? ({ '--color-gold': branding.accent } as React.CSSProperties)
-    : undefined
+  // White-label: the main colour replaces the gold token and the background colour tints the dark theme,
+  // for the whole app shell
+  const shellVars: Record<string, string> = { ...(themeVars(branding.theme) ?? {}) }
+  if (branding.whiteLabel && branding.accent !== DEFAULT_ACCENT) shellVars['--color-gold'] = branding.accent
+  const shellStyle = Object.keys(shellVars).length ? (shellVars as React.CSSProperties) : undefined
 
   return (
     <div className={styles.shell} style={shellStyle}>

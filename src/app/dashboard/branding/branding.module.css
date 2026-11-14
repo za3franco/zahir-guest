@@ -7,13 +7,30 @@
 .locked { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; background: rgba(200,164,90,0.1); border: 1px solid rgba(200,164,90,0.35); border-radius: var(--radius-md); color: var(--color-ivory); font-size: 0.875rem; padding: var(--space-3) var(--space-4); }
 .lockedLink { color: var(--color-gold); font-weight: 600; text-decoration: none; }
 .colorRow { display: flex; gap: var(--space-3); align-items: center; }
-.colorPicker { width: 44px; height: 44px; padding: 0; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: transparent; cursor: pointer; flex-shrink: 0; }
 .linkBtn { background: none; border: none; color: var(--color-sand); cursor: pointer; font-size: 0.8125rem; text-decoration: underline; padding: var(--space-2) 0; justify-self: start; }
-.previewLabel { color: var(--color-sand); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.preview { display: flex; align-items: center; gap: var(--space-3); background: var(--color-midnight-navy); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); padding: var(--space-4); }
-.previewLogo { height: 32px; max-width: 120px; object-fit: contain; }
-.previewDot { width: 14px; height: 14px; border-radius: 50%; }
-.previewName { font-family: var(--font-display); font-size: 1.25rem; color: var(--color-ivory); letter-spacing: 0.04em; }
-.previewBar { width: 32px; height: 2px; border-radius: 2px; margin-left: auto; }
 .error { color: var(--color-terracotta); font-size: 0.875rem; }
 .ok { color: var(--color-sage, #4A7C6B); font-size: 0.875rem; }
+
+.colorPicker { width: 48px; height: 48px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: transparent; cursor: pointer; flex-shrink: 0; }
+.colorRow .form-input { flex: 1; min-width: 0; }
+.hint { color: var(--color-sand); font-size: 0.8125rem; line-height: 1.5; margin: 0; }
+.swatches { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.swatch { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--color-border); cursor: pointer; padding: 0; }
+.swatchOn { border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(200, 164, 90, 0.25); }
+.logoActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.secondaryBtn { background: transparent; border: 1px solid var(--color-gold); color: var(--color-gold); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); font-size: 0.875rem; cursor: pointer; font-family: var(--font-body); }
+.secondaryBtn:hover { background: rgba(200, 164, 90, 0.1); }
+.previewLabel { color: var(--color-sand); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.previewLogo { height: 28px; max-width: 120px; object-fit: contain; }
+.previewDot { width: 14px; height: 14px; border-radius: 50%; background: var(--color-gold); flex-shrink: 0; }
+.previewName { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-ivory); letter-spacing: 0.04em; overflow-wrap: anywhere; }
+/* Preview: a small copy of the application, coloured with the same variables as the real one */
+.mock { display: grid; grid-template-columns: minmax(96px, 34%) 1fr; min-height: 168px; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; background: var(--color-deep-ink, #0D1B2A); }
+.mockSide { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); background: var(--color-midnight-navy, #162236); border-right: 1px solid var(--color-border); }
+.mockNav { width: 100%; height: 8px; border-radius: 4px; background: var(--color-border); }
+.mockMain { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); }
+.mockTitle { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-gold); }
+.mockCard { width: 100%; display: grid; gap: 8px; padding: var(--space-3); background: var(--color-slate-navy, #1E2F45); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.mockLine { height: 8px; width: 80%; border-radius: 4px; background: var(--color-border); }
+.mockLineShort { height: 8px; width: 45%; border-radius: 4px; background: var(--color-border); }
+.mockButton { background: var(--color-gold); color: var(--color-deep-ink, #0D1B2A); font-weight: 600; font-size: 0.8125rem; border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); }

@@ -6,6 +6,23 @@ import { countUsage } from '@/lib/limits'
 import { isPlanTier, limitsFor, planFromPrice, TIER_RULES } from '@/lib/plans'
 import { stripeRequest, StripeError, subscriptionPeriodEnd } from '@/lib/stripe'
 
+/** True when the customer has a card on file (a 100 %-off test checkout leaves none). */
+async function hasSavedCard(sub: any): Promise<boolean> {
+  if (sub.default_payment_method) return true
+  const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
+  if (!customerId) return false
+  try {
+    const customer: any = await stripeRequest(`/customers/${customerId}`)
+    if (customer?.invoice_settings?.default_payment_method) return true
+    const methods: any = await stripeRequest(`/customers/${customerId}/payment_methods`, 'GET', { limit: 1 })
+    return (methods?.data?.length ?? 0) > 0
+  } catch {
+    return false
+  }
+}
+
+const tierRank = (t: string | null | undefined) => (t === 'enterprise' ? 2 : t === 'professional' ? 1 : 0)
+
 // Change a running Stripe subscription: plan (Hotel ↔ Professional), billing interval, number of properties.
 // Prorated by Stripe. The webhook also syncs the workspace; we update it right away so limits follow at once.
 // Body: { tier, interval: 'monthly' | 'annual', properties }
@@ -47,12 +64,20 @@ export async function POST(request: Request) {
     const sub: any = await stripeRequest(`/subscriptions/${tenant.stripe_subscription_id}`)
     // Replace every Zahir Guest item; keep anything else untouched.
     const current = (sub.items?.data ?? []).filter((it: any) => planFromPrice(it.price))
+    // A move UP (higher plan, or more properties) is charged at once, prorated, on the saved card, and fails cleanly
+    // (nothing changes) if the card is declined. A move DOWN, or no card on file, leaves a prorated credit / amount on
+    // the next invoice.
+    const currentProps = (TIER_RULES[tenant.subscription_tier as keyof typeof TIER_RULES]?.includedProperties ?? 0) + (tenant.extra_properties ?? 0)
+    const newProps = TIER_RULES[tier as keyof typeof TIER_RULES].includedProperties + extra
+    const movingUp = tierRank(tier) > tierRank(tenant.subscription_tier) || (tierRank(tier) === tierRank(tenant.subscription_tier) && newProps > currentProps)
+    const chargeNow = movingUp && (await hasSavedCard(sub))
     const updated: any = await stripeRequest(`/subscriptions/${sub.id}`, 'POST', {
       items: [
         ...current.map((it: any) => ({ id: it.id, deleted: true })),
         ...items.map(i => ({ price: i.price, quantity: i.quantity })),
       ],
-      proration_behavior: 'create_prorations',
+      proration_behavior: chargeNow ? 'always_invoice' : 'create_prorations',
+      ...(chargeNow ? { payment_behavior: 'error_if_incomplete' } : {}),
       cancel_at_period_end: false,
       metadata: { tenant_id: tenant.id, tier, interval, extra_properties: String(extra) },
     })
@@ -65,7 +90,7 @@ export async function POST(request: Request) {
       current_period_end: subscriptionPeriodEnd(updated),
     }).eq('id', tenant.id)
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, charged: chargeNow })
   } catch (err) {
     console.error('[billing change]', err)
     if (err instanceof PlanNotAvailable) {

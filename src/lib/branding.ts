@@ -4,17 +4,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { limitsForTenant } from '@/lib/plans'
+import { DEFAULT_ACCENT, HEX_RE, readableAccent } from '@/lib/brandColors'
 
-export const DEFAULT_ACCENT = '#C8A45A'
+export { DEFAULT_ACCENT, HEX_RE }
 
 export interface TenantBranding {
   whiteLabel: boolean // plan allows custom branding
   brandName: string | null // null = show "Zahir Guest"
   logoUrl: string | null
-  accent: string // hex, always valid
+  accent: string // hex, always valid, readable on the dark background
+  theme: string | null // hex of the chosen background colour, null = default navy
 }
-
-export const HEX_RE = /^#[0-9a-fA-F]{6}$/
 
 export function hexToRgba(hex: string, alpha: number): string {
   const h = HEX_RE.test(hex) ? hex : DEFAULT_ACCENT
@@ -31,7 +31,8 @@ export function brandingFromTenant(tenant: any): TenantBranding {
     whiteLabel,
     brandName: whiteLabel && cfg.brand_name ? String(cfg.brand_name) : null,
     logoUrl: whiteLabel && cfg.logo_url ? String(cfg.logo_url) : null,
-    accent: whiteLabel ? accent : DEFAULT_ACCENT,
+    accent: whiteLabel ? readableAccent(accent) : DEFAULT_ACCENT,
+    theme: whiteLabel && HEX_RE.test(cfg.theme_color ?? '') ? cfg.theme_color : null,
   }
 }
 

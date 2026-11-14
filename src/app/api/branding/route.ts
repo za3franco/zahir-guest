@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const MAX_BYTES = 1024 * 1024
 const EXT: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
 
-// Saves brand name, accent colour and logo (multipart form). Plan must include white-label.
+// Saves brand name, main colour, background colour and logo (multipart form). Plan must include white-label.
 export async function POST(request: Request) {
   const user = await requireUser()
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') {
@@ -48,10 +48,11 @@ export async function POST(request: Request) {
 
   const brandName = String(form.get('brand_name') ?? '').trim().slice(0, 80)
   const color = String(form.get('primary_color') ?? '').trim()
+  const theme = String(form.get('theme_color') ?? '').trim()
   const removeLogo = form.get('remove_logo') === '1'
   const file = form.get('logo')
 
-  if (color && !HEX_RE.test(color)) {
+  if ((color && !HEX_RE.test(color)) || (theme && !HEX_RE.test(theme))) {
     return NextResponse.json({ error: msg('Invalid colour (use #RRGGBB).', 'Couleur invalide (format #RRGGBB).') }, { status: 400 })
   }
 
@@ -60,6 +61,8 @@ export async function POST(request: Request) {
   else delete cfg.brand_name
   if (color) cfg.primary_color = color
   else delete cfg.primary_color
+  if (theme) cfg.theme_color = theme
+  else delete cfg.theme_color
 
   if (file instanceof File && file.size > 0) {
     const ext = EXT[file.type]

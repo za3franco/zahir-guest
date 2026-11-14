@@ -2,7 +2,7 @@
   display: flex;
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  background: #0D1B2A;
+  background: var(--color-deep-ink, #0D1B2A);
 }
 
 .main {

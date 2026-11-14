@@ -25,8 +25,8 @@ const T = {
   saving: { en: 'Please wait…', fr: 'Un instant…' },
   confirmTitle: { en: 'Confirm the plan change', fr: 'Confirmer le changement d’offre' },
   confirmUp: {
-    en: 'takes effect immediately. The difference for the rest of the current period is prorated and added to your next invoice.',
-    fr: 'prend effet immédiatement. La différence pour le reste de la période en cours est calculée au prorata et ajoutée à votre prochaine facture.',
+    en: 'takes effect immediately. The difference for the rest of the current period is prorated and charged now to your saved card (if you have none, it is added to your next invoice).',
+    fr: 'prend effet immédiatement. La différence pour le reste de la période en cours est calculée au prorata et prélevée tout de suite sur votre carte enregistrée (à défaut de carte, elle est ajoutée à votre prochaine facture).',
   },
   confirmDown: {
     en: 'takes effect immediately. The unused time of your current plan is credited on your next invoice. Features reserved for the higher plan are no longer available; your data is kept.',
@@ -38,6 +38,10 @@ const T = {
   },
   confirmYes: { en: 'Confirm the change', fr: 'Confirmer le changement' },
   confirmNo: { en: 'Cancel', fr: 'Annuler' },
+  updatedCharged: {
+    en: 'Subscription updated. The prorated difference has been charged to your card.',
+    fr: 'Abonnement modifié. La différence au prorata a été prélevée sur votre carte.',
+  },
   updated: { en: 'Subscription updated. The change is prorated on your next invoice.', fr: 'Abonnement modifié. La différence est calculée au prorata sur votre prochaine facture.' },
   demo: { en: 'Book a call', fr: 'Prendre rendez-vous' },
   entFor: { en: '50 properties and more, annual contract, local invoicing.', fr: '50 établissements et plus, contrat annuel, facturation locale.' },
@@ -164,7 +168,7 @@ export function BillingPlans({
         return
       }
       if (ok && data.ok) {
-        setNotice(t(T.updated))
+        setNotice(t(data.charged ? T.updatedCharged : T.updated))
         setTimeout(() => window.location.reload(), 1500)
       } else {
         setError(data.error ?? t(T.generic))
