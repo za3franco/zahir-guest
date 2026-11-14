@@ -6,7 +6,8 @@ Chaque étape donne : l'objectif, le modèle conseillé, ce que fait la session,
 Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test Android et le test en sous-sol, pour Arnaud.
 
 ## En cours : ZG-7, finitions et vérifications (voir `docs/ZG7_BRIEF.md`)
-### 1. Messages d'erreur du serveur en français et en anglais
+### 1. Messages d'erreur du serveur en français et en anglais : FAIT sur la branche `claude/bold-sagan-d8wich` (testé, PR à ouvrir et fusion à décider par Arnaud)
+- Suite décidée le 14 nov. : traduire l'écran super admin et la page `/auth/set-password` (Sonnet 5.5, High), PR séparée.
 - Modèle : Sonnet 5.5, High (travail large, mécanique, avec tests).
 - La session : lister les environ 45 routes `src/app/api/**` qui renvoient des erreurs en anglais seulement, un helper commun selon la langue de l'utilisateur, traduction, parcours de test FR / EN. Ne pas casser les codes d'erreur que l'interface hors ligne traduit (`audit_closed`, `structure_locked`…).
 - Arnaud : dire s'il veut aussi l'écran super admin traduit ; accord pour la fusion.

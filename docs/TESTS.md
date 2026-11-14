@@ -73,7 +73,7 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 
 ## Défauts relevés par les tests
 Corrigés : note émotionnelle, retour en haut, section précédente, champs de connexion (PR n°26) ; « 1 properties », date passée de fin de période prépayée, bilans des tâches planifiées, conversion de devise Stripe (PR n°28) ; langue, nom Stripe, confirmation de changement d'offre (PR n°29 à 31). Restent :
-- Messages d'erreur du serveur en anglais seulement (environ 45 routes) et écran super admin en anglais : priorité 1 de ZG-7.
+- Messages d'erreur du serveur : traduits sur la branche `claude/bold-sagan-d8wich` (en attente de fusion). Restent en anglais : écran super admin et page `/auth/set-password`.
 - Rappel de fin de période prépayée seulement sur la page Facturation, pas en haut du tableau de bord.
 - 5e photo ignorée sans message.
 
@@ -88,6 +88,16 @@ Corrigés : note émotionnelle, retour en haut, section précédente, champs de 
 | Mode hors ligne actif par défaut pour tous les espaces (migration 015) | validé en base (4 espaces sur 4) |
 | Suppression d'un espace de test par le super admin | codé ; l'espace de Casa Nono à supprimer |
 | Journaux des tâches planifiées (`[cron … ] done`) | à lire après l'exécution du 15 nov. |
+
+## Messages d'erreur FR / EN (session du 14 nov., branche `claude/bold-sagan-d8wich`)
+| Test | Statut |
+| :- | :- |
+| Catalogue : 47 messages, FR et EN présents, textes différents, variables identiques, `serverError` ne laisse pas passer le texte brut de la base | validé (script, hors dépôt) |
+| `tsc --noEmit` et `next build` (variables factices) | validé |
+| Routes publiques en HTTP réel : inscription et paiement public, avec navigateur en anglais et choix FR (le choix gagne) | validé |
+| Parcours sur iPhone émulé (Chromium, 390 px, locale en-US) sur la version de test, compte auditeur de test : 17 erreurs d'API en français (choix FR) puis en anglais (bouton EN du menu), codes lus par le hors ligne intacts (`not_found`, `forbidden`, `invalid`, `unknown_standard`, `unknown_section`), erreur de connexion « FR / EN », « Pas de connexion » / « No connection » sur l'écran Profil sans réseau | validé, 37 / 37 |
+| Non vérifiés ici : `audit_closed` en conditions réelles (il faudrait soumettre un audit : texte contrôlé par le catalogue seulement), carte refusée à la montée en gamme (carte requise), routes de l'administrateur (le compte de test est un auditeur ; leurs messages passent par le même helper), webhooks et tâches planifiées (volontairement en anglais) | non fait |
+| Compte `zg-test-auditor` : mot de passe temporaire posé avec l'accord d'Arnaud, langue remise en français, mot de passe neutralisé en fin de test | fait |
 
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
