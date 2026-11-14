@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { COPY, FAQS, type Lang } from '@/lib/landingContent'
 import { madPaymentsEnabled } from '@/lib/currency'
 import { PLAN_NAMES, PRICE_GRID, type PlanTier } from '@/lib/plans'
-import { DEMO_MAILTO, SITE_URL, SUPPORT_EMAIL } from '@/lib/site'
+import { CONTACT_HREF, SITE_URL, SUPPORT_EMAIL } from '@/lib/site'
 import LandingPricing from '@/components/pricing/LandingPricing'
 import LandingNav from './LandingNav'
 import styles from './landing.module.css'
@@ -92,7 +92,7 @@ export default function LandingPage({ lang }: { lang: Lang }) {
               <p className={styles.lead}>{c.hero.sub}</p>
               <div className={styles.ctaRow}>
                 <Link href="/signup" className={styles.btnPrimary}>{c.hero.cta}</Link>
-                <a href={DEMO_MAILTO(lang)} className={styles.btnGhost}>{c.hero.cta2}</a>
+                <a href={CONTACT_HREF(lang)} className={styles.btnGhost}>{c.hero.cta2}</a>
               </div>
               <p className={styles.note}>{c.hero.note}</p>
             </div>
@@ -219,7 +219,7 @@ export default function LandingPage({ lang }: { lang: Lang }) {
           <div className={styles.container}>
             <h2 className={styles.h2}>{c.pricing.title}</h2>
             <p className={styles.sectionSub}>{c.pricing.sub}</p>
-            <LandingPricing lang={lang} madEnabled={madPaymentsEnabled()} demoHref={DEMO_MAILTO(lang)} />
+            <LandingPricing lang={lang} madEnabled={madPaymentsEnabled()} demoHref={CONTACT_HREF(lang, 'pricing')} />
           </div>
         </section>
 
@@ -245,7 +245,7 @@ export default function LandingPage({ lang }: { lang: Lang }) {
             <p className={styles.sectionSub}>{c.finalCta.sub}</p>
             <div className={`${styles.ctaRow} ${styles.center}`}>
               <Link href="/signup" className={styles.btnPrimary}>{c.finalCta.cta}</Link>
-              <a href={DEMO_MAILTO(lang)} className={styles.btnGhost}>{c.finalCta.cta2}</a>
+              <a href={CONTACT_HREF(lang)} className={styles.btnGhost}>{c.finalCta.cta2}</a>
             </div>
           </div>
         </section>
@@ -268,7 +268,7 @@ export default function LandingPage({ lang }: { lang: Lang }) {
           <div>
             <p className={styles.footHead}>{c.footer.contact}</p>
             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-            <a href={DEMO_MAILTO(lang)}>{c.hero.cta2}</a>
+            <a href={CONTACT_HREF(lang)}>{c.hero.cta2}</a>
             <Link href={lang === 'en' ? '/en/privacy' : '/privacy'}>{lang === 'en' ? 'Privacy policy' : 'Confidentialité'}</Link>
             <Link href={lang === 'en' ? '/en/terms' : '/terms'}>{lang === 'en' ? 'Terms' : 'Conditions générales'}</Link>
           </div>

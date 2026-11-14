@@ -44,7 +44,7 @@ const T = {
   },
   updated: { en: 'Subscription updated. The change is prorated on your next invoice.', fr: 'Abonnement modifié. La différence est calculée au prorata sur votre prochaine facture.' },
   demo: { en: 'Book a call', fr: 'Prendre rendez-vous' },
-  entFor: { en: '50 properties and more, annual contract, local invoicing.', fr: '50 établissements et plus, contrat annuel, facturation locale.' },
+  entFor: { en: '20 properties and more, annual contract, local invoicing.', fr: '20 établissements et plus, contrat annuel, facturation locale.' },
   from: { en: 'From', fr: 'À partir de' },
   manage: { en: 'Invoices and payment method', fr: 'Factures et moyen de paiement' },
   redirecting: { en: 'Redirecting…', fr: 'Redirection…' },
@@ -294,7 +294,7 @@ export function BillingPlans({
           <ul className={styles.features}>
             {PLAN_FEATURES.enterprise[lang].map(f => <li key={f}>{f}</li>)}
           </ul>
-          <a className="btn btn-secondary btn-sm w-full" href="mailto:hello@za3fran.io?subject=Zahir%20Guest%20Enterprise">{t(T.demo)}</a>
+          <a className="btn btn-secondary btn-sm w-full" href={`/contact?lang=${lang}&src=billing`}>{t(T.demo)}</a>
         </div>
       </div>
 

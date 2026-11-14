@@ -8,9 +8,10 @@
 //
 // Unit of price = active property (archived properties do not count).
 //   Hotel (internal key 'starter')  : 1 property (+1 optional), 6 users, 6 audits/month, 2 AI summaries/month
-//   Professional                    : 5 properties included, +1 per extra property up to 30, unlimited users/audits,
+//   Professional                    : 5 properties included, +1 per extra property up to 15, unlimited users/audits,
 //                                     10 AI summaries/month + 1 per extra property, white-label
-//   Enterprise                      : 50+ properties, direct contract only (set up by the super admin)
+//   Enterprise                      : 20+ properties, direct contract only (set up by the super admin, request
+//                                     through the contact form); beyond 100 properties, a direct conversation
 // Annual = 10 × monthly (two months free). MAD is paid through YouCan Pay as a prepaid quarter or year.
 //
 // The internal tier key stays 'starter' (database constraint, existing rows); it is shown as "Hôtel" / "Hotel".
@@ -47,8 +48,8 @@ interface TierRule {
 
 export const TIER_RULES: Record<PlanTier, TierRule> = {
   starter: { includedProperties: 1, maxExtraProperties: 1, users: 6, auditsPerMonth: 6, aiBase: 2, aiPerExtra: 0, whiteLabel: false, selfServe: true },
-  professional: { includedProperties: 5, maxExtraProperties: 25, users: null, auditsPerMonth: null, aiBase: 10, aiPerExtra: 1, whiteLabel: true, selfServe: true },
-  enterprise: { includedProperties: 50, maxExtraProperties: 450, users: null, auditsPerMonth: null, aiBase: null, aiPerExtra: 0, whiteLabel: true, selfServe: false },
+  professional: { includedProperties: 5, maxExtraProperties: 10, users: null, auditsPerMonth: null, aiBase: 10, aiPerExtra: 1, whiteLabel: true, selfServe: true },
+  enterprise: { includedProperties: 20, maxExtraProperties: 80, users: null, auditsPerMonth: null, aiBase: null, aiPerExtra: 0, whiteLabel: true, selfServe: false },
 }
 
 const INTERNAL: PlanLimits = { properties: null, users: null, auditsPerMonth: null, auditsPerQuarter: null, aiSummariesPerMonth: null, whiteLabel: true, fullLibrary: true }
@@ -97,12 +98,12 @@ export const PLAN_FEATURES: Record<PlanTier, { en: string[]; fr: string[] }> = {
     fr: ['1 établissement (2e en option)', '6 utilisateurs', '6 audits / mois', '2 synthèses IA / mois', 'Standards Zahir Guest et vos propres questionnaires'],
   },
   professional: {
-    en: ['5 properties included, up to 30', 'Unlimited users and audits', '10 AI summaries / month + 1 per extra property', 'White-label reports and client portal', 'Analytics across properties'],
-    fr: ['5 établissements inclus, jusqu’à 30', 'Utilisateurs et audits illimités', '10 synthèses IA / mois + 1 par établissement supplémentaire', 'Rapports en marque blanche et portail client', 'Analyses multi-établissements'],
+    en: ['5 properties included, up to 15', 'Unlimited users and audits', '10 AI summaries / month + 1 per extra property', 'White-label reports and client portal', 'Analytics across properties'],
+    fr: ['5 établissements inclus, jusqu’à 15', 'Utilisateurs et audits illimités', '10 synthèses IA / mois + 1 par établissement supplémentaire', 'Rapports en marque blanche et portail client', 'Analyses multi-établissements'],
   },
   enterprise: {
-    en: ['50 properties included, more on quote', 'Unlimited AI summaries', 'Custom domain and white-label', 'Dedicated onboarding (one-off set-up fee)', 'Annual contract, local invoicing'],
-    fr: ['50 établissements inclus, au-delà sur devis', 'Synthèses IA illimitées', 'Domaine personnalisé et marque blanche', 'Mise en place accompagnée (frais unique)', 'Contrat annuel, facturation locale'],
+    en: ['20 properties included, more on quote', 'Unlimited AI summaries', 'Custom domain and white-label', 'Dedicated onboarding (one-off set-up fee)', 'Annual contract, local invoicing'],
+    fr: ['20 établissements inclus, au-delà sur devis', 'Synthèses IA illimitées', 'Domaine personnalisé et marque blanche', 'Mise en place accompagnée (frais unique)', 'Contrat annuel, facturation locale'],
   },
 }
 

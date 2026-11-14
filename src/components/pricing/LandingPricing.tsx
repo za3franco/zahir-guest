@@ -82,7 +82,7 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
             <div className={styles.stepperCtl}>
               <button type="button" aria-label="−" onClick={() => setProProps(n => Math.max(TIER_RULES.professional.includedProperties, n - 1))}>−</button>
               <output aria-live="polite">{proProps}</output>
-              <button type="button" aria-label="+" onClick={() => setProProps(n => Math.min(30, n + 1))}>+</button>
+              <button type="button" aria-label="+" onClick={() => setProProps(n => Math.min(TIER_RULES.professional.includedProperties + TIER_RULES.professional.maxExtraProperties, n + 1))}>+</button>
             </div>
           </div>
         )}
