@@ -37,16 +37,21 @@ export default function StandardPhotos({ photos, lang, onAdd, onRemove }: {
     if (!files.length) return
     setBusy(true)
     setError(null)
-    for (const f of files.slice(0, Math.max(0, MAX_PHOTOS_PER_STANDARD - photos.length))) {
+    const room = Math.max(0, MAX_PHOTOS_PER_STANDARD - photos.length)
+    let stopped = false
+    for (const f of files.slice(0, room)) {
       try {
         const small = await compressImage(f)
         const limit = await onAdd(small)
-        if (limit) { setError(t(limit === 'limit_standard' ? T.limitStandard : T.limitTotal)); break }
+        if (limit) { setError(t(limit === 'limit_standard' ? T.limitStandard : T.limitTotal)); stopped = true; break }
       } catch {
         setError(t(T.failed))
+        stopped = true
         break
       }
     }
+    // More photos picked than the standard has room for: say so instead of silently ignoring the extra ones
+    if (!stopped && files.length > room) setError(t(T.limitStandard))
     setBusy(false)
   }
 
