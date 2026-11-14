@@ -146,9 +146,12 @@ export const TERMS: Record<Lang, LegalDoc> = {
       ] },
       { h: '7. Usage acceptable', p: [
         "Il est interdit d'utiliser le service de manière illégale, de tenter d'accéder aux données d'autres clients, de perturber le fonctionnement de la plateforme, de contourner les limites de votre forfait, ou de téléverser des contenus illicites, diffamatoires ou portant atteinte aux droits de tiers.",
+        "Il est en particulier interdit, sans notre accord écrit préalable : (a) d'extraire, de copier, de moissonner ou de reproduire de façon systématique, par des moyens automatisés (robots, scripts, « scraping ») ou manuels, tout ou partie de la plateforme, de ses questionnaires, standards, guides, textes ou bases de données ; (b) de décompiler, désassembler, rétro-concevoir ou tenter d'obtenir le code source du logiciel, sauf dans la mesure où la loi l'autorise expressément ; (c) de développer, d'entraîner ou d'améliorer un produit ou un service concurrent, ou un modèle d'intelligence artificielle, à partir de la plateforme ou de ses contenus ; (d) de partager vos identifiants ou de donner accès à la plateforme à un tiers non autorisé, notamment un concurrent ; (e) de contourner ou de désactiver les mesures de sécurité, les limites de débit ou les limites d'export.",
+        "En cas de manquement, nous pouvons suspendre ou résilier l'accès sans préavis et sans remboursement, et nous réservons tous nos droits, y compris à réparation du préjudice subi.",
       ] },
       { h: '8. Propriété intellectuelle', p: [
         "Zahir Guest, son logiciel, sa marque, ses modèles de questionnaires fournis et sa documentation restent notre propriété. Nous vous concédons un droit d'utilisation personnel, non exclusif et non transférable pendant la durée de votre abonnement. Les rapports que vous générez à partir de vos audits sont à vous.",
+        "La bibliothèque de standards et de questionnaires de Zahir Guest est une base de données protégée par le droit d'auteur et par les règles applicables à la protection des bases de données. Ses exports sont destinés à votre usage interne : vous ne pouvez ni les revendre, ni les publier, ni les mettre à disposition de tiers, ni les utiliser pour constituer une offre concurrente. Les questionnaires que vous créez ou importez vous appartiennent.",
       ] },
       { h: '9. Disponibilité et évolution du service', p: [
         "Nous mettons en œuvre des moyens raisonnables pour assurer un service continu et sécurisé, mais nous ne garantissons pas une disponibilité ininterrompue. Des opérations de maintenance ou des incidents chez nos prestataires peuvent entraîner des interruptions. Le service évolue : nous pouvons ajouter, modifier ou retirer des fonctionnalités.",
@@ -202,9 +205,12 @@ export const TERMS: Record<Lang, LegalDoc> = {
       ] },
       { h: '7. Acceptable use', p: [
         'You must not use the service unlawfully, attempt to access other customers\' data, disrupt the platform, bypass your plan limits, or upload unlawful or defamatory content or content that infringes third-party rights.',
+        "In particular, without our prior written consent you must not: (a) systematically extract, copy, harvest or reproduce, by automated means (bots, scripts, scraping) or manually, all or part of the platform, its questionnaires, standards, guidance, texts or databases; (b) decompile, disassemble, reverse-engineer or attempt to obtain the source code of the software, except to the extent the law expressly allows; (c) develop, train or improve a competing product or service, or an artificial intelligence model, from the platform or its content; (d) share your credentials or give access to the platform to an unauthorised third party, in particular a competitor; (e) bypass or disable security measures, rate limits or export limits.",
+        "In case of breach we may suspend or terminate access without notice and without refund, and we reserve all our rights, including to compensation for the harm suffered.",
       ] },
       { h: '8. Intellectual property', p: [
         'Zahir Guest, its software, brand, supplied questionnaire templates and documentation remain our property. We grant you a personal, non-exclusive, non-transferable right of use for the duration of your subscription. Reports you generate from your audits are yours.',
+        "The Zahir Guest library of standards and questionnaires is a database protected by copyright and by the rules applicable to the protection of databases. Its exports are for your internal use: you may not resell them, publish them, make them available to third parties, or use them to build a competing offer. The questionnaires you create or import remain yours.",
       ] },
       { h: '9. Availability and changes to the service', p: [
         'We use reasonable means to provide a continuous and secure service, but we do not guarantee uninterrupted availability. Maintenance or incidents at our providers may cause interruptions. The service evolves: we may add, change or remove features.',
