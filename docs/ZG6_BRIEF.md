@@ -1,4 +1,4 @@
-# Zahir Guest — ZG-6 brief (mis à jour le 13 nov. 2026, après la PR n°23)
+# Zahir Guest — ZG-6 brief (mis à jour le 14 nov. 2026, après les tests de production)
 
 À lire en premier au début d'une session ZG. Les documents détaillés ZG-5 (statut, grille tarifaire) restent dans le projet claude.ai « Zahir Guest App ».
 
@@ -6,6 +6,13 @@
 ZG-5 est en ligne : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD via Stripe, MAD via YouCan Pay ; offre gratuite **Découverte** (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards) ; pilote Professional de 14 jours ouvert par le super admin ; correctifs RLS (migration 011). Seul espace existant : l'espace interne Za3fran.
 
 Tests d'Arnaud : check-list partagée https://claude.ai/artifact/YPsqEFpS7z3wM2h8PynrrX (collection `checks`, un document par test avec `done` et `note` ; sections ZG-5 et ZG-6, la liste des tests est dans le code de la page). À mettre à jour après chaque PR fusionnée, avec ce brief. Après le test YouCan à 10 MAD, remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel et redéployer.
+
+## Tests du 13-14 nov. (détail dans `docs/TESTS.md`, statut vivant dans la check-list)
+- Validés par Claude en production : les 10 tests de l'offre Découverte, les fonctions du pilote Professional, la priorité 1 (le 2e audit refusé envoie l'email « quota atteint », le bouton « Passer à Hôtel » mène à `/dashboard/billing#plans`, la désinscription est enregistrée), la landing (FR, EN, iPhone simulé, devises, calculateur 639 € pour 15 établissements, conditions), YouCan (page ouverte, 10 MAD affichés, fin de période puis retour en Découverte à J+9), prix en USD sur Stripe, mode hors ligne (badge, réponses hors ligne, audit ouvert sans réseau, déconnexion, photos).
+- Bloqués : paiement Stripe (la page répond « Something went wrong » au code `ZAHIRTEST100` sous automatisation) ; reçu et transaction YouCan (il faut payer) ; vérification de la tâche quotidienne `sa-cron` (journaux Vercel muets).
+- À rejouer en production : conflit entre deux appareils, limite de 4 photos par critère, verrouillage de la structure d'un questionnaire utilisé par un audit en cours. Ces rejeux demandent de remettre l'audit de test à zéro (des `DELETE`, que Supabase fait confirmer à Arnaud).
+- Défauts à corriger : « 1 properties » (pluriel), texte de fin de période prépayée avec une date passée, rappel de fin de période seulement sur la page Facturation, prix Stripe converti dans la devise du visiteur, tâches planifiées sans trace dans les journaux.
+- Fin de tests : remettre `YOUCANPAY_TEST_AMOUNT_MAD` à 0 dans Vercel et redéployer (accord donné d'avance par Arnaud). **Pas encore fait** : le prix de test est toujours actif (10).
 
 ## Priorités ZG-6
 
