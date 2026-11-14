@@ -24,9 +24,17 @@ const T = {
   switchNow: { en: 'Switch to this plan', fr: 'Passer à ce forfait' },
   saving: { en: 'Please wait…', fr: 'Un instant…' },
   confirmTitle: { en: 'Confirm the plan change', fr: 'Confirmer le changement d’offre' },
-  confirmBody: {
-    en: 'takes effect immediately. The difference is prorated and added to your next invoice.',
-    fr: 'prend effet immédiatement. La différence est calculée au prorata et ajoutée à votre prochaine facture.',
+  confirmUp: {
+    en: 'takes effect immediately. The difference for the rest of the current period is prorated and added to your next invoice.',
+    fr: 'prend effet immédiatement. La différence pour le reste de la période en cours est calculée au prorata et ajoutée à votre prochaine facture.',
+  },
+  confirmDown: {
+    en: 'takes effect immediately. The unused time of your current plan is credited on your next invoice. Features reserved for the higher plan are no longer available; your data is kept.',
+    fr: 'prend effet immédiatement. Le temps non utilisé de votre offre actuelle est crédité sur votre prochaine facture. Les fonctions réservées à l’offre supérieure ne sont plus disponibles ; vos données sont conservées.',
+  },
+  confirmSame: {
+    en: 'takes effect immediately and is prorated on your next invoice.',
+    fr: 'prend effet immédiatement et est calculé au prorata sur votre prochaine facture.',
   },
   confirmYes: { en: 'Confirm the change', fr: 'Confirmer le changement' },
   confirmNo: { en: 'Cancel', fr: 'Annuler' },
@@ -132,7 +140,7 @@ export function BillingPlans({
   const [addCount, setAddCount] = useState(1)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [confirmChange, setConfirmChange] = useState<null | { tier: 'starter' | 'professional'; interval: string; properties: number; text: string }>(null)
+  const [confirmChange, setConfirmChange] = useState<null | { tier: 'starter' | 'professional'; interval: string; properties: number; text: string; kind: 'up' | 'down' | 'same' }>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
   const t = (k: { en: string; fr: string }) => k[lang]
@@ -181,8 +189,12 @@ export function BillingPlans({
     let hint: string | null = null
     if (state.mode === 'stripe') {
       label = sameAsNow ? t(T.current) : t(T.update)
+      const rank = (x: string) => (x === 'professional' ? 1 : 0)
+      const kind: 'up' | 'down' | 'same' =
+        rank(tier) !== rank(state.currentTier ?? 'starter') ? (rank(tier) > rank(state.currentTier ?? 'starter') ? 'up' : 'down')
+        : n !== state.currentProperties ? (n > state.currentProperties ? 'up' : 'down') : 'same'
       action = () => setConfirmChange({
-        tier, interval: iv, properties: n,
+        tier, interval: iv, properties: n, kind,
         text: `${PLAN_NAMES[tier][lang]}, ${n} ${lang === 'en' ? (n > 1 ? 'properties' : 'property') : (n > 1 ? 'établissements' : 'établissement')}, ${money(q.total)} ${iv === 'annual' ? (lang === 'en' ? 'per year' : 'par an') : (lang === 'en' ? 'per month' : 'par mois')}`,
       })
     } else if (state.mode === 'youcan' && state.youcanRunning) {
@@ -296,17 +308,24 @@ export function BillingPlans({
       )}
 
       {confirmChange && (
-        <div className={styles.planCard} role="alertdialog" aria-labelledby="confirm-change-title" style={{ marginTop: 16 }}>
-          <h3 id="confirm-change-title" className={styles.planName}>{t(T.confirmTitle)}</h3>
-          <p className={styles.planNote}>
-            <strong>{confirmChange.text}</strong> {t(T.confirmBody)}
-          </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-primary" disabled={busy !== null}
-              onClick={() => { const c = confirmChange; setConfirmChange(null); void go(c.tier, '/api/billing/change', { tier: c.tier, interval: c.interval, properties: c.properties }) }}>
-              {t(T.confirmYes)}
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => setConfirmChange(null)}>{t(T.confirmNo)}</button>
+        <div
+          role="dialog" aria-modal="true" aria-labelledby="confirm-change-title"
+          onClick={() => setConfirmChange(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(13, 27, 42, 0.82)' }}
+        >
+          <div className={styles.planCard} onClick={e => e.stopPropagation()} style={{ maxWidth: 460, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 id="confirm-change-title" className={styles.planName}>{t(T.confirmTitle)}</h3>
+            <p className={styles.planNote} style={{ lineHeight: 1.6 }}>
+              <strong>{confirmChange.text}</strong>{' '}
+              {t(confirmChange.kind === 'up' ? T.confirmUp : confirmChange.kind === 'down' ? T.confirmDown : T.confirmSame)}
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-primary" disabled={busy !== null} autoFocus
+                onClick={() => { const c = confirmChange; setConfirmChange(null); void go(c.tier, '/api/billing/change', { tier: c.tier, interval: c.interval, properties: c.properties }) }}>
+                {t(T.confirmYes)}
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={() => setConfirmChange(null)}>{t(T.confirmNo)}</button>
+            </div>
           </div>
         </div>
       )}
