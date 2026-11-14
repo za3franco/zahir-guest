@@ -212,6 +212,67 @@ td {
 tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
+/* ── FORM FIELDS (login, sign-up, password reset, branding) ──
+   Same look as the fields inside the dashboard (see PropertyForm): roomy, dark, gold focus ring. */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-sand);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-midnight-navy);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-input::placeholder {
+  color: var(--color-sand);
+  opacity: 0.5;
+}
+
+.form-input:hover {
+  border-color: rgba(200, 164, 90, 0.45);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(200, 164, 90, 0.18);
+}
+
+.form-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Browser autofill (Safari / Chrome) would paint the field white: keep it dark */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ivory);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-midnight-navy) inset;
+  caret-color: var(--color-ivory);
+}
+
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   /* Safari: prevent inputs from zooming when focused */

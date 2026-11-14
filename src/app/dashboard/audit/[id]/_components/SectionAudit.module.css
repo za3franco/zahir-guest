@@ -265,7 +265,8 @@
   font-family: var(--font-body);
   font-size: 0.875rem;
   line-height: 1.6;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: 96px;
   resize: none;
   width: 100%;
   box-sizing: border-box;
@@ -274,6 +275,7 @@
 .notesInput:focus {
   outline: none;
   border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(200, 164, 90, 0.18);
 }
 
 /* Emotional rating */
