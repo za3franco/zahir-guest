@@ -5,7 +5,7 @@
 ## Où on en est
 **La phase ZG-6 est terminée et en production.** Elle comprenait les emails d'accompagnement de la Découverte, le mode hors ligne de l'audit (stockage local, synchronisation, photos, service worker, appli installable), la sécurité de l'authentification, et les retours des tests d'Arnaud (iPhone, Stripe, marque blanche, langue). **La phase suivante, ZG-7, est une phase de finitions et de vérifications** : traduire les messages d'erreur du serveur, vérifier en production ce qu'un navigateur automatique ne peut pas voir (paiements, tâches planifiées), nettoyer les espaces de test. Les phases d'après (crédits, domaine personnalisé, liaison Za3fran.io) sont dans `docs/FEUILLE_DE_ROUTE.md`.
 
-### En production (dernier commit de `main` : `d75f0c6`, PR n°34 fusionnée le 14 nov.)
+### En production (dernier commit de `main` : `df0f609`, PR n°36 fusionnée le 14 nov.)
 - **ZG-5** : grille v2 (Hôtel 79 €, Professional 249 €, Enterprise dès 1 490 €), EUR / USD par Stripe, MAD par YouCan Pay, offre gratuite Découverte (1 établissement, 2 utilisateurs, 1 audit par trimestre, questionnaire Essentiel de 63 standards), pilote Professional de 14 jours, correctifs RLS.
 - **PR n°16** : emails Découverte (J+2, J+14, quota atteint) et désinscription ; migration 013.
 - **PR n°17** : `requireUser` vérifie la signature et l'expiration du jeton (`getClaims`) ; écritures d'audit refusées après soumission ; protection Vercel des versions de test.
@@ -17,6 +17,7 @@
 - **PR n°31** : marque blanche : « Couleur principale », « Couleur du fond (thème) » (fond sombre teinté, `src/lib/brandColors.ts`), « Reprendre les couleurs de mon logo », aperçu ; montée en gamme facturée tout de suite sur la carte enregistrée (`always_invoice` + `error_if_incomplete`), descente en crédit sur la prochaine facture.
 - **PR n°33** : messages d'erreur du serveur en français et en anglais (catalogue `src/lib/apiErrors.ts`, 45 routes).
 - **PR n°34** : écran super admin et page `/auth/set-password` en français et en anglais (détail au point 1 bis).
+- **PR n°36** : email « mot de passe oublié » envoyé par Brevo dans la langue du compte (détail au point 1 ter).
 - **Documentation** : PR n°18, 24, 25, 27 (CLAUDE.md, feuille de route, tests, pratiques, brief).
 - **Migrations appliquées** : 010 à 015 (dernière : 015, 14 nov.).
 
@@ -45,7 +46,7 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - `/auth/set-password` : page serveur (`page.tsx`) qui démarre dans la langue du navigateur (en-tête `Accept-Language`, pas de flash de français sur un iPhone anglais), puis le formulaire (`SetPasswordForm.tsx`) adopte la langue enregistrée pour la personne invitée (`/api/user/me`), sauf si elle a cliqué FR / EN ; bouton FR | EN ; erreurs Supabase traduites (`authErrorText`), lien expiré expliqué ; champ à 16 px (l'iPhone ne zoome plus) et `autocomplete="new-password"`.
 - Test : voir `docs/TESTS.md` (54 vérifications automatiques en local, profil iPhone réglé en anglais). Après la fusion : la page `/auth/set-password` répond bien en français et en anglais en production. **Reste pour Arnaud** : l'écran super admin avec ses vraies données (bouton FR | EN) et un vrai lien d'invitation ouvert sur son iPhone réglé en anglais. Retour arrière possible : déploiement précédent `18b01f4`.
 
-### 1 ter. Email « mot de passe oublié » par Brevo, dans la langue de la personne — FAIT, PR ouverte (option A choisie par Arnaud le 14 nov.), fusion à décider par Arnaud
+### 1 ter. Email « mot de passe oublié » par Brevo, dans la langue de la personne — FAIT et fusionné (PR n°36, `main` `df0f609`, en ligne le 14 nov. ; option A choisie par Arnaud)
 - Avant : `/auth/forgot-password` appelait `supabase.auth.resetPasswordForEmail` (email Supabase Auth en anglais, « powered by Supabase »).
 - Maintenant : la page appelle `POST /api/auth/forgot-password` (`src/app/api/auth/forgot-password/route.ts`). Le serveur cherche le compte (`users.email`, en minuscules), crée le lien (`auth.admin.generateLink`, type `recovery`, on ne garde que `hashed_token`) et envoie l'email par Brevo (`sendPasswordResetEmail` dans `src/lib/accountEmails.ts`) dans la langue du compte (`users.default_language`), avec la mise en page des autres emails Zahir Guest.
 - Lien envoyé : `https://www.zahirguest.com/auth/set-password?type=recovery&lang=xx#token_hash=…`. Le jeton est après le `#` : jamais envoyé à un serveur (absent des journaux Vercel), utilisé seulement par le script de la page (`verifyOtp`), donc un antivirus de messagerie qui ouvre le lien ne le consomme pas ; il est retiré de la barre d'adresse dès la lecture. Page en `referrer: no-referrer`. Le domaine vient de `NEXT_PUBLIC_APP_URL`, jamais de l'en-tête `Host`.
@@ -53,7 +54,7 @@ Comptes de test à supprimer : `zg-iphone@example.com` et `zg-modale@example.com
 - Protection : même réponse (`{ ok: true }`, 200) et même durée minimale (2,5 s) que le compte existe ou non ; 10 demandes par heure et par adresse IP (429 explicite, ne dit rien sur les comptes) ; 3 emails par heure et par adresse email (au-delà : réponse identique, pas d'email). Compteurs dans la table existante `signup_attempts` (HMAC avec la clé serveur, jamais l'adresse ni l'IP en clair) : **aucune migration**.
 - `/api/users/invite` enregistre désormais l'email en minuscules (comme l'inscription) ; les 7 comptes existants sont déjà en minuscules (vérifié le 14 nov.).
 - Risques acceptés : le lien passe par le suivi des clics de Brevo (comme l'invitation) ; l'ancien point d'entrée Supabase (`/auth/v1/recover`) reste joignable par quelqu'un qui appelle l'API Supabase directement (il enverrait l'email Supabase standard) ; l'inscription dit toujours « un compte existe déjà » (choix d'origine, hors périmètre).
-- Tests : voir `docs/TESTS.md` (21 / 21 sur iPhone émulé réglé en anglais, faux Supabase et faux Brevo en local). **Reste pour Arnaud après la fusion** : demander un lien depuis son iPhone (réglé en anglais) pour son compte, vérifier l'email reçu (expéditeur Zahir Guest, langue du compte), ouvrir le lien et changer le mot de passe.
+- Tests : voir `docs/TESTS.md` (21 / 21 sur iPhone émulé réglé en anglais, faux Supabase et faux Brevo en local). Contrôle en production après la fusion : adresse invalide refusée (FR), adresse inconnue → `{ ok: true }` en 3 s, compteurs écrits dans `signup_attempts`, faux lien → « This link has expired or has already been used » et jeton retiré de l'adresse, aucune erreur dans les journaux Vercel. Retour arrière possible : déploiement précédent `a6695e5`. **Reste pour Arnaud** : demander un lien depuis son iPhone (réglé en anglais) pour son compte, vérifier l'email reçu (expéditeur Zahir Guest, langue du compte), ouvrir le lien et changer le mot de passe.
 - La page `/auth/forgot-password` reste volontairement bilingue (affichée avant de connaître la personne).
 
 ### 2. Vérifications en production avec Arnaud
@@ -99,8 +100,8 @@ Reprise de `CLAUDE.md`, plus :
 - Ne jamais écrire dans le dépôt d'adresse email personnelle, de clé ou de mot de passe.
 
 ## Pour la prochaine session
-- **Avant tout** : vérifier si la PR « mot de passe oublié » (point 1 ter) est fusionnée ; demander à Arnaud le résultat de ses contrôles (super admin avec ses vraies données, lien d'invitation et email « mot de passe oublié » sur son iPhone) ; corriger ce qu'il signale.
+- **Avant tout** : demander à Arnaud le résultat de ses contrôles (super admin avec ses vraies données, lien d'invitation et email « mot de passe oublié » sur son iPhone) ; corriger ce qu'il signale.
 - **Modèle et effort conseillés** : `claude-sonnet-5-5`, effort Medium (vérifications en production et nettoyage).
 - **Message de lancement** (nouvelle session, environnement « Zahir Guest », dépôt `za3franco/zahir-guest`, branche `main`) :
   > On continue Zahir Guest. Lis `CLAUDE.md` puis `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md`. Vérifie que tu joins www.zahirguest.com et dis-moi le résultat. Ensuite : priorités 2 et 3 du brief ZG-7 (vérifications en production : page de paiement Stripe, journaux des tâches planifiées du 15 nov. ; puis nettoyage des espaces et comptes de test), avec un plan court d'abord. Aucun changement en production sans mon accord explicite.
-- **Accords que doit donner Arnaud** : fusion de chaque PR (dont celle du point 1 ter) ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
+- **Accords que doit donner Arnaud** : fusion de chaque PR ; ce qu'il veut parmi les finitions de la priorité 4 ; la suppression des espaces de test (confirmation Supabase).
