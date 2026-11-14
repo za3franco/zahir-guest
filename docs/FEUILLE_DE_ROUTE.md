@@ -13,6 +13,14 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 - Arnaud : dire s'il veut aussi l'écran super admin traduit ; accord pour la fusion.
 - À ajouter au lancement : « Traduis en français et en anglais tous les messages d'erreur du serveur, avec un plan court d'abord. »
 
+### 1 bis à 1 ter. Super admin et `/auth/set-password` traduits (PR n°34), email « mot de passe oublié » par Brevo dans la langue du compte (PR n°36) : FAITS et en production
+
+### 1 quater. Emails aux couleurs du client (marque blanche, niveau 1) : PROCHAINE ÉTAPE (décidée le 14 nov.)
+- Modèle : Sonnet 5.5, High. Détail, périmètre et points de vigilance : `docs/ZG7_BRIEF.md`, point 1 quater.
+- La session : les 6 emails envoyés aux équipes d'un espace en marque blanche (mission, audit soumis, rapport, invitation, renvoi d'invitation, mot de passe oublié) prennent le nom, le logo et la couleur de l'espace, avec une mention « Propulsé par Zahir Guest » ; un seul gabarit d'email partagé ; tests avec un faux Brevo.
+- Arnaud : accord pour la fusion ; vérifier sur son iPhone un email d'un espace en marque blanche.
+- À ajouter au lancement : « Point 1 quater du brief ZG-7, emails aux couleurs du client (marque blanche, niveau 1) en gardant la mention « Propulsé par Zahir Guest ». »
+
 ### 2. Vérifications en production
 - Modèle : Sonnet 5.5, Medium. Page de paiement Stripe (« Zahir Guest », 79,00 € sans choix de devise), journaux des tâches planifiées (`[cron … ] done`), montée Hôtel vers Professional avec une vraie carte.
 - Arnaud : la carte pour la montée en gamme ; Android et sous-sol.
@@ -31,6 +39,7 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 - Arnaud : décider du prix et des règles avant de lancer.
 
 ### Domaine personnalisé par client (Enterprise)
+- Comprend le niveau 2 de la marque blanche des emails : envoi depuis l'adresse du client (domaine authentifié dans Brevo, enregistrements DNS chez le client) et liens sur son domaine. À lancer sur une vraie demande Enterprise.
 - Modèle : Opus 5.5, High. Commencer par un plan : ajout du domaine côté Vercel, vérification DNS, certificat, lien avec l'espace du client.
 - Arnaud : accord pour toute modification de domaine ou de DNS.
 
