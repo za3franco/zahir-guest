@@ -71,9 +71,23 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | Landing, calculateur, devises, conditions d'utilisation | validé |
 | Tâche quotidienne de rappels (`sa-cron`) | non vérifiable d'ici : voir l'onglet Cron Jobs de Vercel |
 
-## Défauts relevés par les tests (non corrigés)
-(Les trois remarques du test iPhone, note émotionnelle, retour en haut, section précédente, et le style des champs de connexion sont corrigés par la PR n°26.)
-- Message de limite « 1 properties » : pluriel mal accordé (`src/lib/limits.ts`).
-- Fin de période prépayée : à J+9 le texte indique encore « creation pauses on 11 November » (date passée), et le rappel n'est que sur la page Facturation, pas en haut du tableau de bord.
-- Stripe affiche le prix converti dans la devise du visiteur (adaptive pricing) : à décider si on le garde pour des clients en EUR ou USD.
-- Les tâches planifiées n'écrivent rien dans les journaux : ajouter une ligne `console.log` de fin d'exécution permettrait de les vérifier.
+## Défauts relevés par les tests
+Corrigés : note émotionnelle, retour en haut, section précédente, champs de connexion (PR n°26) ; « 1 properties », date passée de fin de période prépayée, bilans des tâches planifiées, conversion de devise Stripe (PR n°28) ; langue, nom Stripe, confirmation de changement d'offre (PR n°29 à 31). Restent :
+- Messages d'erreur du serveur en anglais seulement (environ 45 routes) et écran super admin en anglais : priorité 1 de ZG-7.
+- Rappel de fin de période prépayée seulement sur la page Facturation, pas en haut du tableau de bord.
+- 5e photo ignorée sans message.
+
+## Ajouts du 14 nov. 2026 (PR n°26 à 31)
+| Test | Statut |
+| :- | :- |
+| Langue FR / EN suivie partout (cookie `zg_lang`) malgré la langue du téléphone | validé sur version de test ; à confirmer par Arnaud sur son iPhone |
+| Marque blanche : couleur principale, couleur du fond, couleurs du logo, aperçu | validé sur version de test (Playwright, 390 px) |
+| Fenêtre de confirmation du changement d'offre (montée, descente, même niveau) | validé avec l'espace « ZG TEST Modale » (abonnement fictif) |
+| Page Stripe : nom « Zahir Guest », 79,00 € sans choix de devise | à vérifier en production |
+| Montée en gamme facturée tout de suite (carte enregistrée) | non testé de bout en bout : carte d'Arnaud requise |
+| Mode hors ligne actif par défaut pour tous les espaces (migration 015) | validé en base (4 espaces sur 4) |
+| Suppression d'un espace de test par le super admin | codé ; l'espace de Casa Nono à supprimer |
+| Journaux des tâches planifiées (`[cron … ] done`) | à lire après l'exécution du 15 nov. |
+
+## Espaces de test au 14 nov.
+Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.

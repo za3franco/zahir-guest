@@ -3,7 +3,7 @@
 Règles de travail de Claude sur Zahir Guest. Elles complètent `CLAUDE.md` (consignes générales) et `docs/TESTS.md` (méthode de test).
 
 ## Avant de coder
-1. Lire `CLAUDE.md`, `docs/ZG6_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, ce fichier et `docs/TESTS.md`.
+1. Lire `CLAUDE.md`, `docs/ZG7_BRIEF.md`, `docs/FEUILLE_DE_ROUTE.md`, ce fichier et `docs/TESTS.md`.
 2. Auditer le code concerné, puis le schéma réel de la base (`information_schema`, contraintes, déclencheurs, droits des fonctions) : ne jamais supposer une colonne.
 3. Pour un chantier large : plan écrit (architecture, risques, ce qui reste en ligne seulement, points à trancher), validé par Arnaud avant d'écrire du code.
 4. Vérifier que la production et une version de test répondent avant de tester quoi que ce soit.

@@ -3,7 +3,7 @@
 Zahir Guest est une plateforme SaaS d'audit « client mystère » pour l'hôtellerie (MENA et Afrique francophone), construite par Arnaud Hébrard (Za3fran Consulting). Next.js (App Router), Supabase, Vercel, Stripe, YouCan Pay, Brevo. Réponds à Arnaud en français : le résultat d'abord, simplement, sans jargon inutile.
 
 ## À lire au début de chaque session
-1. `docs/ZG6_BRIEF.md` : l'état du projet, ce qui est fait, ce qui reste.
+1. `docs/ZG7_BRIEF.md` : l'état du projet, ce qui est fait, ce qui reste (le brief le plus récent ; `docs/ZG6_BRIEF.md` est l'archive du mode hors ligne).
 2. `docs/FEUILLE_DE_ROUTE.md` : les prochaines étapes, avec pour chacune le modèle conseillé et ce qu'Arnaud doit faire.
 3. `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md` (s'ils existent) : comment tester et les règles de travail.
 4. `docs/LANCEMENT_SESSIONS.md` : quand et comment changer de conversation.
@@ -17,4 +17,4 @@ Zahir Guest est une plateforme SaaS d'audit « client mystère » pour l'hôtell
 - Tester soi-même tout ce qui peut l'être (navigateur Playwright, Supabase, Vercel, Stripe, Gmail) et ne laisser à Arnaud que ce qui demande sa carte, son compte super admin ou son téléphone.
 
 ## Fin de session (toujours)
-Mettre à jour `docs/ZG6_BRIEF.md` (ou le brief suivant), cocher la check-list partagée, puis donner à Arnaud en une phrase le message de lancement de la session suivante avec le modèle à choisir (voir `docs/LANCEMENT_SESSIONS.md`).
+Mettre à jour `docs/ZG7_BRIEF.md` (ou le brief suivant), cocher la check-list partagée, puis donner à Arnaud en une phrase le message de lancement de la session suivante avec le modèle à choisir (voir `docs/LANCEMENT_SESSIONS.md`).
