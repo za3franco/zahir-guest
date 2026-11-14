@@ -154,5 +154,19 @@ Méthode : `tsc --noEmit` et `next build` (variables factices). Banc d'essai hor
 | Tâches planifiées du 15 nov. | à lire le 15 nov. après 08:43 UTC |
 | Piège : la page de login est `/login` (pas `/auth/login`) ; le palier « Hôtel » est `starter` dans le code et les appels d'API | |
 
+## Invitation et bienvenue : jeton hors de l'adresse (14 nov., 22 h UTC, PR n°44)
+Méthode : build local avec faux Supabase Auth (serveur local qui répond à `verify` une seule fois par jeton), Playwright en profil iPhone 14 (Chromium) ; script de fabrication du lien avec un faux client Supabase. Aucune donnée ni clé de production.
+| Test | Statut |
+| :- | :- |
+| Page `/auth/set-password?type=invite` : titre « Set your password », langue du lien (EN sur navigateur FR, FR sur navigateur EN), jeton retiré de la barre d'adresse, aucune requête n'embarque le jeton, mot de passe enregistré, champ 16 px, pas de défilement latéral | validé en local (19 / 19 au total) |
+| 2ᵉ ouverture du même lien, jeton faux (FR) : message « expiré ou déjà utilisé » + bouton « Recevoir un nouveau lien » vers `/auth/forgot-password` | validé en local |
+| Un simple chargement de la page (antivirus de messagerie) ne consomme pas le jeton ; le `#` n'est jamais dans une requête | validé en local |
+| Lien « mot de passe oublié » inchangé ; anciens liens (`#access_token`, sans type) toujours acceptés, ancien message conservé sans jeton | validé en local |
+| `passwordLinkUrl` et `createTenantWithAdmin` (faux client) : domaine `SITE_URL`, jeton encodé après le `#`, aucune adresse Supabase, pas de lien si pas de jeton, FR et EN | validé (7 / 7) |
+| En production après la fusion : invitation EN par `/api/users/invite` (administrateur de test, espace de test) → 200, email reçu aux couleurs de l'espace | validé le 14 nov. |
+| En production : clic sur le lien de l'email (suivi Brevo → page), jeton absent de l'adresse, mot de passe enregistré | **non fait** (suivi Brevo refusé par l'outil de sécurité de la session) : à faire avec l'email `+zginvite3` ou une nouvelle invitation |
+| Email de bienvenue d'un nouvel espace (inscription Découverte, super admin) avec le nouveau lien en production | non fait (pas de nouvelle inscription) ; couvert par le test de `createTenantWithAdmin` |
+| Piège : le domaine de suivi des liens Brevo change d'un email à l'autre (`…sendibt2.com`, `…sendibt3.com`) et l'environnement cloud n'autorise que les hôtes listés | |
+
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
