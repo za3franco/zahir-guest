@@ -288,3 +288,30 @@
   .stats { grid-template-columns: repeat(2, 1fr); }
   .propertyGrid { grid-template-columns: 1fr; }
 }
+
+/* Prepaid period reminder (YouCan Pay workspaces), top of the admin dashboard */
+.prepaidBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  background: rgba(212, 136, 42, 0.12);
+  border: 1px solid rgba(212, 136, 42, 0.5);
+  border-radius: var(--radius-md);
+  color: var(--color-ivory);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.prepaidBanner p { margin: 0; flex: 1 1 260px; }
+.prepaidBanner strong { color: var(--color-warm-brass); }
+.prepaidBannerCta {
+  color: var(--color-warm-brass);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: var(--space-2) 0;
+}
+.prepaidBannerCta:hover { text-decoration: underline; }
