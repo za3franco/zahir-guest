@@ -162,22 +162,33 @@ export default function AuditInterface({
   const retry = () => { void engine?.retry() }
   const saving = view.sending || view.pending > 0
 
+  // Every change of screen or section starts at the top. html and body both hide horizontal overflow, so on
+  // phones the page may scroll in either of them: reset all, and bring the section header into view.
+  useEffect(() => {
+    const top = () => {
+      window.scrollTo(0, 0)
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      document.getElementById('audit-section-top')?.scrollIntoView({ block: 'start' })
+    }
+    top()
+    const id = requestAnimationFrame(top) // again once the new section has been laid out
+    return () => cancelAnimationFrame(id)
+  }, [currentView, currentSectionId])
+
   function openSection(sectionId: string) {
     setCurrentSectionId(sectionId)
     setCurrentView('section')
-    window.scrollTo(0, 0)
   }
 
   function goToOverview() {
     setCurrentView('overview')
     setCurrentSectionId(null)
-    window.scrollTo(0, 0)
   }
 
   function goToSubmit() {
     void engine?.flush()
     setCurrentView('submit')
-    window.scrollTo(0, 0)
   }
 
   const currentSection = sections.find(s => s.id === currentSectionId) ?? null
@@ -195,6 +206,8 @@ export default function AuditInterface({
   const nextSection = currentSectionIndex >= 0 && currentSectionIndex < sections.length - 1
     ? sections[currentSectionIndex + 1]
     : null
+
+  const prevSection = currentSectionIndex > 0 ? sections[currentSectionIndex - 1] : null
 
   const status = <SyncStatus lang={lang} view={view} onRetry={retry} />
   const notices = (
@@ -244,6 +257,8 @@ export default function AuditInterface({
         onBack={goToOverview}
         onNext={nextSection ? () => openSection(nextSection.id) : goToSubmit}
         hasNext={!!nextSection}
+        onPrev={prevSection ? () => openSection(prevSection.id) : null}
+        position={{ index: currentSectionIndex + 1, total: sections.length }}
         saving={saving}
         lang={lang}
         sectionName={sectionName(currentSection)}
