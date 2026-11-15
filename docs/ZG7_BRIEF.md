@@ -190,6 +190,14 @@ Conduite : méthode « avancer d'un trait », sans demander à chaque phase.
 - **À ajouter à la liste de suppression d'Arnaud (demain, module super admin)** : « ZG TEST Découverte 15 nov (Claude) » et son compte (alias `+zgdecouverte1115`). Aucun abonnement Stripe.
 - Aucun code modifié, aucune migration.
 
+### Fait le 15 nov. à 18 h 40 UTC (session « zahir-guest-continuation »)
+- **Site joint** : www.zahirguest.com répond 200 (0,75 s).
+- **Nettoyage vérifié en base : les espaces de test d'Arnaud ont disparu.** Il reste 2 espaces : « Za3fran Consulting » (réel, interne) et « ZG TEST Découverte 15 nov (Claude) » (Découverte, créé le 12 nov. 18 h 34 UTC par le vieillissement SQL ; **volontairement gardé : il sert au suivi J+2 / J+14**, à supprimer à la fin). 2 lignes `users` (le super admin, l'administrateur de test Découverte). Un compte d'authentification orphelin reste (domaine `zahirguest.com`, créé le 30 mai, jamais connecté) : décision d'Arnaud, non touché.
+- **Bouton Delete corrigé** : toujours non éprouvé contre Stripe en direct, aucun espace avec abonnement n'a été supprimé depuis la PR n°50 (Casa Nono était déjà annulé et marqué `canceled` avant le clic). Rien à contrôler ; à refaire la prochaine fois qu'un espace payant est supprimé.
+- **Tâches planifiées** : relues, normales (`free-nurture` 08:43 UTC « 0 sent, 0 skipped », `billing-reminders` 07:17 UTC inchangé).
+- **Suivi de la Découverte : J+2 pas encore dû.** Il est 18 h 36 UTC le 15 nov. ; la prochaine exécution est le **16 nov. à 08:43 UTC**. Conditions vérifiées en base et dans `src/app/api/cron/free-nurture/route.ts` : offre `free`, âge 3,6 jours à l'exécution (fenêtre J+2 : 2 à 10 jours), `nurture_emails_sent` vide, pas de désinscription, 0 campagne (donc le J+2 n'est pas sauté). Rappel programmé dans cette session le 16 nov. à 09 h 10 UTC (un autre rappel existe déjà, lié à la session précédente).
+- Aucun code modifié, aucune migration.
+
 ### Liste de nettoyage à clic d'Arnaud (module super admin, écran des espaces, bouton Delete) — **FAITE le 14 nov., voir plus haut ; liste conservée pour mémoire**
 1. **ZG TEST Modale (Claude)** (Professional, abonnement Stripe fictif ; compte `zg-modale@example.com`).
 2. **ZG TEST — Claude (ne pas utiliser)** (interne ; comptes `zg-test-auditor`, `zg-iphone`, `zg-test-admin` et les deux invités de test) : à supprimer quand on n'a plus besoin des tests de Claude ; sinon le garder, il sert aux prochains tests.
