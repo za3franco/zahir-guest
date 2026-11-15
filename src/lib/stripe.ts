@@ -38,7 +38,7 @@ export function encodeForm(params: Record<string, unknown>, prefix = ''): string
 
 export async function stripeRequest<T = any>(
   path: string,
-  method: 'GET' | 'POST' = 'GET',
+  method: 'GET' | 'POST' | 'DELETE' = 'GET',
   params: Record<string, unknown> = {}
 ): Promise<T> {
   const key = process.env.STRIPE_SECRET_KEY

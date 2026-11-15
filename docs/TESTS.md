@@ -151,7 +151,8 @@ Méthode : `tsc --noEmit` et `next build` (variables factices). Banc d'essai hor
 | Session de test créée sans paiement (adresse fictive `example.com`) ; l'outil Stripe n'offre pas de fermeture de session : elle expire d'elle-même sous 24 h | fait |
 | Rappel de fin de période (PR n°42) sur la version de test, iPhone 390 px, espace de test réglé temporairement en prépayé puis remis à l'état d'origine : fin dans 5 jours (FR et EN), période terminée avec délai de grâce, création suspendue, pas de défilement latéral | validé |
 | Message « Maximum 4 photos par standard » (PR n°41) | `tsc` et build seulement : la sélection multiple de fichiers n'a pas été jouée dans un navigateur (risque écrit dans la PR) |
-| Tâches planifiées du 15 nov. | à lire le 15 nov. après 08:43 UTC |
+| Tâches planifiées du 15 nov. | **validé le 15 nov. à 09 h UTC** (journaux Vercel de production) : `billing-reminders` à 07:17 UTC « done: 1 prepaid workspaces, 0 reminded, 1 ended », `free-nurture` à 08:43 UTC « done: 0 sent, 0 skipped » ; aucune erreur |
+| Bouton Delete du super admin : annulation de l'abonnement Stripe | **défaut trouvé le 14 nov.** (adresse `POST …/cancel` inexistante chez Stripe, suppression refusée) ; corrigé par `DELETE /v1/subscriptions/{id}` ; testé avec un faux `fetch` (10 / 10) ; non rejoué contre Stripe en direct |
 | Piège : la page de login est `/login` (pas `/auth/login`) ; le palier « Hôtel » est `starter` dans le code et les appels d'API | |
 
 ## Invitation et bienvenue : jeton hors de l'adresse (14 nov., 22 h UTC, PR n°44)
