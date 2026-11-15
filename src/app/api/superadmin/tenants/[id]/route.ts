@@ -54,7 +54,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   // 1) Stop billing first: if this fails, nothing is deleted
   if (tenant.stripe_subscription_id && ['active', 'trialing', 'past_due', 'unpaid', 'incomplete'].includes(tenant.subscription_status ?? '')) {
     try {
-      await stripeRequest(`/subscriptions/${tenant.stripe_subscription_id}/cancel`, 'POST')
+      // Stripe cancels a subscription with DELETE /v1/subscriptions/{id}; there is no POST .../cancel route
+      await stripeRequest(`/subscriptions/${encodeURIComponent(tenant.stripe_subscription_id)}`, 'DELETE')
     } catch (err: any) {
       // Already cancelled on Stripe's side is fine; anything else stops the deletion
       if (!/No such subscription|canceled/i.test(err?.message ?? '')) {
