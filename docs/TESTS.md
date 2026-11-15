@@ -58,7 +58,8 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | :- | :- |
 | Un 2e audit refusé envoie l'email « quota atteint » avec le bouton « Passer à Hôtel » ; le bouton mène à la facturation | validé en production le 13 nov. |
 | Le lien de désinscription fonctionne | validé : page de confirmation puis « Done », `nurture_unsubscribed_at` rempli |
-| Emails J+2 et J+14 | non testés (dépendent de la tâche quotidienne et de l'âge de l'espace) |
+| Emails J+2 et J+14 | **en cours (15 nov.)** : espace « ZG TEST Découverte 15 nov (Claude) » vieilli par SQL, J+2 attendu le 16 nov. à 08:43 UTC, J+14 le 17 nov. après un second vieillissement ; résultats dans `docs/ZG7_BRIEF.md` |
+| Inscription Découverte en production (15 nov.) : formulaire, email de bienvenue, lien de suivi Brevo → `/auth/set-password?type=invite#token_hash`, mot de passe, tableau de bord, jeton absent des requêtes | validé le 15 nov. (iPhone 14 émulé, Gmail lu par Claude) |
 
 ### ZG-5
 | Test | Statut |
