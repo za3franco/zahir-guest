@@ -196,6 +196,7 @@ Conduite : méthode « avancer d'un trait », sans demander à chaque phase.
 - **Bouton Delete corrigé** : toujours non éprouvé contre Stripe en direct, aucun espace avec abonnement n'a été supprimé depuis la PR n°50 (Casa Nono était déjà annulé et marqué `canceled` avant le clic). Rien à contrôler ; à refaire la prochaine fois qu'un espace payant est supprimé.
 - **Tâches planifiées** : relues, normales (`free-nurture` 08:43 UTC « 0 sent, 0 skipped », `billing-reminders` 07:17 UTC inchangé).
 - **Suivi de la Découverte : J+2 pas encore dû.** Il est 18 h 36 UTC le 15 nov. ; la prochaine exécution est le **16 nov. à 08:43 UTC**. Conditions vérifiées en base et dans `src/app/api/cron/free-nurture/route.ts` : offre `free`, âge 3,6 jours à l'exécution (fenêtre J+2 : 2 à 10 jours), `nurture_emails_sent` vide, pas de désinscription, 0 campagne (donc le J+2 n'est pas sauté). Rappel programmé dans cette session le 16 nov. à 09 h 10 UTC (un autre rappel existe déjà, lié à la session précédente).
+- **Message « Maximum 4 photos par standard » (PR n°41) : validé en navigateur** (9 / 9, voir `docs/TESTS.md`). Fait en local et non en production : un audit créé dans l'espace Découverte de test aurait fait sauter le J+2 de demain (la tâche saute l'email s'il existe déjà une campagne). **Ne créer ni campagne ni audit dans cet espace avant l'envoi du J+2 et du J+14.**
 - Aucun code modifié, aucune migration.
 
 ### Liste de nettoyage à clic d'Arnaud (module super admin, écran des espaces, bouton Delete) — **FAITE le 14 nov., voir plus haut ; liste conservée pour mémoire**
