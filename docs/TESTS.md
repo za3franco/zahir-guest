@@ -175,7 +175,7 @@ Méthode : build local avec faux Supabase Auth (serveur local qui répond à `ve
 | API sur build local avec faux Supabase : sans consentement, email invalide (FR et EN), 0 établissement, téléphone invalide → 400 avec le champ ; honeypot → 200 sans écriture ; demande valide → ligne écrite | validé |
 | iPhone 14 émulé (anglais) : langue du navigateur, bascule FR, champs préremplis, 16 px, pas de défilement latéral, envoi puis « Demande reçue » ; landing : liens vers `/contact`, plus de `mailto` avec sujet (10 / 10) | validé en local |
 | En production après la fusion : `/contact` 200, 4 liens vers `/contact` sur la landing, demande de test (`source=test`) → 200, ligne écrite (marquée `status='test'`), aucune erreur dans les journaux Vercel | validé le 14 nov. à 23 h UTC |
-| Email à l'équipe et accusé de réception reçus | non vérifié : la boîte lue par l'outil Gmail n'a rien reçu (l'adresse d'équipe est peut-être une autre boîte) ; Brevo n'a pas signalé de refus ; **à vérifier par Arnaud** |
+| Email à l'équipe et accusé de réception reçus | **validé par Arnaud le 15 nov.** (le formulaire fonctionne ; la boîte lue par l'outil Gmail n'est pas celle de l'équipe) |
 | Piège : en test local, `NEXT_PUBLIC_SUPABASE_URL` est figée à la construction ; le faux Supabase doit écouter sur le port utilisé pendant `next build` | |
 
 ## Espaces de test au 14 nov.
