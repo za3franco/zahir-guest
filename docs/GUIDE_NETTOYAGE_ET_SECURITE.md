@@ -77,7 +77,7 @@ Attendu après 1 A à 1 E (D inclus) : 0 campagne, 0 établissement, 0 client, 1
 4. **Brevo** : A2F ; clé API réservée à l'envoi ; DKIM, SPF et DMARC déjà « pass » le 14 nov. ; restreindre les adresses IP si l'offre le permet.
 5. **Stripe** : A2F ; clé « restricted » (droits strictement nécessaires) à la place de la clé secrète complète ; alertes de paiement suspect (Radar). **YouCan Pay** : A2F.
 
-### À faire par Claude (avec votre accord, rien n'est appliqué)
+### Fait par Claude le 16 nov. avec l'accord d'Arnaud (points 6 à 9 : voir `docs/ZG7_BRIEF.md`, « Fait le 16 nov. (après-midi, UTC) ») ; le texte d'origine est conservé ci-dessous
 6. **Migration 017** (`sql/017_security_definer_hardening.sql`, sur la branche de la PR n°49) : les deux fonctions ne sont plus appelables sans connexion, chemin de recherche figé. Elle ne change rien pour les personnes connectées. Je l'applique et je vérifie en base, ou vous la collez :
 ```sql
 alter function public.current_user_role() set search_path = public, pg_temp;
