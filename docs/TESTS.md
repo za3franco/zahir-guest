@@ -208,3 +208,11 @@ Méthode : version de test Vercel (utilise la vraie base), compte administrateur
 | Bouton Delete du super admin avec abonnement actif (annulation par `DELETE /v1/subscriptions/{id}` avec la clé restreinte) | **validé le 16 nov.** : Arnaud a supprimé l'espace de test avec abonnement actif ; abonnement `canceled` côté Stripe, espace et comptes disparus, aucune erreur dans les journaux |
 | Pièges : le bouton « S'abonner » est dans une iframe (`js.stripe.com/v3/elements-inner-…`), l'apostrophe est typographique ; une session créée sans `adaptive_pricing: {enabled: false}` s'affiche en dollars ; le code ZAHIRTEST100 est « une fois » (1ʳᵉ facture seulement) | |
 
+## Statistiques d'audience : Vercel Web Analytics (16 nov. nuit, branche en PR, activation par Arnaud)
+| Test | Statut |
+| :- | :- |
+| Règle de filtrage `analyticsFilter` : pages publiques comptées (landing, contact, inscription, login, conditions FR / EN), `/dashboard`, `/superadmin`, `/auth`, `/api`, `/reports`, `/users` jamais, « /dashboardx » compté, liens `?analytics=off` / `on`, stockage bloqué ou absent, URL invalide | validé (23 / 23, script hors dépôt) |
+| Build de production local, iPhone 14 émulé : script injecté depuis notre domaine, filtre enregistré, `?analytics=off` pose `va-disable` dès le chargement et il persiste, `?analytics=on` le retire, phrase de confidentialité FR et EN présente | validé (8 / 9) |
+| Le 9ᵉ contrôle (aucune erreur de console) : un seul message, le script `/_vercel/insights/script.js` renvoie la page 404 en local (il n'existe que sur Vercel une fois l'option activée) ; pas une violation de CSP | explication, pas un défaut |
+| Enregistrement réel des visites (script servi par Vercel, chiffres lisibles avec `aggregate_pageviews`), exclusion réelle des navigateurs d'Arnaud | à faire après l'activation dans Vercel |
+

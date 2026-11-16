@@ -12,6 +12,7 @@
     "@e965/xlsx": "^0.20.3",
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.106.2",
+    "@vercel/analytics": "^2.0.1",
     "mammoth": "^1.13.0",
     "next": "15.5.29",
     "react": "^18.3.1",

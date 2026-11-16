@@ -70,6 +70,9 @@ Attendu après 1 A à 1 E (D inclus) : 0 campagne, 0 établissement, 0 client, 1
 - Alertes Supabase : protection contre les mots de passe divulgués désactivée ; durée des liens (OTP) supérieure à une heure ; deux fonctions (`current_user_role`, `current_user_tenant_id`) appelables sans connexion ; chemin de recherche non figé sur 3 fonctions.
 - Le bucket `audit-reports` est public et le code ne l'utilise pas (aucune référence).
 
+### État au 16 nov. (nuit) : réglages de comptes faits par Arnaud
+Déclarés faits par Arnaud. Contrôle de Claude : voir `docs/ZG7_BRIEF.md` (« Fait le 16 nov. (nuit, UTC) »). À revérifier : mots de passe divulgués (Supabase, l'audit le signale encore), ancienne clé Stripe (ne pas la supprimer avant d'avoir établi si Za3fran.io l'utilise), pare-feu Vercel (passer de « Log » à la limitation après quelques jours).
+
 ### À faire par vous : guide détaillé (ordre conseillé, environ 1 h 30 en tout)
 Les intitulés exacts des menus changent parfois chez ces services : si un intitulé diffère un peu, prenez le plus proche, ou dites-moi ce que vous voyez. Mots de passe : jamais dans le chat ni dans le dépôt. Pour chaque A2F, utilisez une application d'authentification (Google Authenticator, Authy, 1Password) et gardez les codes de secours hors de l'ordinateur.
 
