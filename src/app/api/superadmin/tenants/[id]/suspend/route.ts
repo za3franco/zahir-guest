@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic'
 
 // Body: { suspend: boolean, notify?: boolean }. Suspended tenants are locked out of the whole app.
 // The workspace admins are emailed unless notify === false.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const admin = await requireSuperAdmin()
   const lang = langOf(admin)
   const { suspend, notify } = await request.json().catch(() => ({}))

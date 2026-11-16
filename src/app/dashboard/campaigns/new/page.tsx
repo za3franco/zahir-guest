@@ -8,11 +8,8 @@ import { onFreeQuotaReached } from '@/lib/nurtureEmails'
 import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 import CampaignForm from '../_components/CampaignForm'
 
-export default async function NewCampaignPage({
-  searchParams,
-}: {
-  searchParams: { property_id?: string }
-}) {
+export default async function NewCampaignPage({ searchParams: searchParamsP }: { searchParams: Promise<{ property_id?: string }> }) {
+  const searchParams = await searchParamsP
   const user = await requireUser()
 
   const supabaseAdmin = createClient(

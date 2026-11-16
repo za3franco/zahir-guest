@@ -7,7 +7,8 @@ import { ESSENTIAL_TEMPLATE_ID } from '@/lib/plans'
 import { notFound } from 'next/navigation'
 import CampaignForm from '../../_components/CampaignForm'
 
-export default async function EditCampaignPage({ params }: { params: { id: string } }) {
+export default async function EditCampaignPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
 
   const supabaseAdmin = createClient(

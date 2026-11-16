@@ -30,7 +30,8 @@ const T = {
   ended: { en: 'ended', fr: 'terminé le' },
 }
 
-export default async function ClientsPage({ searchParams }: { searchParams: { archived?: string } }) {
+export default async function ClientsPage({ searchParams: searchParamsP }: { searchParams: Promise<{ archived?: string }> }) {
+  const searchParams = await searchParamsP
   const user = await requireUser()
   if (!isAdminRole(user.role)) redirect('/dashboard')
   const lang = user.default_language === 'en' ? 'en' : 'fr'

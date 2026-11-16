@@ -6,11 +6,8 @@ import { canViewProperty, isAdminRole, isViewer } from '@/lib/access'
 import { notFound, redirect } from 'next/navigation'
 import ReviewInterface from './_components/ReviewInterface'
 
-export default async function CampaignReviewPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function CampaignReviewPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+  const params = await paramsP
   const user = await requireUser()
   const isPM = isViewer(user.role)
   const isAdmin = user.role === 'tenant_admin' || user.role === 'super_admin'

@@ -45,7 +45,8 @@ const T = {
   none: { en: '—', fr: '—' },
 }
 
-export default async function ClientPage({ params }: { params: { id: string } }) {
+export default async function ClientPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   if (!isAdminRole(user.role)) redirect('/dashboard')
   const lang = user.default_language === 'en' ? 'en' : 'fr'

@@ -14,23 +14,24 @@ export function providerFor(currency: Currency): 'stripe' | 'youcanpay' {
 }
 
 /** Visitor currency: explicit choice (cookie) first, else the country Vercel detected, else EUR. */
-export function visitorCurrency(): Currency {
+export async function visitorCurrency(): Promise<Currency> {
   const mad = madEnabled()
+  const jar = await cookies()
   for (const name of [CURRENCY_COOKIE, AUTO_CURRENCY_COOKIE]) {
-    const v = cookies().get(name)?.value
+    const v = jar.get(name)?.value
     if (isCurrency(v) && (v !== 'MAD' || mad)) return v
   }
-  return currencyForCountry(headers().get('x-vercel-ip-country'), mad)
+  return currencyForCountry((await headers()).get('x-vercel-ip-country'), mad)
 }
 
 /**
  * Currency a workspace pays in. Once it has paid (Stripe customer or YouCan payment), the currency is
  * locked: Stripe refuses mixing currencies on one customer, and invoices must stay consistent.
  */
-export function workspaceCurrency(
+export async function workspaceCurrency(
   tenant: { billing_currency?: string | null; stripe_customer_id?: string | null; billing_mode?: string | null } | null,
   requested?: unknown
-): Currency {
+): Promise<Currency> {
   const locked = !!tenant?.stripe_customer_id || tenant?.billing_mode === 'youcan'
   if (locked && isCurrency(tenant?.billing_currency)) return tenant!.billing_currency as Currency
   if (isCurrency(requested) && (requested !== 'MAD' || madEnabled())) return requested

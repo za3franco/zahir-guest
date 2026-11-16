@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic'
 // Super admin: opens a 14-day Professional pilot for a free (or ended) workspace, after a demo.
 // When the pilot ends without a subscription, the workspace falls back to the free Découverte plan.
 // Body: { days?: number } (1–30, default 14). { end: true } closes a running pilot now.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const admin = await requireSuperAdmin()
   const lang = langOf(admin)
   const body = await request.json().catch(() => ({}))

@@ -12,7 +12,8 @@ const txt = (v: unknown, max = 1000) => String(v ?? '').trim().slice(0, max)
 
 // Saves the whole editor state of a workspace-owned questionnaire. Existing ids are updated in place so audit
 // answers stay attached; questions that already have answers cannot be deleted (archive the questionnaire instead).
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')

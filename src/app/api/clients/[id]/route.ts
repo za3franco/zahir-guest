@@ -12,7 +12,8 @@ const ERR = {
 
 // Body: full client form, or { archived: boolean } to archive / restore,
 // or { addPropertyIds: string[] } / { removePropertyIds: string[] } to (un)link properties.
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')

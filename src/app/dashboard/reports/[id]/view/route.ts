@@ -7,8 +7,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const params = await ctx.params
   const user = await requireUser()
 
   const supabaseAdmin = createClient(

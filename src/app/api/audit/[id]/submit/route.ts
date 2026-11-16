@@ -7,8 +7,9 @@ import { sendAuditSubmittedEmail } from '@/lib/emailNotifications'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
 

@@ -39,11 +39,8 @@ const T = {
 
 const EDITABLE_STATUSES = ['assigned']
 
-export default async function CampaignDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function CampaignDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
+  const params = await paramsP
   const user = await requireUser()
   const isPM = user.role === 'property_manager' || user.role === 'department_manager' || user.role === 'client_admin'
 

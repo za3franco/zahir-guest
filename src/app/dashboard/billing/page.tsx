@@ -79,7 +79,8 @@ const STATUS: Record<string, { en: string; fr: string; badge: string }> = {
   incomplete: { en: 'Incomplete', fr: 'Incomplet', badge: 'badge-amber' },
 }
 
-export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string } }) {
+export default async function BillingPage({ searchParams: searchParamsP }: { searchParams: Promise<{ checkout?: string }> }) {
+  const searchParams = await searchParamsP
   // checkout = success | cancelled | pending (YouCan Pay return not yet confirmed)
   const user = await requireUser()
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') redirect('/dashboard')
@@ -119,7 +120,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   const youcanRunning = !!tenant && youcanPeriodRunning(tenant)
   const prepaidEnded = isYoucan && !!tenant?.current_period_end && !youcanRunning
   const graceEnd = tenant?.current_period_end ? new Date(new Date(tenant.current_period_end).getTime() + GRACE_DAYS * 86400_000).toISOString() : null
-  const currency = workspaceCurrency(tenant)
+  const currency = await workspaceCurrency(tenant)
   const currencyLocked = !!tenant?.stripe_customer_id || isYoucan
   const tier = isPlanTier(tenant?.subscription_tier) ? tenant!.subscription_tier : null
   const billingState: BillingState = {

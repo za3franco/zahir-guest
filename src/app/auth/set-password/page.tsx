@@ -9,8 +9,9 @@ import SetPasswordForm from './SetPasswordForm'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { referrer: 'no-referrer' }
 
-export default function SetPasswordPage({ searchParams }: { searchParams: { lang?: string; type?: string } }) {
-  const accept = (headers().get('accept-language') ?? '').trim().toLowerCase()
+export default async function SetPasswordPage({ searchParams: searchParamsP }: { searchParams: Promise<{ lang?: string; type?: string }> }) {
+  const searchParams = await searchParamsP
+  const accept = ((await headers()).get('accept-language') ?? '').trim().toLowerCase()
   const fromLink = searchParams.lang === 'en' || searchParams.lang === 'fr' ? searchParams.lang : null
   return (
     <SetPasswordForm

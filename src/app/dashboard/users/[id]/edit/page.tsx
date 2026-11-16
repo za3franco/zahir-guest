@@ -7,7 +7,8 @@ import EditUserForm from './_components/EditUserForm'
 import AccessEditor from './_components/AccessEditor'
 import { isViewer } from '@/lib/access'
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
+export default async function EditUserPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const currentUser = await requireUser()
 
   if (currentUser.role !== 'tenant_admin' && currentUser.role !== 'super_admin') {
