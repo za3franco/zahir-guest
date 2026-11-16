@@ -5,7 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import PropertyForm from '../_components/PropertyForm'
 import { redirect } from 'next/navigation'
 
-export default async function NewPropertyPage({ searchParams }: { searchParams?: { client?: string } }) {
+export default async function NewPropertyPage({ searchParams: searchParamsP }: { searchParams?: Promise<{ client?: string }> }) {
+  const searchParams = await searchParamsP
   const user = await requireUser()
   if (user.role !== 'tenant_admin' && user.role !== 'super_admin') redirect('/dashboard')
 

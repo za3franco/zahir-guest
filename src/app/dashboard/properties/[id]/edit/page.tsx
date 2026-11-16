@@ -6,7 +6,8 @@ import { notFound, redirect } from 'next/navigation'
 import type { Property } from '@/types'
 import PropertyForm from '../../_components/PropertyForm'
 
-export default async function EditPropertyPage({ params }: { params: { id: string } }) {
+export default async function EditPropertyPage(ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
 
   // Only admins can edit properties

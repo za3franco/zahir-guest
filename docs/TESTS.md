@@ -182,3 +182,17 @@ Méthode : build local avec faux Supabase Auth (serveur local qui répond à `ve
 
 ## Espaces de test au 14 nov.
 Voir `docs/ZG7_BRIEF.md` (tableau, comptes à supprimer). L'espace « ZG TEST Découverte (Claude) » cité plus haut n'existe plus.
+
+## Sécurité : Next.js 15.5.29, CSP, migration 017 (16 nov., PR n°49 reprise)
+Méthode : version de test Vercel (utilise la vraie base), compte administrateur de l'espace de test Découverte (mot de passe temporaire neutralisé ensuite), Playwright en profil iPhone 14 (Chromium), capture des violations de CSP, erreurs de script et réponses 5xx.
+| Test | Statut |
+| :- | :- |
+| `tsc --noEmit` et `next build` sous Next 15.5.29 sur `main` fusionné | validé |
+| En-têtes de sécurité (CSP, HSTS, X-Frame-Options, nosniff, Permissions-Policy), pas de `X-Powered-By` | validé |
+| 13 pages du tableau de bord après connexion + 11 pages publiques / d'authentification : 200, pas de défilement latéral, 0 violation de CSP, 0 erreur de script | validé |
+| Audit : réponses, note, 2 photos (relues du serveur, lisibles), note émotionnelle, rechargement | validé (la note vérifiée en base : le contrôle d'écran la cherchait dans une zone repliée) |
+| Service worker actif, manifeste lisible, réponse hors ligne gardée puis synchronisée (5 réponses au serveur) | validé |
+| Soumission : statut `submitted`, rapport créé ; relecture et page du rapport en 200 | validé |
+| Migration 017 : droits de `anon` retirés, `authenticated` et `service_role` conservés, chemin de recherche figé ; alertes Supabase correspondantes disparues | validé en base |
+| Écran super admin, facturation Stripe, paiement YouCan, email réel sous Next 15 | non testés en version de test (pas de clés, pas de compte super admin) ; contrôle en production après la fusion |
+| Piège : Google Fonts et un autre hôte sont bloqués par le réseau du bac à sable (« Failed to load resource ») : à filtrer, ce n'est pas la CSP | |

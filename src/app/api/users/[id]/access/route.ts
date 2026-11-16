@@ -6,7 +6,8 @@ import { isAdminRole, isViewer } from '@/lib/access'
 
 // Replaces what a client / property / department manager can see.
 // Body: { clientIds: string[], propertyIds: string[] } (a client = all its properties, including future ones)
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const admin = await requireUser()
   const lang = langOf(admin)
   if (!isAdminRole(admin.role)) return apiError(lang, 'forbidden')

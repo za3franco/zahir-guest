@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg('This workspace is not billed online.', "Cet espace n'est pas facturé en ligne.") }, { status: 400 })
   }
 
-  const currency = workspaceCurrency(tenant, body.currency)
+  const currency = await workspaceCurrency(tenant, body.currency)
 
   // ── MAD: YouCan Pay ─────────────────────────────────────────────
   if (currency === 'MAD') {

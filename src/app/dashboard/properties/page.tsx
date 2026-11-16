@@ -13,11 +13,8 @@ const T = {
   archivedTitle: { en: 'Archived properties', fr: 'Établissements archivés' },
 }
 
-export default async function PropertiesPage({
-  searchParams,
-}: {
-  searchParams: { archived?: string }
-}) {
+export default async function PropertiesPage({ searchParams: searchParamsP }: { searchParams: Promise<{ archived?: string }> }) {
+  const searchParams = await searchParamsP
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]

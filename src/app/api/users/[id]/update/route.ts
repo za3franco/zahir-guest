@@ -6,8 +6,9 @@ import { ASSIGNABLE_ROLES } from '@/lib/access'
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const params = await ctx.params
   const currentUser = await requireUser()
   const lang = langOf(currentUser)
 

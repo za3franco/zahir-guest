@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic'
 
 // Authenticated photo viewer: checks the visitor may see this campaign, then redirects to a short-lived signed URL.
 // Photos are never public; reports and screens reference /api/photos/<id>.
-export async function GET(_req: Request, { params }: { params: { photoId: string } }) {
+export async function GET(_req: Request, ctx: { params: Promise<{ photoId: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 

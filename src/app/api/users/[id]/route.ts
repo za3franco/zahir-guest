@@ -6,8 +6,9 @@ import { sendRemovedEmail } from '@/lib/accountEmails'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const params = await ctx.params
   const currentUser = await requireUser()
   const lang = langOf(currentUser)
 

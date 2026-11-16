@@ -22,11 +22,8 @@ const T = {
   },
 }
 
-export default async function CampaignsPage({
-  searchParams,
-}: {
-  searchParams: { status?: string; from?: string; to?: string; property?: string; client?: string }
-}) {
+export default async function CampaignsPage({ searchParams: searchParamsP }: { searchParams: Promise<{ status?: string; from?: string; to?: string; property?: string; client?: string }> }) {
+  const searchParams = await searchParamsP
   const user = await requireUser()
   const lang = user.default_language === 'en' ? 'en' : 'fr'
   const t = (key: { en: string; fr: string }) => key[lang]

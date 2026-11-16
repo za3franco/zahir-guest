@@ -5,7 +5,8 @@ import { requireUser } from '@/lib/auth'
 import { isAdminRole } from '@/lib/access'
 
 // Rename / archive (is_active=false) a workspace-owned questionnaire. Platform templates are read-only.
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
@@ -21,7 +22,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // Deletes a workspace questionnaire. Refused when campaigns use it (their reports depend on it): archive it instead.
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params
   const user = await requireUser()
   const lang = langOf(user)
   if (!isAdminRole(user.role)) return apiError(lang, 'forbidden')
