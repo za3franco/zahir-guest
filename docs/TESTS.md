@@ -205,6 +205,6 @@ Méthode : version de test Vercel (utilise la vraie base), compte administrateur
 | Portail de facturation (`/api/billing/portal`) : session Stripe créée | validé |
 | Changement d'offre Hôtel → Professional puis retour (`/api/billing/change`), sans carte : 200, rien de facturé | validé |
 | Montée avec carte enregistrée et facturation immédiate (`always_invoice`) ; carte refusée | non testable sans carte : reste pour Arnaud |
-| Bouton Delete du super admin avec abonnement actif (annulation par `DELETE /v1/subscriptions/{id}` avec la clé restreinte) | à faire par Arnaud (espace « ZG TEST Stripe 100 (Claude) »), vérification par Claude ensuite |
+| Bouton Delete du super admin avec abonnement actif (annulation par `DELETE /v1/subscriptions/{id}` avec la clé restreinte) | **validé le 16 nov.** : Arnaud a supprimé l'espace de test avec abonnement actif ; abonnement `canceled` côté Stripe, espace et comptes disparus, aucune erreur dans les journaux |
 | Pièges : le bouton « S'abonner » est dans une iframe (`js.stripe.com/v3/elements-inner-…`), l'apostrophe est typographique ; une session créée sans `adaptive_pricing: {enabled: false}` s'affiche en dollars ; le code ZAHIRTEST100 est « une fois » (1ʳᵉ facture seulement) | |
 
