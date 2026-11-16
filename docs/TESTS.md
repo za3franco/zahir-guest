@@ -196,3 +196,15 @@ Méthode : version de test Vercel (utilise la vraie base), compte administrateur
 | Migration 017 : droits de `anon` retirés, `authenticated` et `service_role` conservés, chemin de recherche figé ; alertes Supabase correspondantes disparues | validé en base |
 | Écran super admin, facturation Stripe, paiement YouCan, email réel sous Next 15 | non testés en version de test (pas de clés, pas de compte super admin) ; contrôle en production après la fusion |
 | Piège : Google Fonts et un autre hôte sont bloqués par le réseau du bac à sable (« Failed to load resource ») : à filtrer, ce n'est pas la CSP | |
+
+## Clé Stripe restreinte et paiement à 0 € avec ZAHIRTEST100 (16 nov. soir, production)
+| Test | Statut |
+| :- | :- |
+| Clé restreinte dans Vercel : « Last used » de la clé dans Stripe, page Ventes du super admin sans erreur, 2 sessions de paiement par la route publique (EUR et USD), aucune erreur dans les journaux | validé |
+| Parcours réel à 0 € : session Stripe avec la réduction appliquée (la page ne sait pas appliquer un code sous automatisation), « S'abonner » dans l'iframe, webhook, espace créé, abonnement actif, facture 79 € ramenée à 0 € | validé |
+| Portail de facturation (`/api/billing/portal`) : session Stripe créée | validé |
+| Changement d'offre Hôtel → Professional puis retour (`/api/billing/change`), sans carte : 200, rien de facturé | validé |
+| Montée avec carte enregistrée et facturation immédiate (`always_invoice`) ; carte refusée | non testable sans carte : reste pour Arnaud |
+| Bouton Delete du super admin avec abonnement actif (annulation par `DELETE /v1/subscriptions/{id}` avec la clé restreinte) | à faire par Arnaud (espace « ZG TEST Stripe 100 (Claude) »), vérification par Claude ensuite |
+| Pièges : le bouton « S'abonner » est dans une iframe (`js.stripe.com/v3/elements-inner-…`), l'apostrophe est typographique ; une session créée sans `adaptive_pricing: {enabled: false}` s'affiche en dollars ; le code ZAHIRTEST100 est « une fois » (1ʳᵉ facture seulement) | |
+
