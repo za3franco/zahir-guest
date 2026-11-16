@@ -70,12 +70,46 @@ Attendu après 1 A à 1 E (D inclus) : 0 campagne, 0 établissement, 0 client, 1
 - Alertes Supabase : protection contre les mots de passe divulgués désactivée ; durée des liens (OTP) supérieure à une heure ; deux fonctions (`current_user_role`, `current_user_tenant_id`) appelables sans connexion ; chemin de recherche non figé sur 3 fonctions.
 - Le bucket `audit-reports` est public et le code ne l'utilise pas (aucune référence).
 
-### À faire par vous (chacun demande votre compte)
-1. **Supabase → Authentication** : activer « Leaked password protection » (peut demander l'offre Pro). **Durée des liens (OTP expiry)** : Supabase recommande moins d'une heure, mais nos emails d'invitation disent « 24 heures » et utilisent ce même réglage. À décider : garder 24 h (risque limité, le jeton est après le `#`, à usage unique) ou descendre à 1 h et changer le texte des emails. Activer l'A2F du compte propriétaire Supabase.
-2. **Vercel** : A2F de chaque membre ; Firewall → règle de limitation de débit sur `/api/*` et protection contre les robots (l'outil n'a pas pu lire le pare-feu : reconnecter l'intégration Vercel si vous voulez que je vérifie).
-3. **GitHub** : protéger `main` (pull request obligatoire, pas de force push) ; activer l'analyse des secrets et la « push protection », Dependabot, l'A2F ; supprimer les branches `claude/*` déjà fusionnées (une vingtaine).
-4. **Brevo** : A2F ; clé API réservée à l'envoi ; DKIM, SPF et DMARC déjà « pass » le 14 nov. ; restreindre les adresses IP si l'offre le permet.
-5. **Stripe** : A2F ; clé « restricted » (droits strictement nécessaires) à la place de la clé secrète complète ; alertes de paiement suspect (Radar). **YouCan Pay** : A2F.
+### À faire par vous : guide détaillé (ordre conseillé, environ 1 h 30 en tout)
+Les intitulés exacts des menus changent parfois chez ces services : si un intitulé diffère un peu, prenez le plus proche, ou dites-moi ce que vous voyez. Mots de passe : jamais dans le chat ni dans le dépôt. Pour chaque A2F, utilisez une application d'authentification (Google Authenticator, Authy, 1Password) et gardez les codes de secours hors de l'ordinateur.
+
+**1. Activer l'A2F (double authentification) sur chaque compte : 20 min, le geste le plus utile**
+- GitHub : photo de profil (en haut à droite) → Settings → Password and authentication → Two-factor authentication → Enable.
+- Vercel : photo de profil → Settings (de votre compte) → Authentication → activer l'authentification à deux facteurs. Puis, dans l'équipe : Settings → Members, vérifier que chaque membre a le sien (sinon le leur demander).
+- Supabase : avatar en bas à gauche → Account preferences → Security → Enable two-factor authentication.
+- Brevo : nom du compte en haut à droite → Profil / Security → Two-factor authentication.
+- Stripe : photo en haut à droite → Personal settings (Paramètres personnels) → Security → ajouter une application d'authentification ou une clé d'accès (passkey).
+- YouCan Pay : espace vendeur → Paramètres du compte / Sécurité. Si vous ne trouvez pas l'option, écrivez-moi : ce sera à demander à leur support.
+
+**2. GitHub : protéger `main` et activer les alertes : 15 min**
+Ouvrez github.com/za3franco/zahir-guest → Settings.
+- Branches (ou Rules → Rulesets) → Add branch ruleset / Add rule : nom « main », cible `main` → cocher « Require a pull request before merging » (mettre 0 approbation requise, vous êtes seul) et « Block force pushes ». Ne cochez rien d'autre. Mes fusions passent par des pull requests : elles continueront de marcher.
+- Settings → General → section « Pull Requests » → cocher « Automatically delete head branches » : les branches fusionnées se suppriment seules.
+- Settings → Code security (ou « Advanced Security ») : activer Dependabot alerts et Dependabot security updates ; activer Secret scanning et Push protection si l'option est proposée (selon l'offre GitHub, elle peut être payante pour un dépôt privé : ce n'est alors pas indispensable, le dépôt ne contient aucune clé, vérifié).
+- Nettoyage : onglet Code → « branches » → corbeille à droite de chaque branche `claude/...` déjà fusionnée (une vingtaine). Gardez `main`.
+
+**3. Vercel : pare-feu : 20 min**
+vercel.com → équipe → projet « zahir-guest » → onglet Firewall.
+- Custom Rules → Add rule : nom « Limite API » ; condition : « Request Path » « Starts with » `/api/` ; ET « Request Path » « Does not start with » `/api/webhooks` ET `/api/cron` (les robots de Stripe, YouCan et de Vercel ne doivent jamais être freinés) ; action : « Rate Limit » ; 300 requêtes par minute par adresse IP (large : la synchronisation hors ligne envoie des rafales). Choisissez d'abord « Log » si l'option existe, regardez quelques jours, puis passez à la limitation.
+- Bot Management (ou « Bot Protection ») : mode « Log » d'abord, puis « Challenge » plus tard. Ne pas bloquer d'emblée : un auditeur sur son téléphone ne doit pas être gêné.
+- Ne touchez pas à « Deployment Protection » : la protection des versions de test est déjà en place.
+
+**4. Supabase : réglages de connexion : 10 min**
+Adresse directe : https://supabase.com/dashboard/project/fnrafhbautactzhemmjb/auth/providers (cette page existe, confirmée dans leur documentation ; les libellés exacts des options ci-dessous n'ont pas pu être confirmés aujourd'hui).
+- **Mots de passe divulgués** : dans les réglages de connexion par email ou la rubrique « Password security », cherchez « Prevent use of leaked passwords » (ou « Leaked password protection ») et activez. Si l'interrupteur est grisé ou demande l'offre Pro, c'est une limite de l'offre : laissez, l'alerte restera, sans gravité.
+- **Durée des liens (« Email OTP Expiration »)** : actuellement plus d'une heure. Mon conseil : **ne rien changer**. Nos emails d'invitation promettent 24 heures et utilisent ce même réglage ; le lien est à usage unique et son jeton n'apparaît jamais dans l'adresse. Si vous préférez 1 heure (3600), dites-le-moi : je change aussi le texte des emails (« expire dans 1 heure ») avant que vous ne changiez le réglage.
+
+**5. Brevo : 10 min**
+- A2F (voir 1). Menu du compte → SMTP & API → Clés API : vérifier qu'une seule clé existe, celle de Zahir Guest. Si d'autres traînent, les supprimer (jamais celle de Zahir Guest : l'envoi des emails s'arrêterait).
+- **Ne pas** limiter les « Authorised IPs » : Vercel n'a pas d'adresse fixe, tous nos emails seraient refusés. (Ce conseil de la liste du 14 nov. est retiré.)
+- Domaine : Senders, Domains & Dedicated IPs → Domains → zahirguest.com : les états DKIM et DMARC doivent être verts (ils l'étaient le 14 nov.).
+
+**6. Stripe : clé restreinte (le plus délicat, à faire en dernier, 30 min)**
+Aujourd'hui, la clé complète est dans Vercel. Une clé « restreinte » limite les dégâts si elle fuit. Droits que le code utilise (relevé dans le code le 16 nov.) :
+- Checkout Sessions : écriture ; Customer portal (Billing portal sessions) : écriture ; Subscriptions : écriture (modifier, annuler, lister) ; Customers : lecture ; PaymentMethods : lecture ; Prices : lecture ; Invoices : lecture ; Coupons : lecture.
+Étapes : Stripe → Developers (Développeurs) → API keys → « Create restricted key » → nommer « Zahir Guest serveur » → régler chaque ressource ci-dessus (tout le reste sur « None ») → créer, copier la valeur.
+Puis Vercel → projet → Settings → Environment Variables → `STRIPE_SECRET_KEY` : remplacer la valeur (type « Sensitive »), redéployer. **Prévenez-moi avant** : je teste la facturation et la page Ventes juste après et, si un droit manque (page Ventes vide, annulation refusée), vous ajoutez le droit manquant. Gardez l'ancienne clé active tant que tout n'est pas vérifié, puis supprimez-la (API keys → Roll / Delete).
+- Radar : Stripe → Radar → Rules : laisser les règles par défaut activées. Notifications : Settings → Notifications → activer les alertes de paiement échoué et de litige.
 
 ### Fait par Claude le 16 nov. avec l'accord d'Arnaud (points 6 à 9 : voir `docs/ZG7_BRIEF.md`, « Fait le 16 nov. (après-midi, UTC) ») ; le texte d'origine est conservé ci-dessous
 6. **Migration 017** (`sql/017_security_definer_hardening.sql`, sur la branche de la PR n°49) : les deux fonctions ne sont plus appelables sans connexion, chemin de recherche figé. Elle ne change rien pour les personnes connectées. Je l'applique et je vérifie en base, ou vous la collez :
