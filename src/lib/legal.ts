@@ -11,7 +11,7 @@ export const LEGAL = {
   directorOfPublication: 'Arnaud Hébrard',
   email: SUPPORT_EMAIL,
   host: 'Vercel Inc. (hosting), Supabase (database, EU region Frankfurt)',
-  updated: { fr: '15 novembre 2026', en: '15 November 2026' },
+  updated: { fr: '16 novembre 2026', en: '16 November 2026' },
   governingLaw: { fr: 'droit marocain', en: 'Moroccan law' },
   courts: { fr: 'tribunaux compétents de Casablanca (Maroc)', en: 'the competent courts of Casablanca (Morocco)' },
   deletionDays: 90,

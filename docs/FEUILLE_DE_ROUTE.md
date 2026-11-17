@@ -38,6 +38,11 @@ Détail et décisions : `docs/ZG6_BRIEF.md` (archive). Reste seulement le test A
 - **Mises en attente** : crédits à l'audit (attendre des cabinets inscrits), domaine personnalisé (sur une vraie demande Enterprise).
 - **Abandonnés** : liaison de compte Za3fran.io (l'encart de pub sur Za3fran.io suffit), thème clair de la marque blanche (le build actuel suffit).
 
+## Fait le 16 nov. 2026 (soir)
+- Sécurité : Next.js 15.5.29, en-têtes et CSP, migrations 017 et 018, clé Stripe restreinte, réglages de comptes par Arnaud ; nettoyage de la base ; test à 0 € du paiement, du portail et du changement d'offre ; bouton Delete éprouvé avec un abonnement actif. Voir `docs/GUIDE_NETTOYAGE_ET_SECURITE.md` et `docs/ZG7_BRIEF.md`.
+- Statistiques d'audience : Vercel Web Analytics sans cookie (code prêt, activation dans Vercel par Arnaud).
+- Reste : J+14 et désinscription (17 nov.), suppression de l'espace de test Découverte, tests d'Arnaud (Android, sous-sol, carte, YouCan, iPhone).
+
 ## Plus tard
 ### Paiement à l'audit (crédits)
 - Ne démarrer que lorsque des cabinets s'inscrivent. Hypothèse non testée : environ 9 € par audit publié au-delà du volume inclus, pour les opérateurs du programme Ministère et les cabinets.

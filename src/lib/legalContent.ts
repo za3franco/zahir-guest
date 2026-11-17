@@ -42,7 +42,7 @@ export const PRIVACY: Record<Lang, LegalDoc> = {
         "Les questions que vous posez à l'assistant sont transmises à Anthropic pour générer une réponse, avec les guides d'aide de la plateforme. N'y saisissez pas de données sensibles ou d'informations personnelles inutiles. Les réponses peuvent contenir des erreurs. Vous pouvez à tout moment contacter l'équipe support à la place.",
       ] },
       { h: '6. Cookies et traceurs', p: [
-        "Nous utilisons uniquement des cookies strictement nécessaires : cookies de session d'authentification (pour vous maintenir connecté) et, pour les administrateurs de la plateforme, un cookie de session technique lié au support. Nous n'utilisons ni cookies publicitaires, ni outils de mesure d'audience tiers. Aucun bandeau de consentement n'est donc requis à ce jour.",
+        "Nous utilisons uniquement des cookies strictement nécessaires : cookies de session d'authentification (pour vous maintenir connecté) et, pour les administrateurs de la plateforme, un cookie de session technique lié au support. Nous n'utilisons aucun cookie publicitaire. Nous mesurons la fréquentation des pages publiques du site avec Vercel Web Analytics, l'outil de notre hébergeur : sans cookie, sans identifiant publicitaire, sans suivi d'un site à l'autre ni profil individuel ; l'application connectée n'est pas mesurée. Aucun bandeau de consentement n'est donc requis à ce jour.",
       ] },
       { h: '7. Combien de temps conservons-nous les données ?', p: [
         "Pendant la durée de votre contrat. À la fin du contrat, nous supprimons ou anonymisons les données de votre espace sur demande et, en tout état de cause, au plus tard " + LEGAL.deletionDays + " jours après la résiliation, sauf obligation légale de conservation (par exemple pour la facturation).",
@@ -92,7 +92,7 @@ export const PRIVACY: Record<Lang, LegalDoc> = {
         'Questions you ask the assistant are sent to Anthropic to generate an answer, together with the platform help guides. Do not enter sensitive data or unnecessary personal information. Answers may contain mistakes. You can contact the support team instead at any time.',
       ] },
       { h: '6. Cookies and trackers', p: [
-        'We only use strictly necessary cookies: authentication session cookies (to keep you signed in) and, for platform administrators, a technical session cookie linked to support. We use no advertising cookies and no third-party analytics. No consent banner is therefore required at this time.',
+        'We only use strictly necessary cookies: authentication session cookies (to keep you signed in) and, for platform administrators, a technical session cookie linked to support. We use no advertising cookies. We measure traffic on the public pages of the site with Vercel Web Analytics, the tool of our hosting provider: no cookie, no advertising identifier, no cross-site tracking and no individual profile; the signed-in application is not measured. No consent banner is therefore required at this time.',
       ] },
       { h: '7. How long do we keep data?', p: [
         'For the duration of your contract. When the contract ends, we delete or anonymise your workspace data on request and, in any case, no later than ' + LEGAL.deletionDays + ' days after termination, unless the law requires us to keep it (for example for invoicing).',
