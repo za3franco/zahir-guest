@@ -59,7 +59,8 @@ Légende : validé (Claude), partiel, bloqué, pour Arnaud.
 | Un 2e audit refusé envoie l'email « quota atteint » avec le bouton « Passer à Hôtel » ; le bouton mène à la facturation | validé en production le 13 nov. |
 | Le lien de désinscription fonctionne | validé : page de confirmation puis « Done », `nurture_unsubscribed_at` rempli |
 | Email J+2 | **validé le 16 nov. en production** (espace de test vieilli par SQL ; tâche quotidienne de 08:43 UTC : « 1 sent », email lu dans Gmail : contenu, bouton, lien de désinscription présent ; base : `["d2"]`) |
-| Email J+14 et lien de désinscription de cet email | en cours : attendu le 17 nov. à 08:43 UTC (espace vieilli à 15 jours), contrôle programmé à 09 h 10 UTC ; résultats dans `docs/ZG7_BRIEF.md` |
+| Email J+14 | **validé le 17 nov. en production** (tâche de 08:43 UTC : « 1 sent » ; email lu dans Gmail : liste des avantages, 79 €, bouton « Passer à Hôtel → » vers `/dashboard/billing#plans` ; base : `["d2","d14"]`) |
+| Lien de désinscription (email J+14) | **validé le 17 nov. en production** : l'ouverture seule ne désinscrit pas (`nurture_unsubscribed_at` vide), le bouton « Me désinscrire » écrit la date et affiche la confirmation ; iPhone 14 émulé, sans défilement latéral |
 | Inscription Découverte en production (15 nov.) : formulaire, email de bienvenue, lien de suivi Brevo → `/auth/set-password?type=invite#token_hash`, mot de passe, tableau de bord, jeton absent des requêtes | validé le 15 nov. (iPhone 14 émulé, Gmail lu par Claude) |
 
 ### ZG-5
