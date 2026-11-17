@@ -223,6 +223,12 @@ Conduite : méthode « avancer d'un trait », sans demander à chaque phase.
 - **Reste pour Arnaud** : supprimer l'espace « ZG TEST Découverte 15 nov (Claude) » dans le module super admin (bloc E de `docs/GUIDE_NETTOYAGE_ET_SECURITE.md`) ; Claude vérifie ensuite en base (plus que « Za3fran Consulting », aucun compte orphelin). Le compte d'authentification orphelin a déjà disparu (nettoyage du 16 nov.).
 - Aucun code modifié, aucune migration.
 
+### Fait le 17 nov. (fin de journée, UTC) : espace de test supprimé, sécurité déclarée faite par Arnaud
+- **Espace de test Découverte supprimé par Arnaud (module super admin) : vérifié en base.** 1 seul espace (« Za3fran Consulting »), 1 utilisateur (le super admin), 1 compte d'authentification, **0 compte orphelin**, 0 campagne, 0 établissement. Plus aucun espace ni compte de test.
+- **Tâches de sécurité (partie 2 de `docs/GUIDE_NETTOYAGE_ET_SECURITE.md`) : faites, d'après Arnaud.** Claude ne peut pas relire les réglages des tableaux de bord (Supabase, Vercel, GitHub, Brevo, Stripe, YouCan) ; seule la production est contrôlée : accueil, `/login`, `/contact` répondent 200 ; en-têtes de sécurité présents (CSP, HSTS, `X-Frame-Options: DENY`) ; **aucune erreur d'exécution Vercel sur 3 h**.
+- **Plus rien d'ouvert** dans la feuille de route hors faits extérieurs : crédits à l'audit (attendre des cabinets inscrits), domaine personnalisé et emails niveau 2 (attendre une demande Enterprise). Tests qui restent à Arnaud : montée Hôtel → Professional avec sa carte, paiement YouCan, Android et sous-sol, contrôle sur un vrai iPhone.
+- Aucun code modifié, aucune migration.
+
 ### Liste de nettoyage à clic d'Arnaud (module super admin, écran des espaces, bouton Delete) — **FAITE le 14 nov., voir plus haut ; liste conservée pour mémoire**
 1. **ZG TEST Modale (Claude)** (Professional, abonnement Stripe fictif ; compte `zg-modale@example.com`).
 2. **ZG TEST — Claude (ne pas utiliser)** (interne ; comptes `zg-test-auditor`, `zg-iphone`, `zg-test-admin` et les deux invités de test) : à supprimer quand on n'a plus besoin des tests de Claude ; sinon le garder, il sert aux prochains tests.
