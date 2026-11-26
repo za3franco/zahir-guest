@@ -44,6 +44,14 @@ export const ICON_PATHS = {
   receipt: { d: 'M8 3h16v26l-3-2-2 2-3-2-3 2-2-2-3 2zM12 9h8M12 13h8M12 17h5', cx: 20, cy: 22 },
   stamp: { d: 'M13 4h6v8h-6zM8 12h16v6H8zM6 22h20M6 27h20', cx: 16, cy: 15 },
   door: { d: 'M6 4h14v24H6zM13 16h1M20 16h9M25 12l4 4-4 4', cx: 13, cy: 16 },
+  envelope: { d: 'M4 8h24v17H4zM4 8l12 10 12-10', cx: 24, cy: 22 },
+  // Establishment types
+  hotel: { d: 'M7 28V5h18v23M3 28h26M11 9h2M19 9h2M11 14h2M19 14h2M11 19h2M19 19h2M14 28v-5h4v5', cx: 21, cy: 24 },
+  riad: { d: 'M4 28V9h24v19M3 28h26M4 9l2-3h20l2 3M12 28v-7a4 4 0 0 1 8 0v7M8 13h3M21 13h3', cx: 16, cy: 14 },
+  resort: { d: 'M12 26V14M12 14c-3-4-7-4-9-2M12 14c3-4 7-4 9-2M12 14c-1-5 1-8 4-9M3 28c3-2 5-2 8 0s5 2 8 0 5-2 8 0', cx: 25, cy: 8 },
+  guesthouse: { d: 'M5 14l11-9 11 9M8 12v16h16V12M14 28v-6h4v6M3 28h26M19 16h2', cx: 11, cy: 17 },
+  apartment: { d: 'M8 28V4h16v24M3 28h26M8 10h16M8 16h16M8 22h16M14 28v-3h4v3', cx: 20, cy: 7 },
+  pavilion: { d: 'M3 28h26M7 28V13M25 28V13M5 13h22M5 13l11-7 11 7M12 28v-6a4 4 0 0 1 8 0v6', cx: 16, cy: 10 },
 } as const
 
 export type IconName = keyof typeof ICON_PATHS
@@ -64,4 +72,11 @@ export function ZahirMark({ size = 28, color = 'currentColor' }: { size?: number
       <circle cx="16" cy="19" r="1.8" fill="var(--color-gold)" stroke="none" />
     </svg>
   )
+}
+
+const TYPE_ICON: Record<string, IconName> = { hotel: 'hotel', riad: 'riad', resort: 'resort', guesthouse: 'guesthouse', apartment: 'apartment', other: 'pavilion' }
+
+/** Pictogram of an establishment type (hotel, riad, resort, guesthouse, apartment, other). */
+export function PropertyTypeIcon({ type, size = 20, title }: { type: string | null | undefined; size?: number; title?: string }) {
+  return <ZIcon name={TYPE_ICON[type ?? ''] ?? 'hotel'} size={size} title={title} />
 }

@@ -143,7 +143,7 @@ export default function AuditSubmit({
 
       {hasIncomplete && (
         <div className={styles.warningBanner}>
-          ⚠️ {t(T.warningIncomplete)}
+          {t(T.warningIncomplete)}
         </div>
       )}
 
@@ -194,13 +194,13 @@ export default function AuditSubmit({
       {notices}
       {blocked && !['closed', 'forbidden'].includes(sync.state) && (
         <div className={styles.warningBanner} role="status">
-          ⚠️ {blockMsg}{' '}
+          {blockMsg}{' '}
           {canRetry && (sync.state !== 'idle' && sync.state !== 'syncing') && (
             <button type="button" className="btn btn-ghost btn-sm" onClick={onSync}>{t(T.retry)}</button>
           )}
         </div>
       )}
-      {submitError && <div className={styles.warningBanner} role="alert">⚠️ {submitError}</div>}
+      {submitError && <div className={styles.warningBanner} role="alert">{submitError}</div>}
 
       {/* Submit */}
       {!showConfirm ? (

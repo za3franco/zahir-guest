@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import OnboardingChecklist from './OnboardingChecklist'
 import PrepaidBanner from './PrepaidBanner'
 import styles from './dashboard.module.css'
+import { PropertyTypeIcon } from '@/components/icons/ZahirIcons'
 
 const T = {
   greeting: { en: 'Hello', fr: 'Bonjour' },
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
       .limit(5),
     supabaseAdmin
       .from('properties')
-      .select('id, name, city, category')
+      .select('id, name, city, category, type')
       .eq('tenant_id', user.tenant_id)
       .eq('is_archived', false)
       .order('name')
@@ -235,7 +236,7 @@ export default async function DashboardPage() {
             <p className={styles.empty}>{t(T.noProperties)}</p>
           ) : (properties ?? []).map((p: any) => (
             <a key={p.id} href={`/dashboard/properties/${p.id}`} className={styles.propertyCard}>
-              <div className={styles.propertyCardIcon}>🏨</div>
+              <div className={styles.propertyCardIcon}><PropertyTypeIcon type={p.type} size={32} /></div>
               <div className={styles.propertyCardName}>{p.name}</div>
               <div className={styles.propertyCardMeta}>{[p.city, p.category].filter(Boolean).join(' · ')}</div>
             </a>

@@ -248,8 +248,9 @@
 .propertyCard:hover { border-color: var(--color-gold); }
 
 .propertyCardIcon {
-  font-size: 1.5rem;
-  margin-bottom: 4px;
+  color: var(--color-ivory);
+  margin-bottom: 8px;
+  display: flex;
 }
 
 .propertyCardName {

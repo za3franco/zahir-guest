@@ -7,6 +7,7 @@ import { notFound, redirect } from 'next/navigation'
 import type { Property, Campaign } from '@/types'
 import { STATUS_LABELS } from '@/types'
 import styles from './property.module.css'
+import { PropertyTypeIcon } from '@/components/icons/ZahirIcons'
 
 const T = {
   backToProperties: { en: '← Properties', fr: '← Établissements' },
@@ -64,9 +65,6 @@ const TYPE_LABELS: Record<string, { en: string; fr: string }> = {
   other: { en: 'Other', fr: 'Autre' },
 }
 
-const PROPERTY_TYPE_ICONS: Record<string, string> = {
-  hotel: '🏨', riad: '🏯', resort: '🌴', guesthouse: '🏠', apartment: '🏢', other: '🏛️',
-}
 
 export default async function PropertyDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
   const params = await paramsP
@@ -133,7 +131,7 @@ export default async function PropertyDetailPage({ params: paramsP }: { params: 
 
       <div className={styles.propertyHeader}>
         <div className={styles.propertyIconLarge}>
-          {PROPERTY_TYPE_ICONS[p.type] ?? '🏨'}
+          <PropertyTypeIcon type={p.type} size={40} />
         </div>
         <div>
           <h1 className={styles.propertyName}>{p.name}</h1>

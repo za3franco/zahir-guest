@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { User } from '@/types'
 import styles from './InviteForm.module.css'
+import { ZIcon } from '@/components/icons/ZahirIcons'
 
 const T = {
   title: { en: 'Invite a user', fr: 'Inviter un utilisateur' },
@@ -95,7 +96,7 @@ export default function InviteForm({ user }: InviteFormProps) {
     return (
       <div className={styles.page}>
         <div className={styles.successCard}>
-          <div className={styles.successIcon}>✉️</div>
+          <div className={styles.successIcon}><ZIcon name="envelope" size={40} /></div>
           <h1 className={styles.successTitle}>{t(T.successTitle)}</h1>
           <p className={styles.successMessage}>{t(T.successMessage)} <strong>{success}</strong>.</p>
           <p className={styles.successHint}>{t(T.successHint)}</p>

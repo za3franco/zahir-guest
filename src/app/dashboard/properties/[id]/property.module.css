@@ -33,8 +33,15 @@
 }
 
 .propertyIconLarge {
-  font-size: 3rem;
-  line-height: 1;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-slate-navy);
+  color: var(--color-ivory);
+  flex-shrink: 0;
 }
 
 .propertyName {
