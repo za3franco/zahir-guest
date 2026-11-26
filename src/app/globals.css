@@ -346,3 +346,4 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 500; letter-spacing:
 .zg-seal b { font-family: var(--font-display); font-weight: 500; font-size: 2.25rem; line-height: 1; color: var(--color-ivory); }
 .zg-seal span { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; }
 ::selection { background: rgba(138, 90, 24, 0.2); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
