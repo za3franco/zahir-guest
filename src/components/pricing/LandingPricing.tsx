@@ -43,7 +43,7 @@ const T = {
 export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: Lang; madEnabled: boolean; demoHref: string }) {
   const [currency, setCurrency] = useState<Currency>('EUR')
   const [annual, setAnnual] = useState(false)
-  const [proProps, setProProps] = useState(TIER_RULES.professional.includedProperties)
+  const [counts, setCounts] = useState<Record<PlanTier, number>>({ starter: TIER_RULES.starter.includedProperties, professional: TIER_RULES.professional.includedProperties, enterprise: TIER_RULES.enterprise.includedProperties })
 
   useEffect(() => {
     const c = currencyFromCookieString(document.cookie)
@@ -60,10 +60,13 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
   const interval = annual ? 'annual' : currency === 'MAD' ? 'quarterly' : 'monthly'
 
   const card = (tier: PlanTier) => {
-    const q = quote(tier, currency, interval, tier === 'professional' ? proProps : undefined)
+    const enterprise = tier === 'enterprise'
+    const r = TIER_RULES[tier]
+    const n = counts[tier]
+    const setN = (v: number) => setCounts(c => ({ ...c, [tier]: Math.max(r.includedProperties, Math.min(r.includedProperties + r.maxExtraProperties, v)) }))
+    const q = quote(tier, currency, interval, enterprise ? undefined : n)
     const unitExtra = PRICE_GRID[currency][tier].extra
     const featured = tier === 'professional'
-    const enterprise = tier === 'enterprise'
     const [propsLine, ...rest] = PLAN_FEATURES[tier][lang]
     const features = rest[0]?.endsWith(':') ? rest : [t(T.includes), ...rest]
     // Every card has the same 8 children, laid on a shared row grid (CSS subgrid), so name, price, properties,
@@ -82,13 +85,13 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
         <p className={styles.perProp}>{T.perProperty(money(Math.round(q.perMonth / q.properties)), lang)}</p>
         <div className={styles.slot}>
           <p className={styles.slotLine}>{propsLine}</p>
-          {featured && (
+          {!enterprise && (
             <div className={styles.stepper}>
               <span>{t(T.properties)}</span>
               <div className={styles.stepperCtl}>
-                <button type="button" aria-label={lang === 'en' ? 'One property less' : 'Un établissement de moins'} onClick={() => setProProps(n => Math.max(TIER_RULES.professional.includedProperties, n - 1))}>−</button>
-                <output aria-live="polite">{proProps}</output>
-                <button type="button" aria-label={lang === 'en' ? 'One property more' : 'Un établissement de plus'} onClick={() => setProProps(n => Math.min(TIER_RULES.professional.includedProperties + TIER_RULES.professional.maxExtraProperties, n + 1))}>+</button>
+                <button type="button" aria-label={lang === 'en' ? 'One property less' : 'Un établissement de moins'} disabled={n <= r.includedProperties} onClick={() => setN(n - 1)}>−</button>
+                <output aria-live="polite">{n}</output>
+                <button type="button" aria-label={lang === 'en' ? 'One property more' : 'Un établissement de plus'} disabled={n >= r.includedProperties + r.maxExtraProperties} onClick={() => setN(n + 1)}>+</button>
               </div>
             </div>
           )}

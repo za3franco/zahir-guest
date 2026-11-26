@@ -30,7 +30,8 @@
 .stepper { display: flex; align-items: center; justify-content: space-between; font-size: 0.9375rem; color: #2A2C31; }
 .stepperCtl { display: inline-flex; align-items: center; gap: 10px; }
 .stepperCtl button { width: 40px; height: 40px; border: 1px solid #14161B; background: transparent; color: #14161B; font-size: 1.1rem; line-height: 1; cursor: pointer; }
-.stepperCtl button:hover { background: #14161B; color: #F7F4EE; }
+.stepperCtl button:hover:not(:disabled) { background: #14161B; color: #F7F4EE; }
+.stepperCtl button:disabled { opacity: 0.35; cursor: default; }
 .stepperCtl output { min-width: 2ch; text-align: center; font-family: var(--font-mono); }
 .perProp { margin: 2px 0 var(--space-5); font-family: var(--font-mono); font-size: 0.75rem; color: #5E5A52; }
 .featPlus { border-bottom: 1px solid #C9C0B0 !important; padding-top: 0 !important; padding-bottom: 8px !important; font-size: 0.8125rem !important; letter-spacing: 0.06em; text-transform: uppercase; color: #8A5A18 !important; }
