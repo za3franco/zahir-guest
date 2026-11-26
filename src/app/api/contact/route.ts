@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     (d.message ? p(strong('Message') + '<br>' + esc(d.message).replace(/\n/g, '<br>')) : ''))
   const sentToUs = await sendViaBrevo({
     to: { name: 'Zahir Guest', email: SUPPORT_EMAIL },
-    subject: `[Zahir Guest] Demande Enterprise : ${cleanLine(d.company, 60)} (${d.properties_wanted} établissements)`,
+    subject: `[Zahir Guest] Demande Entreprise : ${cleanLine(d.company, 60)} (${d.properties_wanted} établissements)`,
     html: lead,
     senderName: zahirSenderName(),
     replyTo: { email: d.email, name: cleanLine(d.contact_name, 100, true) || undefined },

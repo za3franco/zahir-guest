@@ -33,7 +33,7 @@ const T = {
   },
   trialNote: {
     en: 'Every workspace starts on the free Discovery plan, no card needed; upgrade from Billing when you are ready. Hotel groups and audit firms: 14-day Professional pilot on request, after a demo. Prices excl. VAT.',
-    fr: "Chaque espace démarre avec l'offre Découverte gratuite, sans carte ; passez à l'offre supérieure depuis Facturation quand vous voulez. Groupes hôteliers et cabinets d'audit : pilote Professional de 14 jours sur demande, après une démo. Prix hors taxes.",
+    fr: "Chaque espace démarre avec l'offre Découverte gratuite, sans carte ; passez à l'offre supérieure depuis Facturation quand vous voulez. Groupes hôteliers et cabinets d'audit : pilote Professionnel de 14 jours sur demande, après une démo. Prix hors taxes.",
   },
 }
 

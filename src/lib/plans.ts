@@ -81,8 +81,8 @@ export const INTERVAL_CHARGED_MONTHS: Record<BillingInterval, number> = { monthl
 
 export const PLAN_NAMES: Record<PlanTier, { en: string; fr: string }> = {
   starter: { en: 'Hotel', fr: 'Hôtel' },
-  professional: { en: 'Professional', fr: 'Professional' },
-  enterprise: { en: 'Enterprise', fr: 'Enterprise' },
+  professional: { en: 'Professional', fr: 'Professionnel' },
+  enterprise: { en: 'Enterprise', fr: 'Entreprise' },
 }
 
 export const FREE_NAME = { en: 'Discovery', fr: 'Découverte' }
