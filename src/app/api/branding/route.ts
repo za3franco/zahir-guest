@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       {
         error: msg(
           'White-label branding is available on the Professional and Enterprise plans.',
-          'La marque blanche est disponible avec les forfaits Professional et Enterprise.'
+          'La marque blanche est disponible avec les forfaits Professionnel et Entreprise.'
         ),
         code: 'plan_limit',
       },

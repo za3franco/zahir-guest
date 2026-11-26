@@ -19,8 +19,8 @@ interface Props {
 
 const T = {
   daysLeft: (n: number, l: Lang) =>
-    l === 'en' ? `Professional pilot: ${n} day${n > 1 ? 's' : ''} left` : `Pilote Professional : ${n} jour${n > 1 ? 's' : ''} restant${n > 1 ? 's' : ''}`,
-  lastDay: { en: 'Professional pilot: last day', fr: 'Pilote Professional : dernier jour' },
+    l === 'en' ? `Professional pilot: ${n} day${n > 1 ? 's' : ''} left` : `Pilote Professionnel : ${n} jour${n > 1 ? 's' : ''} restant${n > 1 ? 's' : ''}`,
+  lastDay: { en: 'Professional pilot: last day', fr: 'Pilote Professionnel : dernier jour' },
   expiredAdmin: {
     en: 'Your pilot has ended: the workspace is now on the free Discovery plan (your data is kept). Choose a plan to keep everything unlocked.',
     fr: "Votre pilote est terminé : l'espace est passé à l'offre gratuite Découverte (vos données sont conservées). Choisissez une offre pour tout garder débloqué.",

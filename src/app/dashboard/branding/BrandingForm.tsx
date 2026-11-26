@@ -19,7 +19,7 @@ const T = {
   },
   locked: {
     en: 'White-label branding is included in the Professional and Enterprise plans.',
-    fr: 'La marque blanche est incluse dans les forfaits Professional et Enterprise.',
+    fr: 'La marque blanche est incluse dans les forfaits Professionnel et Entreprise.',
   },
   upgrade: { en: 'View plans', fr: 'Voir les forfaits' },
   name: { en: 'Brand name', fr: 'Nom de la marque' },
