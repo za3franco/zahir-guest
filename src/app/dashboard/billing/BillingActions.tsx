@@ -234,10 +234,10 @@ export function BillingPlans({
         <p className={styles.planNote}>
           {tier === 'starter'
             ? `${t(T.hotelMax)} · +${money(PRICE_GRID[currency].starter.extra!)}`
-            : `${lang === 'en' ? '5 included' : '5 inclus'} · +${money(PRICE_GRID[currency].professional.extra!)} ${lang === 'en' ? 'each' : 'chacun'}`}
+            : `${r.includedProperties} ${lang === 'en' ? 'included' : 'inclus'} · +${money(PRICE_GRID[currency].professional.extra!)} ${lang === 'en' ? 'each' : 'chacun'}`}
         </p>
         <ul className={styles.features}>
-          {PLAN_FEATURES[tier][lang].slice(1).map(f => <li key={f}>{f}</li>)}
+          {PLAN_FEATURES[tier][lang].slice(1).map(f => <li key={f} style={f.endsWith(':') ? { listStyle: 'none', color: 'var(--color-gold)', fontSize: '0.8125rem', textTransform: 'uppercase', letterSpacing: '0.06em' } : undefined}>{f}</li>)}
         </ul>
         <button
           type="button"
@@ -292,7 +292,7 @@ export function BillingPlans({
           </p>
           <p className={styles.planNote}>{t(T.entFor)}</p>
           <ul className={styles.features}>
-            {PLAN_FEATURES.enterprise[lang].map(f => <li key={f}>{f}</li>)}
+            {PLAN_FEATURES.enterprise[lang].map(f => <li key={f} style={f.endsWith(':') ? { listStyle: 'none', color: 'var(--color-gold)', fontSize: '0.8125rem', textTransform: 'uppercase', letterSpacing: '0.06em' } : undefined}>{f}</li>)}
           </ul>
           <a className="btn btn-secondary btn-sm w-full" href={`/contact?lang=${lang}&src=billing`}>{t(T.demo)}</a>
         </div>

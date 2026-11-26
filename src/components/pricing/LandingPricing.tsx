@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { currencyFromCookieString, formatMoney, rememberCurrency, type Currency } from '@/lib/currency'
-import { FREE_FEATURES, FREE_NAME, PLAN_FEATURES, PLAN_NAMES, PRICE_GRID, quote, TIER_RULES, type PlanTier } from '@/lib/plans'
+import { FREE_FEATURES, FREE_NAME, PLAN_COMPARISON, PLAN_FEATURES, PLAN_NAMES, PRICE_GRID, quote, TIER_RULES, type PlanTier } from '@/lib/plans'
 import CurrencySwitcher from './CurrencySwitcher'
 import styles from './pricing.module.css'
 
@@ -22,8 +22,10 @@ const T = {
   freePrice: { en: 'Free', fr: 'Gratuit' },
   talk: { en: 'Talk to us', fr: 'Parlons-en' },
   hotelFor: { en: 'For an independent hotel, riad or boutique hotel', fr: 'Pour un hôtel indépendant, un riad ou un boutique-hôtel' },
-  proFor: { en: 'For hotel groups and mystery audit firms', fr: "Pour les groupes hôteliers et les cabinets d'audit" },
-  entFor: { en: 'For chains and national programmes', fr: 'Pour les chaînes et les programmes nationaux' },
+  proFor: { en: 'For hotel groups and mystery audit firms, from 3 properties', fr: "Pour les groupes hôteliers et les cabinets d'audit, dès 3 établissements" },
+  entFor: { en: 'For chains and national programmes, from 20 properties', fr: 'Pour les chaînes et les programmes nationaux, dès 20 établissements' },
+  perProperty: (price: string, lang: Lang) => (lang === 'en' ? `i.e. ${price} per property a month` : `soit ${price} par établissement et par mois`),
+  compare: { en: 'Compare the plans', fr: 'Comparer les offres' },
   properties: { en: 'Properties', fr: 'Établissements' },
   included: (n: number, lang: Lang) => (lang === 'en' ? `${n} included` : `${n} inclus`),
   extra: (price: string, lang: Lang) => (lang === 'en' ? `+${price} per extra property` : `+${price} par établissement supplémentaire`),
@@ -66,13 +68,13 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
         <h3 className={styles.planName}>{PLAN_NAMES[tier][lang]}</h3>
         <p className={styles.planFor}>{t(tier === 'starter' ? T.hotelFor : featured ? T.proFor : T.entFor)}</p>
         <p className={styles.price}>
-          {enterprise && <small>{t(T.from)} </small>}
           {money(Math.round(q.perMonth))}
           <small>{t(T.perMonth)}</small>
         </p>
         <p className={styles.priceNote}>
           {annual && !enterprise ? `${money(q.total)} ${t(T.billedYear)}` : ' '}
         </p>
+        <p className={styles.perProp}>{T.perProperty(money(Math.round(q.perMonth / q.properties)), lang)}</p>
 
         {featured && (
           <div className={styles.stepper}>
@@ -92,7 +94,7 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
         )}
 
         <ul className={styles.features}>
-          {PLAN_FEATURES[tier][lang].map(f => <li key={f}>{f}</li>)}
+          {PLAN_FEATURES[tier][lang].map(f => <li key={f} className={f.endsWith(':') ? styles.featPlus : undefined}>{f}</li>)}
         </ul>
         {enterprise ? (
           <a href={demoHref} className={styles.btnGhost}>{t(T.talk)}</a>
@@ -127,6 +129,28 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
           {FREE_FEATURES[lang].map(f => <li key={f}>{f}</li>)}
         </ul>
         <Link href="/signup" className={styles.btnPrimary}>{t(T.freeCta)}</Link>
+      </div>
+      <div className={styles.compare}>
+        <h3 className={styles.compareTitle}>{t(T.compare)}</h3>
+        <div className={styles.compareScroll}>
+          <table className={styles.compareTable}>
+            <thead>
+              <tr>
+                <th scope="col"><span className="sr-only">{lang === 'en' ? 'Feature' : 'Fonctionnalité'}</span></th>
+                <th scope="col">{t(FREE_NAME)}</th>
+                {(['starter', 'professional', 'enterprise'] as PlanTier[]).map(tier => <th key={tier} scope="col">{PLAN_NAMES[tier][lang]}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN_COMPARISON.map(row => (
+                <tr key={row.en}>
+                  <th scope="row">{row[lang]}</th>
+                  {row.values.map((v, i) => <td key={i} className={v.en === '—' ? styles.no : undefined}>{v[lang]}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <p className={styles.fine}>
         {t(T.trialNote)}

@@ -1,4 +1,6 @@
-// Plan catalogue (grid v2, ZG-5 — validated 12 Nov 2026; free plan added 13 Nov 2026), limits and price lookup.
+// Plan catalogue (grid v3 — validated by Arnaud 26 Nov 2026; grid v2 of 12 Nov 2026 replaced; free plan since
+// 13 Nov 2026), limits and price lookup. Grid v3: Professional starts at 3 properties and costs more per property
+// than Hotel (it adds features); Enterprise priced at 845 MAD-equivalent per property.
 //
 // Découverte / Discovery (tier 'free') : free forever, 1 property, 2 users, 1 audit per quarter, the
 //                                       "Essentiel" questionnaire only (~60 standards), no AI, no import,
@@ -8,10 +10,10 @@
 //
 // Unit of price = active property (archived properties do not count).
 //   Hotel (internal key 'starter')  : 1 property (+1 optional), 6 users, 6 audits/month, 2 AI summaries/month
-//   Professional                    : 5 properties included, +1 per extra property up to 15, unlimited users/audits,
+//   Professional (« Professionnel »): 3 properties included, +1 per extra property up to 15, unlimited users/audits,
 //                                     10 AI summaries/month + 1 per extra property, white-label
-//   Enterprise                      : 20+ properties, direct contract only (set up by the super admin, request
-//                                     through the contact form); beyond 100 properties, a direct conversation
+//   Enterprise (« Entreprise »)     : 20 properties included, more on quote; direct contract only (set up by the
+//                                     super admin, request through the contact form), one-off set-up fee
 // Annual = 10 × monthly (two months free). MAD is paid through YouCan Pay as a prepaid quarter or year.
 //
 // The internal tier key stays 'starter' (database constraint, existing rows); it is shown as "Hôtel" / "Hotel".
@@ -48,7 +50,7 @@ interface TierRule {
 
 export const TIER_RULES: Record<PlanTier, TierRule> = {
   starter: { includedProperties: 1, maxExtraProperties: 1, users: 6, auditsPerMonth: 6, aiBase: 2, aiPerExtra: 0, whiteLabel: false, selfServe: true },
-  professional: { includedProperties: 5, maxExtraProperties: 10, users: null, auditsPerMonth: null, aiBase: 10, aiPerExtra: 1, whiteLabel: true, selfServe: true },
+  professional: { includedProperties: 3, maxExtraProperties: 12, users: null, auditsPerMonth: null, aiBase: 10, aiPerExtra: 1, whiteLabel: true, selfServe: true },
   enterprise: { includedProperties: 20, maxExtraProperties: 80, users: null, auditsPerMonth: null, aiBase: null, aiPerExtra: 0, whiteLabel: true, selfServe: false },
 }
 
@@ -70,9 +72,9 @@ export const FREE_FEATURES = {
 
 /** Monthly prices per currency: base (included properties) and price of each extra property. */
 export const PRICE_GRID: Record<Currency, Record<PlanTier, { base: number; extra: number | null }>> = {
-  EUR: { starter: { base: 79, extra: 49 }, professional: { base: 249, extra: 39 }, enterprise: { base: 1490, extra: null } },
-  USD: { starter: { base: 89, extra: 55 }, professional: { base: 279, extra: 45 }, enterprise: { base: 1649, extra: null } },
-  MAD: { starter: { base: 790, extra: 490 }, professional: { base: 2490, extra: 390 }, enterprise: { base: 14900, extra: null } },
+  EUR: { starter: { base: 79, extra: 49 }, professional: { base: 299, extra: 69 }, enterprise: { base: 1690, extra: null } },
+  USD: { starter: { base: 89, extra: 55 }, professional: { base: 329, extra: 79 }, enterprise: { base: 1890, extra: null } },
+  MAD: { starter: { base: 790, extra: 490 }, professional: { base: 2990, extra: 690 }, enterprise: { base: 16900, extra: null } },
 }
 
 /** Number of months a billing interval covers, and what it is charged (annual = 10 months: two free). */
@@ -92,20 +94,42 @@ export function planName(tier: string | null | undefined, lang: 'en' | 'fr' = 'f
   return isPlanTier(tier) ? PLAN_NAMES[tier][lang] : null
 }
 
+// Feature lists: the first line is always the properties line (the billing page skips it), then each plan lists
+// what it ADDS to the previous one, so the difference between plans (and the price step) is explicit.
+// Only features that exist in the app (or services Za3fran delivers itself) are listed.
 export const PLAN_FEATURES: Record<PlanTier, { en: string[]; fr: string[] }> = {
   starter: {
-    en: ['1 property (2nd optional)', '6 users', '6 audits / month', '2 AI summaries / month', 'Zahir Guest standards and your own questionnaires'],
-    fr: ['1 établissement (2e en option)', '6 utilisateurs', '6 audits / mois', '2 synthèses IA / mois', 'Standards Zahir Guest et vos propres questionnaires'],
+    en: ['1 property (2nd optional)', '6 users, managers included', '6 audits a month', 'Full library: 570+ hotel standards', 'Your own questionnaires, Excel / CSV import and export', '2 AI-drafted summaries a month', 'PDF report with scores, findings and photos'],
+    fr: ['1 établissement (2e en option)', '6 utilisateurs, directeurs compris', '6 audits par mois', 'Bibliothèque complète : plus de 570 standards hôteliers', 'Vos propres questionnaires, import Excel / CSV et export', '2 synthèses rédigées par l’IA par mois', 'Rapport PDF avec scores, constats et photos'],
   },
   professional: {
-    en: ['5 properties included, up to 15', 'Unlimited users and audits', '10 AI summaries / month + 1 per extra property', 'White-label reports and client portal', 'Analytics across properties'],
-    fr: ['5 établissements inclus, jusqu’à 15', 'Utilisateurs et audits illimités', '10 synthèses IA / mois + 1 par établissement supplémentaire', 'Rapports en marque blanche et portail client', 'Analyses multi-établissements'],
+    en: ['3 properties included, up to 15', 'Everything in Hotel, plus:', 'Unlimited users and audits', '10 AI summaries a month, +1 per extra property', 'White label: your name, logo and colours on the app, reports and emails', 'Your properties compared in the analytics', '14-day pilot after a demo'],
+    fr: ['3 établissements inclus, jusqu’à 15', 'Tout ce que comprend l’offre Hôtel, plus :', 'Utilisateurs et audits illimités', '10 synthèses IA par mois, +1 par établissement supplémentaire', 'Marque blanche : votre nom, votre logo et vos couleurs sur l’app, les rapports et les emails', 'Vos établissements comparés dans les analyses', 'Pilote de 14 jours après une démo'],
   },
   enterprise: {
-    en: ['20 properties included, more on quote', 'Unlimited AI summaries', 'Custom domain and white-label', 'Dedicated onboarding (one-off set-up fee)', 'Annual contract, local invoicing'],
-    fr: ['20 établissements inclus, au-delà sur devis', 'Synthèses IA illimitées', 'Domaine personnalisé et marque blanche', 'Mise en place accompagnée (frais unique)', 'Contrat annuel, facturation locale'],
+    en: ['20 properties included, more on quote', 'Everything in Professional, plus:', 'Unlimited AI summaries', 'Guided set-up: your questionnaires loaded, your users created, your teams trained (one-off fee)', 'A dedicated contact at Za3fran', 'Annual contract, local invoicing'],
+    fr: ['20 établissements inclus, au-delà sur devis', 'Tout ce que comprend l’offre Professionnel, plus :', 'Synthèses IA illimitées', 'Mise en place accompagnée : vos questionnaires chargés, vos utilisateurs créés, vos équipes formées (frais unique)', 'Un interlocuteur dédié chez Za3fran', 'Contrat annuel, facturation locale'],
   },
 }
+
+/** Side-by-side comparison shown under the pricing cards: [Découverte, Hôtel, Professionnel, Entreprise]. */
+export const PLAN_COMPARISON: { en: string; fr: string; values: { en: string; fr: string }[] }[] = (() => {
+  const v = (en: string, fr = en) => ({ en, fr })
+  const yes = v('✓')
+  const no = v('—')
+  return [
+    { en: 'Properties', fr: 'Établissements', values: [v('1'), v('1 (+1 optional)', '1 (+1 en option)'), v('3 included, up to 15', '3 inclus, jusqu’à 15'), v('20 included, more on quote', '20 inclus, au-delà sur devis')] },
+    { en: 'Users', fr: 'Utilisateurs', values: [v('2'), v('6'), v('Unlimited', 'Illimités'), v('Unlimited', 'Illimités')] },
+    { en: 'Audits', fr: 'Audits', values: [v('1 per quarter', '1 par trimestre'), v('6 a month', '6 par mois'), v('Unlimited', 'Illimités'), v('Unlimited', 'Illimités')] },
+    { en: 'Questionnaires', fr: 'Questionnaires', values: [v('Essential (60 standards)', 'Essentiel (60 standards)'), v('Full library + your own', 'Bibliothèque complète + les vôtres'), v('Full library + your own', 'Bibliothèque complète + les vôtres'), v('Loaded for you', 'Chargés pour vous')] },
+    { en: 'Excel / CSV import and export', fr: 'Import et export Excel / CSV', values: [no, yes, yes, yes] },
+    { en: 'PDF report: scores, findings, photos', fr: 'Rapport PDF : scores, constats, photos', values: [yes, yes, yes, yes] },
+    { en: 'AI-drafted summaries', fr: 'Synthèses rédigées par l’IA', values: [no, v('2 a month', '2 par mois'), v('10 a month + 1 per extra property', '10 par mois + 1 par établ. suppl.'), v('Unlimited', 'Illimitées')] },
+    { en: 'White label (name, logo, colours, emails)', fr: 'Marque blanche (nom, logo, couleurs, emails)', values: [no, no, yes, yes] },
+    { en: 'Guided set-up and team training', fr: 'Mise en place accompagnée et formation', values: [no, no, no, yes] },
+    { en: 'Dedicated contact, annual contract, local invoicing', fr: 'Interlocuteur dédié, contrat annuel, facturation locale', values: [no, no, no, yes] },
+  ]
+})()
 
 export const ENTERPRISE_SETUP_FEE: Record<Currency, number> = { EUR: 1500, USD: 1650, MAD: 15000 }
 
