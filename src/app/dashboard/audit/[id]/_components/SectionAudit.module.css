@@ -61,8 +61,8 @@
 }
 
 .progressPill {
-  background: rgba(200, 164, 90, 0.1);
-  border: 1px solid rgba(200, 164, 90, 0.2);
+  background: rgba(138, 90, 24, 0.1);
+  border: 1px solid rgba(138, 90, 24, 0.2);
   border-radius: 999px;
   color: var(--color-gold);
   font-size: 0.75rem;
@@ -90,33 +90,33 @@
 .standardsList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0;
+  border-top: 1px solid var(--color-ivory);
 }
 
 .standard {
-  background: var(--color-slate-navy);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-5) 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  transition: border-color 0.2s ease;
 }
 
 .standardMeet {
-  border-color: rgba(74, 124, 107, 0.4) !important;
-  background: rgba(74, 124, 107, 0.05) !important;
+  border-left: 0 !important;
 }
 
 .standardBelow {
-  border-color: rgba(212, 136, 42, 0.4) !important;
-  background: rgba(212, 136, 42, 0.05) !important;
+  background: rgba(138, 46, 34, 0.035) !important;
+  box-shadow: inset 2px 0 0 var(--color-oxblood);
+  padding-left: var(--space-3) !important;
 }
 
 .standardNa {
-  border-color: rgba(155, 148, 136, 0.3) !important;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .standardHeader {
@@ -126,28 +126,26 @@
 }
 
 .standardNumber {
-  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   color: var(--color-sand);
-  font-weight: 600;
-  background: rgba(255,255,255,0.06);
-  border-radius: 4px;
-  padding: 2px 6px;
+  font-weight: 400;
 }
 
 .criticalBadge {
+  font-family: var(--font-mono);
   font-size: 0.6875rem;
-  color: var(--color-terracotta);
-  border: 1px solid rgba(192, 80, 58, 0.3);
-  border-radius: 4px;
-  padding: 2px 6px;
+  color: var(--color-oxblood);
+  border: 1px solid var(--color-oxblood);
+  padding: 1px 6px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .questionText {
   color: var(--color-ivory);
-  font-size: 0.9375rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -178,7 +176,7 @@
   margin: 0;
   font-style: italic;
   padding: var(--space-2) var(--space-3);
-  background: rgba(255,255,255,0.03);
+  background: rgba(20, 22, 27, 0.03);
   border-radius: var(--radius-md);
   border-left: 2px solid var(--color-gold);
 }
@@ -186,56 +184,57 @@
 /* Response buttons — large tap targets */
 .responseButtons {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--space-2);
+  grid-template-columns: 1fr 1fr 72px;
+  gap: 0;
+  border: 1px solid var(--color-ivory);
 }
 
+.responseBtn:first-child { border-left: 0; }
+
 .responseBtn {
-  padding: var(--space-4) var(--space-2);
-  border-radius: var(--radius-md);
-  border: 2px solid transparent;
+  padding: var(--space-3) var(--space-2);
+  border-radius: 0;
+  border: 0;
+  border-left: 1px solid var(--color-ivory);
   cursor: pointer;
   font-family: var(--font-body);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  transition: all 0.15s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background 0.15s ease, color 0.15s ease;
   min-height: 52px;
+  background: var(--color-paper);
+  color: var(--color-ivory);
 }
 
 .responseMeet {
-  background: rgba(74, 124, 107, 0.1);
-  border-color: rgba(74, 124, 107, 0.3);
-  color: #4A7C6B;
+  background: var(--color-paper);
+  color: var(--color-ivory);
 }
 
 .responseMeet.responseBtnActive {
-  background: rgba(74, 124, 107, 0.25);
-  border-color: #4A7C6B;
-  color: #6BAF96;
+  background: var(--color-ivory);
+  color: var(--color-deep-ink);
 }
 
 .responseBelow {
-  background: rgba(212, 136, 42, 0.1);
-  border-color: rgba(212, 136, 42, 0.3);
-  color: var(--color-amber);
+  background: var(--color-paper);
+  color: var(--color-ivory);
 }
 
 .responseBelow.responseBtnActive {
-  background: rgba(212, 136, 42, 0.25);
-  border-color: var(--color-amber);
-  color: #F0A030;
+  background: var(--color-oxblood);
+  color: #F7F4EE;
 }
 
 .responseNa {
-  background: rgba(155, 148, 136, 0.08);
-  border-color: rgba(155, 148, 136, 0.2);
+  background: var(--color-paper);
   color: var(--color-sand);
 }
 
 .responseNa.responseBtnActive {
-  background: rgba(155, 148, 136, 0.2);
-  border-color: var(--color-sand);
+  background: var(--color-sand);
+  color: #F7F4EE;
 }
 
 .notesToggle {
@@ -275,7 +274,7 @@
 .notesInput:focus {
   outline: none;
   border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px rgba(200, 164, 90, 0.18);
+  box-shadow: 0 0 0 3px rgba(138, 90, 24, 0.18);
 }
 
 /* Emotional rating */
@@ -323,7 +322,7 @@
 }
 
 .emotionalBtnActive {
-  background: rgba(200, 164, 90, 0.15) !important;
+  background: rgba(138, 90, 24, 0.15) !important;
   border-color: var(--color-gold) !important;
 }
 
@@ -346,7 +345,7 @@
   position: fixed;
   bottom: var(--space-20);
   right: var(--space-4);
-  background: rgba(30, 47, 69, 0.95);
+  background: rgba(251, 249, 244, 0.97);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   color: var(--color-sand);
@@ -386,8 +385,8 @@
 }
 
 .prevBtn:hover {
-  border-color: var(--color-gold);
-  color: var(--color-gold);
+  border-color: var(--color-ivory);
+  color: var(--color-ivory);
 }
 
 .nextBtn {
@@ -395,19 +394,19 @@
   min-width: 0;
   display: block;
   padding: var(--space-4);
-  background: var(--color-gold);
+  background: var(--color-ivory);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   color: var(--color-deep-ink);
   font-family: var(--font-body);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background 0.15s;
 }
 
 .nextBtn:hover {
-  opacity: 0.9;
+  background: var(--color-gold);
 }
 
 /* Phones: no sidebar on screen, the Next bar spans the full width */

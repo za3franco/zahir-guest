@@ -137,7 +137,7 @@ export default function ExecutiveSummaryEditor({ campaignId, existingSummary, la
             <option value="en">English</option>
             <option value="both">{t(T.both)}</option>
           </select>
-          {aiError && <span style={{ color: '#E8897E', fontSize: '0.875rem' }}>{aiError}</span>}
+          {aiError && <span style={{ color: '#8A2E22', fontSize: '0.875rem' }}>{aiError}</span>}
         </div>
         {aiDone && <p style={{ color: 'var(--color-gold)', fontSize: '0.8125rem', margin: '0 0 8px' }}>{t(T.aiNote)}</p>}
         <textarea

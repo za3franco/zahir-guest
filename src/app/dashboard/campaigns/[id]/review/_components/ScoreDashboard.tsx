@@ -20,11 +20,11 @@ const EMOTIONAL_LABELS: Record<number, { en: string; fr: string }> = {
 }
 
 function scoreColor(percent: number | null): string {
-  if (percent === null) return '#9B9488'
-  if (percent >= 85) return '#4A7C6B'
-  if (percent >= 70) return '#C8A45A'
-  if (percent >= 50) return '#D4882A'
-  return '#C0503A'
+  if (percent === null) return '#5E5A52'
+  if (percent >= 85) return '#2E5E4A'
+  if (percent >= 70) return '#8A5A18'
+  if (percent >= 50) return '#8F5410'
+  return '#8A2E22'
 }
 
 function ScoreRing({ percent, size = 80 }: { percent: number | null; size?: number }) {
@@ -37,7 +37,7 @@ function ScoreRing({ percent, size = 80 }: { percent: number | null; size?: numb
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#253549" strokeWidth="5"/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#D8D2C6" strokeWidth="5"/>
       <circle
         cx={size/2} cy={size/2} r={r}
         fill="none"
@@ -51,7 +51,7 @@ function ScoreRing({ percent, size = 80 }: { percent: number | null; size?: numb
       <text
         x={size/2} y={size/2 + 5}
         textAnchor="middle"
-        fill={percent !== null ? '#F4F1EC' : '#9B9488'}
+        fill={percent !== null ? '#14161B' : '#5E5A52'}
         fontSize={size > 60 ? "14" : "11"}
         fontWeight="600"
       >

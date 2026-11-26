@@ -160,7 +160,7 @@ export default function SectionAudit({
             >
               {/* Standard header */}
               <div className={styles.standardHeader}>
-                <span className={styles.standardNumber}>{index + 1}</span>
+                <span className={styles.standardNumber}>{position ? `${position.index}.${index + 1}` : index + 1}</span>
                 {standard.is_critical && (
                   <span className={styles.criticalBadge}>{t(T.critical)}</span>
                 )}

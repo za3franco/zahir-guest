@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from '../properties.module.css'
+import { PropertyTypeIcon } from '@/components/icons/ZahirIcons'
 
 const CATEGORY_LABELS: Record<string, { en: string; fr: string }> = {
   '5_star': { en: '5 Stars', fr: '5 Étoiles' },
@@ -124,7 +125,7 @@ export default function PropertiesClient({ properties, showArchived, lang, label
             ) : filtered.map(p => (
               <tr key={p.id}>
                 <td>
-                  <a href={`/dashboard/properties/${p.id}`} className={styles.tableLink}>{p.name}</a>
+                  <a href={`/dashboard/properties/${p.id}`} className={styles.tableLink} style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><PropertyTypeIcon type={p.type} size={20} />{p.name}</a>
                 </td>
                 <td className={styles.muted}>{[p.city, p.country].filter(Boolean).join(', ') || '—'}</td>
                 <td className={styles.muted}>
@@ -156,7 +157,7 @@ export default function PropertiesClient({ properties, showArchived, lang, label
         ) : filtered.map(p => (
           <div key={p.id} className={styles.mobileCard}>
             <a href={`/dashboard/properties/${p.id}`} className={styles.mobileCardLink}>
-              <div className={styles.mobileCardName}>{p.name}</div>
+              <div className={styles.mobileCardName} style={{ display: 'flex', alignItems: 'center', gap: 10 }}><PropertyTypeIcon type={p.type} size={20} />{p.name}</div>
               <div className={styles.mobileCardMeta}>
                 {[p.city, p.country, t(CATEGORY_LABELS[p.category] ?? { en: p.category, fr: p.category })].filter(Boolean).join(' · ')}
               </div>

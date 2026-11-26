@@ -28,26 +28,26 @@ interface Props {
 
 // Zahir palette for domain lines — muted so overall gold stands out
 const DOMAIN_COLORS = [
-  '#6B8FAD', '#7DAD9C', '#AD8B6B', '#9C7DAD', '#AD6B7D', '#7D9CAD',
+  '#3E5C76', '#2E5E4A', '#8A5A18', '#6B4F7A', '#8A2E22', '#4F7A7A',
 ]
 
 const CustomTooltip = ({ active, payload, label, lang }: any) => {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: '#162236',
-      border: '1px solid #253549',
+      background: '#EFEADF',
+      border: '1px solid #D8D2C6',
       borderRadius: 8,
       padding: '12px 16px',
       fontFamily: "'DM Sans', Arial, sans-serif",
       fontSize: 13,
       minWidth: 180,
     }}>
-      <div style={{ color: '#9B9488', marginBottom: 8, fontSize: 11, letterSpacing: '0.04em' }}>{label}</div>
+      <div style={{ color: '#5E5A52', marginBottom: 8, fontSize: 11, letterSpacing: '0.04em' }}>{label}</div>
       {payload.map((entry: any) => (
         <div key={entry.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 4 }}>
           <span style={{ color: entry.color }}>{entry.name}</span>
-          <span style={{ color: '#F4F1EC', fontWeight: 600 }}>
+          <span style={{ color: '#14161B', fontWeight: 600 }}>
             {entry.value !== null ? `${entry.value}%` : '—'}
           </span>
         </div>
@@ -94,16 +94,16 @@ export default function ScoreTrendChart({ campaigns, lang }: Props) {
     <div style={{ width: '100%', height: 320 }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#253549" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#D8D2C6" vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fill: '#9B9488', fontSize: 11, fontFamily: "'DM Sans', Arial, sans-serif" }}
-            axisLine={{ stroke: '#253549' }}
+            tick={{ fill: '#5E5A52', fontSize: 11, fontFamily: "'DM Sans', Arial, sans-serif" }}
+            axisLine={{ stroke: '#D8D2C6' }}
             tickLine={false}
           />
           <YAxis
             domain={[0, 100]}
-            tick={{ fill: '#9B9488', fontSize: 11, fontFamily: "'DM Sans', Arial, sans-serif" }}
+            tick={{ fill: '#5E5A52', fontSize: 11, fontFamily: "'DM Sans', Arial, sans-serif" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => `${v}%`}
@@ -111,11 +111,11 @@ export default function ScoreTrendChart({ campaigns, lang }: Props) {
           />
           <Tooltip content={<CustomTooltip lang={lang} />} />
           <Legend
-            wrapperStyle={{ fontSize: 12, fontFamily: "'DM Sans', Arial, sans-serif", color: '#9B9488', paddingTop: 12 }}
+            wrapperStyle={{ fontSize: 12, fontFamily: "'DM Sans', Arial, sans-serif", color: '#5E5A52', paddingTop: 12 }}
           />
           {/* Reference lines at key thresholds */}
-          <ReferenceLine y={85} stroke="#4A7C6B" strokeDasharray="4 4" strokeOpacity={0.4} />
-          <ReferenceLine y={70} stroke="#C8A45A" strokeDasharray="4 4" strokeOpacity={0.3} />
+          <ReferenceLine y={85} stroke="#2E5E4A" strokeDasharray="4 4" strokeOpacity={0.4} />
+          <ReferenceLine y={70} stroke="#8A5A18" strokeDasharray="4 4" strokeOpacity={0.3} />
 
           {/* Domain lines first (background) */}
           {domainSample.map((d, i) => {
@@ -139,10 +139,10 @@ export default function ScoreTrendChart({ campaigns, lang }: Props) {
           <Line
             type="monotone"
             dataKey={overallKey}
-            stroke="#C8A45A"
+            stroke="#8A5A18"
             strokeWidth={3}
-            dot={{ r: 5, fill: '#C8A45A', strokeWidth: 2, stroke: '#0D1B2A' }}
-            activeDot={{ r: 7, fill: '#E8C87A' }}
+            dot={{ r: 5, fill: '#8A5A18', strokeWidth: 2, stroke: '#F7F4EE' }}
+            activeDot={{ r: 7, fill: '#6E4510' }}
             connectNulls={false}
           />
         </LineChart>

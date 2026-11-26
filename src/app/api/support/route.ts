@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 <p>From: ${esc(user.name)} &lt;${esc(user.email)}&gt; (${esc(user.role)}, language ${esc(user.default_language)})<br>
 Tenant: ${esc(tenant?.name ?? '?')} — ${esc(tenant?.subscription_tier ?? '?')} / ${esc(tenant?.subscription_status ?? '?')}<br>
 Page: ${esc(page || '—')}</p>
-<p style="background:#f4f1ec;padding:12px;border-radius:6px">${esc(message)}</p>
+<p style="background:#EFEADF;padding:12px;border-radius:2px">${esc(message)}</p>
 ${transcript ? `<p style="color:#666"><strong>Assistant conversation</strong><br>${esc(transcript)}</p>` : ''}
 </div>`
 

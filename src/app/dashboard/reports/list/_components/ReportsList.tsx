@@ -22,17 +22,17 @@ interface Props {
 
 const SCORE_COLOR = (pct: number | null) => {
   if (pct === null) return 'var(--color-sand)'
-  if (pct >= 85) return '#4A7C6B'
-  if (pct >= 70) return '#C8A45A'
-  if (pct >= 50) return '#D4882A'
-  return '#C0503A'
+  if (pct >= 85) return '#2E5E4A'
+  if (pct >= 70) return '#8A5A18'
+  if (pct >= 50) return '#8F5410'
+  return '#8A2E22'
 }
 const SCORE_BG = (pct: number | null) => {
   if (pct === null) return 'transparent'
-  if (pct >= 85) return 'rgba(74,124,107,0.12)'
-  if (pct >= 70) return 'rgba(200,164,90,0.12)'
-  if (pct >= 50) return 'rgba(212,136,42,0.12)'
-  return 'rgba(192,80,58,0.12)'
+  if (pct >= 85) return 'rgba(46, 94, 74, 0.12)'
+  if (pct >= 70) return 'rgba(138, 90, 24, 0.12)'
+  if (pct >= 50) return 'rgba(143, 84, 16, 0.12)'
+  return 'rgba(138, 46, 34, 0.12)'
 }
 
 export default function ReportsList({ reports, lang, canDownload }: Props) {

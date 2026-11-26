@@ -64,11 +64,11 @@ export async function GET(request: Request) {
         title: afterEnd ? (lang === 'en' ? 'Time to renew' : 'Il est temps de renouveler') : (lang === 'en' ? 'Renewal reminder' : 'Rappel de renouvellement'),
         paragraphs: afterEnd
           ? [lang === 'en'
-              ? `Your prepaid <strong style="color:#F4F1EC;">${plan}</strong> period ended on ${date}. Your workspace stays open until ${graceEnd}; after that, creating properties, users and campaigns will be paused (your data is kept).`
-              : `Votre période prépayée <strong style="color:#F4F1EC;">${plan}</strong> s'est terminée le ${date}. Votre espace reste ouvert jusqu'au ${graceEnd} ; ensuite, la création d'établissements, d'utilisateurs et de campagnes sera suspendue (vos données sont conservées).`]
+              ? `Your prepaid <strong style="color:#14161B;">${plan}</strong> period ended on ${date}. Your workspace stays open until ${graceEnd}; after that, creating properties, users and campaigns will be paused (your data is kept).`
+              : `Votre période prépayée <strong style="color:#14161B;">${plan}</strong> s'est terminée le ${date}. Votre espace reste ouvert jusqu'au ${graceEnd} ; ensuite, la création d'établissements, d'utilisateurs et de campagnes sera suspendue (vos données sont conservées).`]
           : [lang === 'en'
-              ? `Your prepaid <strong style="color:#F4F1EC;">${plan}</strong> period ends on <strong style="color:#F4F1EC;">${date}</strong>. Renew in a few clicks from Billing (card payment in dirhams via YouCan Pay).`
-              : `Votre période prépayée <strong style="color:#F4F1EC;">${plan}</strong> se termine le <strong style="color:#F4F1EC;">${date}</strong>. Renouvelez en quelques clics depuis la page Facturation (paiement par carte en dirhams via YouCan Pay).`],
+              ? `Your prepaid <strong style="color:#14161B;">${plan}</strong> period ends on <strong style="color:#14161B;">${date}</strong>. Renew in a few clicks from Billing (card payment in dirhams via YouCan Pay).`
+              : `Votre période prépayée <strong style="color:#14161B;">${plan}</strong> se termine le <strong style="color:#14161B;">${date}</strong>. Renouvelez en quelques clics depuis la page Facturation (paiement par carte en dirhams via YouCan Pay).`],
         cta: { href: `${appUrl()}/dashboard/billing`, label: lang === 'en' ? 'Renew →' : 'Renouveler →' },
       })
     }

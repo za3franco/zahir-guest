@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       subscription_data: { metadata: meta },
       locale: lang,
       // The Stripe account is shared with Za3fran: show the Zahir Guest name, icon and button colour on this page
-      branding_settings: { display_name: 'Zahir Guest', icon: { type: 'url', url: `${appUrl()}/icons/icon-512.png` }, button_color: '#C8A45A' },
+      branding_settings: { display_name: 'Zahir Guest', icon: { type: 'url', url: `${appUrl()}/icons/icon-512.png` }, button_color: '#8A5A18' },
       ...(tenant.stripe_customer_id ? { customer: tenant.stripe_customer_id } : { customer_email: user.email }),
       success_url: `${appUrl()}/dashboard/billing?checkout=success`,
       cancel_url: `${appUrl()}/dashboard/billing?checkout=cancelled`,

@@ -82,8 +82,8 @@
 }
 
 .warningBanner {
-  background: rgba(212, 136, 42, 0.1);
-  border: 1px solid rgba(212, 136, 42, 0.3);
+  background: rgba(143, 84, 16, 0.1);
+  border: 1px solid rgba(143, 84, 16, 0.3);
   border-radius: var(--radius-md);
   color: var(--color-amber);
   font-size: 0.875rem;
@@ -124,7 +124,7 @@
 }
 
 .sectionRowComplete {
-  border-color: rgba(74, 124, 107, 0.25);
+  border-color: rgba(46, 94, 74, 0.25);
 }
 
 .sectionRowLeft {
@@ -166,7 +166,7 @@
 }
 
 .sectionStatComplete {
-  color: #4A7C6B;
+  color: #2E5E4A;
 }
 
 .sectionStatIncomplete {
@@ -207,7 +207,7 @@
 
 .confirmCard {
   background: var(--color-slate-navy);
-  border: 1px solid rgba(200, 164, 90, 0.3);
+  border: 1px solid rgba(138, 90, 24, 0.3);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   display: flex;
@@ -269,7 +269,7 @@
 
 .successIcon {
   font-size: 3rem;
-  color: #4A7C6B;
+  color: #2E5E4A;
 }
 
 .successTitle {

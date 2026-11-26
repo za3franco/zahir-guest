@@ -7,6 +7,7 @@ import { notFound, redirect } from 'next/navigation'
 import type { Property, Campaign } from '@/types'
 import { STATUS_LABELS } from '@/types'
 import styles from './property.module.css'
+import { PropertyTypeIcon } from '@/components/icons/ZahirIcons'
 
 const T = {
   backToProperties: { en: '← Properties', fr: '← Établissements' },
@@ -64,9 +65,6 @@ const TYPE_LABELS: Record<string, { en: string; fr: string }> = {
   other: { en: 'Other', fr: 'Autre' },
 }
 
-const PROPERTY_TYPE_ICONS: Record<string, string> = {
-  hotel: '🏨', riad: '🏯', resort: '🌴', guesthouse: '🏠', apartment: '🏢', other: '🏛️',
-}
 
 export default async function PropertyDetailPage({ params: paramsP }: { params: Promise<{ id: string }> }) {
   const params = await paramsP
@@ -133,7 +131,7 @@ export default async function PropertyDetailPage({ params: paramsP }: { params: 
 
       <div className={styles.propertyHeader}>
         <div className={styles.propertyIconLarge}>
-          {PROPERTY_TYPE_ICONS[p.type] ?? '🏨'}
+          <PropertyTypeIcon type={p.type} size={40} />
         </div>
         <div>
           <h1 className={styles.propertyName}>{p.name}</h1>
@@ -279,11 +277,11 @@ export default async function PropertyDetailPage({ params: paramsP }: { params: 
                   {campaignList.map(c => {
                     const s = STATUS_LABELS[c.status]
                     const colorClass = {
-                      '#9B9488': 'badge-sand',
-                      '#C8A45A': 'badge-gold',
-                      '#E8C87A': 'badge-gold',
-                      '#D4882A': 'badge-amber',
-                      '#4A7C6B': 'badge-sage',
+                      '#5E5A52': 'badge-sand',
+                      '#8A5A18': 'badge-gold',
+                      '#6E4510': 'badge-gold',
+                      '#8F5410': 'badge-amber',
+                      '#2E5E4A': 'badge-sage',
                     }[s?.color ?? ''] ?? 'badge-sand'
                     return (
                       <tr key={c.id}>

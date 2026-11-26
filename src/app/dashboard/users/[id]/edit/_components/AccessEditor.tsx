@@ -100,7 +100,7 @@ export default function AccessEditor({ userId, lang, clients, properties, initia
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
         <button type="button" className="btn btn-primary" onClick={save} disabled={busy}>{busy ? t(T.saving) : t(T.save)}</button>
-        <span style={{ fontSize: '0.8125rem', color: msg ? (msg.ok ? '#7fc4a8' : '#E8897E') : 'var(--color-sand)' }}>
+        <span style={{ fontSize: '0.8125rem', color: msg ? (msg.ok ? '#2E5E4A' : '#8A2E22') : 'var(--color-sand)' }}>
           {msg ? msg.text : T.summary(clientIds.length, propertyIds.length, lang)}
         </span>
       </div>

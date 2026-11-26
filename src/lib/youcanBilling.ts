@@ -169,11 +169,11 @@ export async function confirmYoucanPayment(paymentId: string, transactionId: str
         paragraphs: [
           p.kind === 'plan'
             ? lang === 'en'
-              ? `We received <strong style="color:#C8A45A;">${amount}</strong> for the <strong style="color:#F4F1EC;">${plan}</strong> plan. Your access runs until <strong style="color:#F4F1EC;">${until}</strong>.`
-              : `Nous avons bien reçu <strong style="color:#C8A45A;">${amount}</strong> pour le forfait <strong style="color:#F4F1EC;">${plan}</strong>. Votre accès court jusqu'au <strong style="color:#F4F1EC;">${until}</strong>.`
+              ? `We received <strong style="color:#8A5A18;">${amount}</strong> for the <strong style="color:#14161B;">${plan}</strong> plan. Your access runs until <strong style="color:#14161B;">${until}</strong>.`
+              : `Nous avons bien reçu <strong style="color:#8A5A18;">${amount}</strong> pour le forfait <strong style="color:#14161B;">${plan}</strong>. Votre accès court jusqu'au <strong style="color:#14161B;">${until}</strong>.`
             : lang === 'en'
-              ? `We received <strong style="color:#C8A45A;">${amount}</strong> for additional properties until ${until}.`
-              : `Nous avons bien reçu <strong style="color:#C8A45A;">${amount}</strong> pour des établissements supplémentaires jusqu'au ${until}.`,
+              ? `We received <strong style="color:#8A5A18;">${amount}</strong> for additional properties until ${until}.`
+              : `Nous avons bien reçu <strong style="color:#8A5A18;">${amount}</strong> pour des établissements supplémentaires jusqu'au ${until}.`,
           lang === 'en'
             ? 'We will remind you by email before the end of the period. Your receipt is also available from YouCan Pay.'
             : "Nous vous enverrons un rappel par email avant la fin de la période. Votre reçu est aussi disponible auprès de YouCan Pay.",

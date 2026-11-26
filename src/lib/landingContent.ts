@@ -9,11 +9,11 @@ export const COPY = {
     metaTitle: "Zahir Guest — Logiciel d'audit mystère pour l'hôtellerie",
     metaDescription:
       "Plateforme d'audit client mystère pour hôtels, cabinets d'audit et programmes de classification : audits sur mobile, scores automatiques, rapports PDF en marque blanche et portail pour les directeurs d'établissement. Offre Découverte gratuite.",
-    nav: { features: 'Fonctionnalités', how: 'Comment ça marche', pricing: 'Tarifs', faq: 'FAQ', login: 'Connexion', dashboard: 'Mon espace', cta: 'Commencer gratuitement', menu: 'Menu' },
+    nav: { features: 'Fonctionnalités', how: 'Comment ça marche', pricing: 'Tarifs', faq: 'FAQ', login: 'Connexion', dashboard: 'Mon espace', cta: 'Essayer gratuitement', menu: 'Menu', hotels: 'Pour les hôtels', firms: "Pour les sociétés d'audit", example: "Rapport d'exemple" },
     hero: {
-      eyebrow: "Plateforme d'audit client mystère",
+      eyebrow: 'Audit client mystère · hôtellerie et restauration',
       title: 'Révélez ce qui ne peut plus être ignoré.',
-      sub: "Zahir Guest transforme chaque visite mystère en rapport prêt pour la direction : audit sur mobile, scores calculés automatiquement, rapports PDF à votre image et suivi dans le temps pour chaque établissement.",
+      sub: "Vos auditeurs notent la visite sur leur téléphone. Le score se calcule seul, le rapport part à votre marque, et chaque directeur voit ce qui le concerne.",
       cta: 'Commencer gratuitement',
       cta2: 'Réserver une démo',
       note: 'Offre Découverte gratuite · sans carte bancaire · FR / EN',
@@ -50,7 +50,7 @@ export const COPY = {
     tour: {
       eyebrow: 'Le produit',
       title: "Ce que vos équipes voient, écran par écran",
-      sub: "De vraies captures de Zahir Guest, avec des données de démonstration.",
+      sub: "L'interface de Zahir Guest, avec des données de démonstration.",
       caption: 'Données de démonstration',
       items: [
         { t: "L'audit se fait au téléphone, pendant la visite", d: "Une question à la fois, de grands boutons Conforme / Non conforme / N/A utilisables d'une main, des observations et des photos. Tout est enregistré au fur et à mesure.", points: ['Critères critiques signalés', 'Photos compressées sur le téléphone', 'Note émotionnelle par section'] },
@@ -71,7 +71,7 @@ export const COPY = {
     metaTitle: 'Zahir Guest — Mystery guest audit software for hospitality',
     metaDescription:
       'Mystery guest audit platform for hotels, audit firms and classification programmes: mobile audits, automatic scoring, white-label PDF reports and a portal for property managers. Free Discovery plan.',
-    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', login: 'Sign in', dashboard: 'My workspace', cta: 'Start for free', menu: 'Menu' },
+    nav: { features: 'Features', how: 'How it works', pricing: 'Pricing', faq: 'FAQ', login: 'Sign in', dashboard: 'My workspace', cta: 'Try it free', menu: 'Menu', hotels: 'For hotels', firms: 'For audit firms', example: 'Sample report' },
     hero: {
       eyebrow: 'Mystery guest audit platform',
       title: 'Reveal what cannot be unseen.',
@@ -112,7 +112,7 @@ export const COPY = {
     tour: {
       eyebrow: 'The product',
       title: 'What your teams see, screen by screen',
-      sub: 'Real Zahir Guest screens, with demonstration data.',
+      sub: 'The Zahir Guest interface, with demonstration data.',
       caption: 'Demonstration data',
       items: [
         { t: 'The audit happens on the phone, during the visit', d: 'One question at a time, large one-handed Meet / Below / N/A buttons, observations and photos. Everything is saved as you go.', points: ['Critical standards flagged', 'Photos compressed on the phone', 'Emotional rating per section'] },
@@ -159,3 +159,79 @@ export const FAQS: Record<Lang, Faq[]> = {
     { q: 'How do I cancel?', a: 'From the Billing page, in one click, through the secure customer portal. The subscription stays active until the end of the paid period. In dirhams, simply do not renew.' },
   ],
 }
+
+// « Maison » landing (26 Nov 2026): the sections added by the redesign. Facts only; demo names are fictitious.
+export const MAISON = {
+  fr: {
+    heroCta: "Voir un rapport d'exemple",
+    heroCta2: 'Commencer gratuitement',
+    heroAlt: "Un auditeur prend des notes à une table de restaurant d'hôtel",
+    note: { label: 'VISITE 04 · 19:42 · RESTAURANT', text: "« Accueil en moins d'une minute. Carte présentée sans recommandation du jour. »", tag: "Exemple d'observation" },
+    doors: [
+      { id: 'hotels', kicker: 'Vous dirigez un ou plusieurs hôtels', title: "Voyez votre établissement avec les yeux d'un client qui ne prévient pas.", d: "Vos standards, vos visites, un rapport par établissement et l'évolution de vos scores mois après mois.", points: ['Bibliothèque de plus de 570 standards hôteliers', 'Un portail pour chaque directeur', 'Offre Hôtel dès 79 € par mois'], cta: 'Commencer gratuitement', href: 'signup' },
+      { id: 'firms', kicker: 'Vous vendez des audits mystère', title: 'Livrez vos clients sous votre marque.', d: 'Plusieurs clients, plusieurs auditeurs et établissements dans un seul espace, des rapports à votre logo et à vos couleurs.', points: ['Marque blanche : logo, couleurs, emails', 'Portail client et accès par établissement', 'Prix par établissement actif'], cta: 'Réserver une démo', href: 'contact' },
+    ],
+    times: {
+      kicker: 'Comment ça marche',
+      title: 'Une visite, trois temps.',
+      items: [
+        { when: 'AVANT', t: 'Préparer', d: "Choisissez vos standards dans la bibliothèque ou composez les vôtres. Planifiez la campagne, assignez l'auditeur." },
+        { when: 'PENDANT', t: 'Observer', d: "L'auditeur suit la visite sur son téléphone, section par section : conforme ou non, une observation, une photo. Hors connexion, rien ne se perd." },
+        { when: 'APRÈS', t: 'Révéler', d: 'Score global et par domaine, synthèse, annexe photos. Vous publiez : chaque directeur reçoit ce qui le concerne, en français ou en anglais.' },
+      ],
+    },
+    example: {
+      kicker: "Rapport d'exemple (fictif)",
+      title: 'Ce que votre direction reçoit.',
+      d: "Palais Azur est un hôtel inventé. Voici la synthèse d'un rapport Zahir Guest : score global, scores par domaine et constats. Le PDF complet ajoute la synthèse rédigée, l'annexe détaillée et les photos.",
+      cta: 'Commencer gratuitement',
+    },
+    founders: {
+      kicker: 'Une maison Za3fran',
+      title: "Conçu par des professionnels de l'expérience client.",
+      d: "Zahir Guest est né chez Za3fran, cabinet de conseil en hôtellerie et restauration fondé à Casablanca en 2015. Nous l'utilisons pour nos propres programmes de visite mystère.",
+      people: [
+        { name: 'Sarah Blaizeau', role: 'Expérience client et visites mystère', photo: '/landing/sarah.webp', d: "Formée à l'ESH Paris, elle a travaillé à la réception, aux réservations et aux banquets à Londres, Paris, Casablanca et Brisbane. Depuis 2015, elle mesure l'expérience client pour les établissements accompagnés par Za3fran." },
+        { name: 'Arnaud Hébrard', role: 'Qualité opérationnelle et standards de service', photo: '/landing/arnaud.webp', d: "Plus de 20 ans en restauration et en hôtellerie : opérations F&B de groupes hôteliers internationaux, ouvertures et pilotage de plusieurs sites au Maroc, en Afrique, en Australie et aux Caraïbes. Il a conçu Zahir Guest pour suivre la qualité de service établissement par établissement." },
+      ],
+      link: 'Découvrir Za3fran',
+    },
+    featuresKicker: 'Fonctionnalités',
+  },
+  en: {
+    heroCta: 'See a sample report',
+    heroCta2: 'Start for free',
+    heroAlt: 'An auditor takes notes at a hotel restaurant table',
+    note: { label: 'VISIT 04 · 19:42 · RESTAURANT', text: '“Greeted within a minute. Menu presented with no recommendation of the day.”', tag: 'Sample observation' },
+    doors: [
+      { id: 'hotels', kicker: 'You run one or more hotels', title: 'See your property through the eyes of a guest who gives no warning.', d: 'Your standards, your visits, one report per property and how your scores move month after month.', points: ['A library of 570+ hotel standards', 'A portal for every general manager', 'Hotel plan from €79 a month'], cta: 'Start for free', href: 'signup' },
+      { id: 'firms', kicker: 'You sell mystery audits', title: 'Deliver your clients under your own brand.', d: 'Several clients, auditors and properties in one workspace, with reports in your logo and colours.', points: ['White label: logo, colours, emails', 'Client portal and access per property', 'Priced per active property'], cta: 'Book a demo', href: 'contact' },
+    ],
+    times: {
+      kicker: 'How it works',
+      title: 'One visit, three moments.',
+      items: [
+        { when: 'BEFORE', t: 'Prepare', d: 'Pick your standards from the library or build your own. Plan the campaign, assign the auditor.' },
+        { when: 'DURING', t: 'Observe', d: 'The auditor follows the visit on a phone, section by section: met or not, a note, a photo. Offline, nothing is lost.' },
+        { when: 'AFTER', t: 'Reveal', d: 'Overall and domain scores, summary, photo appendix. You publish: each manager receives what concerns them, in English or French.' },
+      ],
+    },
+    example: {
+      kicker: 'Sample report (fictitious)',
+      title: 'What your management receives.',
+      d: 'Palais Azur is an invented hotel. Here is the summary of a Zahir Guest report: overall score, domain scores and findings. The full PDF adds the written summary, the detailed appendix and the photos.',
+      cta: 'Start for free',
+    },
+    founders: {
+      kicker: 'A Za3fran house',
+      title: 'Built by guest experience professionals.',
+      d: 'Zahir Guest was born at Za3fran, a hospitality and restaurant consultancy founded in Casablanca in 2015. We use it for our own mystery visit programmes.',
+      people: [
+        { name: 'Sarah Blaizeau', role: 'Guest experience and mystery visits', photo: '/landing/sarah.webp', d: 'Trained at ESH Paris, she worked in front office, reservations and banqueting in London, Paris, Casablanca and Brisbane. Since 2015 she has measured the guest experience for the venues Za3fran works with.' },
+        { name: 'Arnaud Hébrard', role: 'Operational quality and service standards', photo: '/landing/arnaud.webp', d: 'More than 20 years in restaurants and hotels: F&B operations for international hotel groups, openings and multi-site management in Morocco, Africa, Australia and the Caribbean. He designed Zahir Guest to follow service quality property by property.' },
+      ],
+      link: 'Discover Za3fran',
+    },
+    featuresKicker: 'Features',
+  },
+} as const

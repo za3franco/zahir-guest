@@ -60,7 +60,7 @@ export default async function DashboardLayout({
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
         <div style={{ maxWidth: 440 }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--color-ivory)' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, color: 'var(--color-ivory)' }}>
             {en ? 'Account suspended' : 'Compte suspendu'}
           </h1>
           <p style={{ color: 'var(--color-sand)', lineHeight: 1.6 }}>

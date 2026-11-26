@@ -25,11 +25,11 @@ const EMOTIONAL_LABELS: Record<number, { en: string; fr: string }> = {
 }
 
 function scoreColor(percent: number | null): string {
-  if (percent === null) return '#9B9488'
-  if (percent >= 85) return '#4A7C6B'
-  if (percent >= 70) return '#C8A45A'
-  if (percent >= 50) return '#D4882A'
-  return '#C0503A'
+  if (percent === null) return '#5E5A52'
+  if (percent >= 85) return '#2E5E4A'
+  if (percent >= 70) return '#8A5A18'
+  if (percent >= 50) return '#8F5410'
+  return '#8A2E22'
 }
 
 function scoreBg(percent: number | null): string {
@@ -76,8 +76,8 @@ function circleProgress(percent: number | null, size: number, strokeWidth: numbe
 // Inline page header — avoids all CSS class rendering issues in print
 function pageHeader(propertyName: string, dateEn: string): string {
   return `<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8e4de;padding-bottom:10px;margin-bottom:24px;font-family:'DM Sans',Arial,sans-serif;">
-    <span style="font-family:'Cormorant Garamond',serif;font-size:10pt;color:#9B9488;letter-spacing:0.06em;">Zahir Guest</span>
-    <div style="font-size:8pt;color:#9B9488;text-align:right;line-height:1.5;">${propertyName}<br>${dateEn}</div>
+    <span style="font-family:'Cormorant Garamond',serif;font-size:10pt;color:#5E5A52;letter-spacing:0.06em;">Zahir Guest</span>
+    <div style="font-size:8pt;color:#5E5A52;text-align:right;line-height:1.5;">${propertyName}<br>${dateEn}</div>
   </div>`
 }
 
@@ -98,7 +98,7 @@ function classBreakdown(standards: any[]): string {
       const label = CLASSIFICATION_LABELS[key]?.short ?? key
       // Color based on failure rate: red if >50% fail, amber if >20%, green if low
       const bg = pct > 50 ? 'rgba(192,80,58,0.15)' : pct > 20 ? 'rgba(212,136,42,0.15)' : 'rgba(74,124,107,0.12)'
-      const color = pct > 50 ? '#C0503A' : pct > 20 ? '#D4882A' : '#4A7C6B'
+      const color = pct > 50 ? '#8A2E22' : pct > 20 ? '#8F5410' : '#2E5E4A'
       const dot = pct > 50 ? '●' : pct > 20 ? '◑' : '○'
       return `<span style="display:inline-flex;align-items:center;gap:3px;background:${bg};border-radius:3px;padding:2px 5px;font-size:6.5pt;color:${color};font-weight:600;margin-right:3px;">${dot} ${label} ${v.below}/${v.total}</span>`
     })
@@ -156,7 +156,7 @@ export function generateReportHtml(data: ReportData): string {
     font-family: 'DM Sans', -apple-system, Arial, sans-serif;
     font-size: 10pt;
     line-height: 1.6;
-    color: #1a1a2e;
+    color: #14161B;
     background: #ffffff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -165,8 +165,8 @@ export function generateReportHtml(data: ReportData): string {
   @media screen {
     .print-fab {
       position: fixed; bottom: 32px; right: 32px;
-      background: ${accent}; color: #0D1B2A; border: none;
-      border-radius: 50px; padding: 14px 28px;
+      background: #14161B; color: #F7F4EE; border: none;
+      border-radius: 0; padding: 14px 28px;
       font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
       cursor: pointer; box-shadow: 0 4px 20px ${hexToRgba(accent,0.4)};
       z-index: 9999; letter-spacing: 0.02em;
@@ -194,7 +194,7 @@ export function generateReportHtml(data: ReportData): string {
 
   /* COVER */
   .cover {
-    background: #0D1B2A;
+    background: #F7F4EE;
     height: 297mm;
     display: flex;
     flex-direction: column;
@@ -209,11 +209,11 @@ export function generateReportHtml(data: ReportData): string {
   .page { background: #ffffff; padding: 40px 52px 48px; position: relative; }
 
   /* SUMMARY */
-  .summary-body { font-size: 10.5pt; line-height: 1.95; color: #1a1a2e; white-space: pre-wrap; }
+  .summary-body { font-size: 10.5pt; line-height: 1.95; color: #14161B; white-space: pre-wrap; }
 
   /* SCORE DASHBOARD */
   .domain-score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
-  .domain-score-card { border: 1px solid #e8e4de; border-radius: 8px; padding: 18px 14px; text-align: center; background: #fdfcfa; }
+  .domain-score-card { border: 1px solid #e8e4de; border-radius: 0; padding: 18px 14px; text-align: center; background: #fdfcfa; }
 
   /* CLASSIFICATION TABLE */
   .class-table { width: 100%; border-collapse: collapse; }
@@ -224,7 +224,8 @@ export function generateReportHtml(data: ReportData): string {
 
   /* DOMAIN SECTION SCORECARD */
   .domain-cover {
-    background: #0D1B2A;
+    background: #EFEADF;
+    border-bottom: 1px solid #14161B;
     padding: 32px 52px 28px;
     margin: -40px -52px 28px;
     -webkit-print-color-adjust: exact;
@@ -237,7 +238,7 @@ export function generateReportHtml(data: ReportData): string {
     font-size: 7pt;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #9B9488;
+    color: #5E5A52;
     font-weight: 600;
     padding: 6px 8px;
     border-bottom: 1px solid #e8e4de;
@@ -269,7 +270,7 @@ export function generateReportHtml(data: ReportData): string {
   .appendix-domain-header {
     font-family: 'Cormorant Garamond', serif;
     font-size: 13pt;
-    color: #1a1a2e;
+    color: #14161B;
     padding-bottom: 5px;
     border-bottom: 2px solid ${accent};
     margin-bottom: 8px;
@@ -281,7 +282,7 @@ export function generateReportHtml(data: ReportData): string {
   .appendix-section-header {
     font-size: 7.5pt;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #14161B;
     margin: 8px 0 3px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -297,7 +298,7 @@ export function generateReportHtml(data: ReportData): string {
     padding: 4px 7px;
     text-align: left;
     font-weight: 600;
-    color: #9B9488;
+    color: #5E5A52;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: 6.5pt;
@@ -310,15 +311,15 @@ export function generateReportHtml(data: ReportData): string {
     padding: 4px 7px;
     border-bottom: 1px solid #f5f2ed;
     vertical-align: top;
-    color: #1a1a2e;
+    color: #14161B;
     line-height: 1.4;
   }
 
   .appendix-table tr:last-child td { border-bottom: none; }
 
-  .r-meet { color: #4A7C6B; font-weight: 700; font-size: 7pt; }
-  .r-below { color: #D4882A; font-weight: 700; font-size: 7pt; }
-  .r-na { color: #9B9488; font-weight: 700; font-size: 7pt; }
+  .r-meet { color: #2E5E4A; font-weight: 700; font-size: 7pt; }
+  .r-below { color: #8F5410; font-weight: 700; font-size: 7pt; }
+  .r-na { color: #5E5A52; font-weight: 700; font-size: 7pt; }
   .r-none { color: #c8c4be; font-size: 7pt; }
 </style>
 </head>
@@ -328,37 +329,26 @@ export function generateReportHtml(data: ReportData): string {
 
 <!-- ══ COVER ══ -->
 <div class="cover">
-  <div style="position:absolute;top:-180px;right:-180px;width:520px;height:520px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.07)};pointer-events:none;"></div>
-  <div style="position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.12)};pointer-events:none;"></div>
-  <div style="position:absolute;bottom:60px;left:-120px;width:360px;height:360px;border-radius:50%;border:1px solid ${hexToRgba(accent,0.05)};pointer-events:none;"></div>
 
   <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
-    ${brandLogo ? `<img src="${escHtml(brandLogo)}" alt="" style="height:34px;max-width:140px;object-fit:contain;">` : `    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
-      <circle cx="20" cy="20" r="3" fill="${accent}"/>
-      <circle cx="20" cy="20" r="7" stroke="${accent}" stroke-width="1" stroke-opacity="0.5" fill="none"/>
-      <circle cx="20" cy="20" r="13" stroke="${accent}" stroke-width="0.5" stroke-opacity="0.25" fill="none"/>
-      <line x1="20" y1="4" x2="20" y2="10" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="20" y1="30" x2="20" y2="36" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="4" y1="20" x2="10" y2="20" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-      <line x1="30" y1="20" x2="36" y2="20" stroke="${accent}" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-    </svg>`}
+    ${brandLogo ? `<img src="${escHtml(brandLogo)}" alt="" style="height:34px;max-width:140px;object-fit:contain;">` : `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="#14161B" stroke-width="1.4"><path d="M6 29V14a10 10 0 0 1 20 0v15"/><path d="M10 29V15a6 6 0 0 1 12 0v14"/><path d="M16 21v3"/><path d="M3 29h26"/><circle cx="16" cy="19" r="1.8" fill="${accent}" stroke="none"/></svg>`}
     <div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:17pt;font-weight:400;color:#F4F1EC;letter-spacing:0.06em;line-height:1;">${escHtml(brandTitle)}</div>
-      <div style="font-size:7.5pt;color:#9B9488;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;">${tenantName}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17pt;font-weight:400;color:#14161B;letter-spacing:0.06em;line-height:1;">${escHtml(brandTitle)}</div>
+      <div style="font-size:7.5pt;color:#5E5A52;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;">${tenantName}</div>
     </div>
   </div>
 
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:48px 0;position:relative;z-index:1;">
     <div style="font-size:8pt;text-transform:uppercase;letter-spacing:0.14em;color:${accent};font-weight:600;margin-bottom:18px;">Mystery Guest Audit Report · Rapport d'Audit Mystère</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:38pt;font-weight:300;color:#F4F1EC;line-height:1.05;margin-bottom:10px;">${propertyName}</div>
-    <div style="font-size:12pt;color:#9B9488;margin-bottom:8px;">${[propertyCity, propertyCountry].filter(Boolean).join(', ')}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:38pt;font-weight:300;color:#14161B;line-height:1.05;margin-bottom:10px;">${propertyName}</div>
+    <div style="font-size:12pt;color:#5E5A52;margin-bottom:8px;">${[propertyCity, propertyCountry].filter(Boolean).join(', ')}</div>
     ${templateTier ? `<div style="font-size:8.5pt;color:${accent};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:44px;opacity:0.8;">${templateName}</div>` : '<div style="margin-bottom:44px;"></div>'}
 
-    <div style="display:flex;align-items:center;gap:28px;padding:28px 32px;background:rgba(255,255,255,0.04);border:1px solid ${hexToRgba(accent,0.18)};border-radius:10px;max-width:460px;">
+    <div style="display:flex;align-items:center;gap:28px;padding:28px 32px;background:#FFFDF8;border:1px solid ${hexToRgba(accent,0.18)};border-radius:0;max-width:460px;">
       ${circleProgress(overallPercent, 110, 7)}
       <div style="flex:1;">
-        <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#9B9488;margin-bottom:8px;display:block;">Overall Score · Score Global</div>
-        <div style="font-size:9.5pt;color:#9B9488;line-height:1.9;">
+        <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.1em;color:#5E5A52;margin-bottom:8px;display:block;">Overall Score · Score Global</div>
+        <div style="font-size:9.5pt;color:#5E5A52;line-height:1.9;">
           ${scores.total_meet} meet · ${scores.total_below} below · ${scores.total_na} N/A<br>
           ${scores.total_standards} standards evaluated
         </div>
@@ -367,13 +357,13 @@ export function generateReportHtml(data: ReportData): string {
     </div>
   </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,0.08);padding-top:22px;position:relative;z-index:1;">
-    <div style="font-size:8.5pt;color:#9B9488;line-height:1.9;">
-      <strong style="color:#F4F1EC;">${propertyName}</strong><br>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #D8D2C6;padding-top:22px;position:relative;z-index:1;">
+    <div style="font-size:8.5pt;color:#5E5A52;line-height:1.9;">
+      <strong style="color:#14161B;">${propertyName}</strong><br>
       ${templateName}<br>
       ${auditorName ? `Auditor · Auditeur: ${auditorName}` : ''}
     </div>
-    <div style="font-size:8.5pt;color:#9B9488;text-align:right;line-height:1.9;">
+    <div style="font-size:8.5pt;color:#5E5A52;text-align:right;line-height:1.9;">
       ${auditDate}<br>${auditDateEn}<br>
       <span style="color:${accent};">${whiteLabel ? escHtml(brandTitle) : 'zahirguest.com'}</span>
     </div>
@@ -385,7 +375,7 @@ ${executiveSummary ? `
 <div class="page">
   ${pageHeader(propertyName, auditDateEn)}
   <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:4px;">Executive Summary · Synthèse Exécutive</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#1a1a2e;margin-bottom:4px;line-height:1.1;">Overview</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#14161B;margin-bottom:4px;line-height:1.1;">Overview</div>
   <div style="width:36px;height:2px;background:${accent};margin:10px 0 24px;"></div>
   <div class="summary-body">${executiveSummary.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 </div>` : ''}
@@ -394,19 +384,19 @@ ${executiveSummary ? `
 <div class="page">
   ${pageHeader(propertyName, auditDateEn)}
   <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:4px;">Score Dashboard · Tableau de Bord</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#1a1a2e;margin-bottom:4px;line-height:1.1;">Results at a Glance</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:24pt;font-weight:400;color:#14161B;margin-bottom:4px;line-height:1.1;">Results at a Glance</div>
   <div style="width:36px;height:2px;background:${accent};margin:10px 0 24px;"></div>
 
   <div class="domain-score-grid">
     ${(scores.domains ?? []).map((domain: any) => `
     <div class="domain-score-card">
       ${circleProgress(domain.score_percent, 68, 5)}
-      <div style="font-family:'Cormorant Garamond',serif;font-size:11pt;color:#1a1a2e;margin-top:10px;margin-bottom:3px;line-height:1.2;">${domain.name_en}<br><span style="font-size:8pt;color:#9B9488;">${domain.name_fr}</span></div>
-      <div style="font-size:7.5pt;color:#9B9488;">${domain.sections?.length ?? 0} sections</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:11pt;color:#14161B;margin-top:10px;margin-bottom:3px;line-height:1.2;">${domain.name_en}<br><span style="font-size:8pt;color:#5E5A52;">${domain.name_fr}</span></div>
+      <div style="font-size:7.5pt;color:#5E5A52;">${domain.sections?.length ?? 0} sections</div>
     </div>`).join('')}
   </div>
 
-  <div style="font-family:'Cormorant Garamond',serif;font-size:14pt;color:#1a1a2e;margin-bottom:12px;padding-top:6px;border-top:1px solid #e8e4de;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:14pt;color:#14161B;margin-bottom:12px;padding-top:6px;border-top:1px solid #e8e4de;">
     Performance by Classification · Par Classification
   </div>
   <table class="class-table">
@@ -417,14 +407,14 @@ ${executiveSummary ? `
       const color = scoreColor(pct)
       return `<tr>
         <td class="class-label-cell">
-          <span style="font-size:8.5pt;color:#1a1a2e;display:block;">${label?.en ?? key}</span>
-          <span style="font-size:7.5pt;color:#9B9488;display:block;">${label?.fr ?? key}</span>
+          <span style="font-size:8.5pt;color:#14161B;display:block;">${label?.en ?? key}</span>
+          <span style="font-size:7.5pt;color:#5E5A52;display:block;">${label?.fr ?? key}</span>
         </td>
         <td style="padding:0 14px !important;">
           <div class="class-bar-bg"><div class="class-bar-fill" style="width:${pct ?? 0}%;background:${color};"></div></div>
         </td>
         <td style="font-size:8.5pt;font-weight:600;width:44px;text-align:right;color:${color};">${pct !== null ? `${pct}%` : 'N/A'}</td>
-        <td style="font-size:7.5pt;color:#9B9488;width:52px;text-align:right;">${value.meet ?? 0}/${value.scored ?? 0}</td>
+        <td style="font-size:7.5pt;color:#5E5A52;width:52px;text-align:right;">${value.meet ?? 0}/${value.scored ?? 0}</td>
       </tr>`
     }).join('')}
   </table>
@@ -440,7 +430,7 @@ ${(scores.domains ?? []).map((domain: any) => {
   <!-- Domain cover band — fully inline, no negative margins -->
   <div class="domain-cover">
     <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.14em;color:${accent};font-weight:600;margin-bottom:6px;">Domain · Domaine</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:22pt;font-weight:300;color:#F4F1EC;line-height:1.1;margin-bottom:8px;">${domain.name_en} / ${domain.name_fr}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22pt;font-weight:300;color:#14161B;line-height:1.1;margin-bottom:8px;">${domain.name_en} / ${domain.name_fr}</div>
     <div style="font-size:12pt;font-weight:600;color:${domainColor};">
       ${domainScore !== null ? `${domainScore}%` : 'N/A'} — ${scoreLabel(domainScore, 'en')} / ${scoreLabel(domainScore, 'fr')}
     </div>
@@ -471,8 +461,8 @@ ${(scores.domains ?? []).map((domain: any) => {
         return `
       <tr class="section-row">
         <td>
-          <div style="font-size:9pt;font-weight:500;color:#1a1a2e;line-height:1.3;">${sEn}</div>
-          <div style="font-size:7.5pt;color:#9B9488;line-height:1.3;">${sFr}</div>
+          <div style="font-size:9pt;font-weight:500;color:#14161B;line-height:1.3;">${sEn}</div>
+          <div style="font-size:7.5pt;color:#5E5A52;line-height:1.3;">${sFr}</div>
         </td>
         <td style="text-align:center;">
           <span class="score-pill" style="background:${bg};color:${color};">
@@ -481,17 +471,17 @@ ${(scores.domains ?? []).map((domain: any) => {
           <div style="font-size:6.5pt;color:${color};margin-top:2px;">${label}</div>
         </td>
         <td>
-          <div style="font-size:7.5pt;color:#1a1a2e;line-height:1.7;">
-            <span style="color:#4A7C6B;font-weight:600;">${section.meet ?? 0} ✓</span> &nbsp;
-            <span style="color:#D4882A;font-weight:600;">${section.below ?? 0} ✗</span> &nbsp;
-            <span style="color:#9B9488;">${section.na ?? 0} N/A</span>
+          <div style="font-size:7.5pt;color:#14161B;line-height:1.7;">
+            <span style="color:#2E5E4A;font-weight:600;">${section.meet ?? 0} ✓</span> &nbsp;
+            <span style="color:#8F5410;font-weight:600;">${section.below ?? 0} ✗</span> &nbsp;
+            <span style="color:#5E5A52;">${section.na ?? 0} N/A</span>
           </div>
-          <div style="font-size:6.5pt;color:#9B9488;">${section.scored ?? 0} scored</div>
+          <div style="font-size:6.5pt;color:#5E5A52;">${section.scored ?? 0} scored</div>
         </td>
         <td style="text-align:center;">
           ${section.emotional_rating ? `
           <div class="emotional-star">★ ${section.emotional_rating}</div>
-          <div style="font-size:6.5pt;color:#9B9488;line-height:1.3;">${emotLabel?.en ?? ''}<br>${emotLabel?.fr ?? ''}</div>
+          <div style="font-size:6.5pt;color:#5E5A52;line-height:1.3;">${emotLabel?.en ?? ''}<br>${emotLabel?.fr ?? ''}</div>
           ` : '<div style="font-size:7pt;color:#c8c4be;">—</div>'}
         </td>
         <td>
@@ -510,11 +500,11 @@ ${(scores.domains ?? []).map((domain: any, domainIndex: number) => `
   ${pageHeader(propertyName, auditDateEn)}
   ${domainIndex === 0 ? `
   <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:2px;">Appendix · Annexe</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:20pt;font-weight:300;color:#1a1a2e;line-height:1.1;margin-bottom:6px;">Full Scorecard</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:20pt;font-weight:300;color:#14161B;line-height:1.1;margin-bottom:6px;">Full Scorecard</div>
   <div style="width:36px;height:2px;background:${accent};margin-bottom:16px;"></div>
   ` : ''}
   <div style="font-size:7.5pt;text-transform:uppercase;letter-spacing:0.12em;color:${accent};font-weight:600;margin-bottom:2px;">Appendix · ${domain.name_en}</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#1a1a2e;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid ${accent};">${domain.name_en} / ${domain.name_fr}</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:400;color:#14161B;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid ${accent};">${domain.name_en} / ${domain.name_fr}</div>
 
   ${(domain.sections ?? []).map((section: any) => {
     const sEn = (section.name_en ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -543,10 +533,10 @@ ${(scores.domains ?? []).map((domain: any, domainIndex: number) => `
           : ''
         const rowBg = std.response === 'below' ? 'background:#fffaf5;' : std.response === 'meet' ? 'background:#f9fcfa;' : ''
         return `<tr style="${rowBg}">
-          <td>${qEn}<br><span style="color:#9B9488;font-size:7pt;">${qFr}</span></td>
-          <td style="color:#9B9488;font-size:7pt;">${std.performance_classification ?? ''}</td>
+          <td>${qEn}<br><span style="color:#5E5A52;font-size:7pt;">${qFr}</span></td>
+          <td style="color:#5E5A52;font-size:7pt;">${std.performance_classification ?? ''}</td>
           <td class="${rClass}">${rLabel}</td>
-          <td style="color:#9B9488;font-style:italic;">${note}</td>
+          <td style="color:#5E5A52;font-style:italic;">${note}</td>
         </tr>${photoRow}`
       }).join('')}
     </tbody>

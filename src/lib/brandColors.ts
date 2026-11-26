@@ -2,11 +2,13 @@
 //
 // A workspace chooses two colours:
 //   - the MAIN colour: buttons, titles, links and highlights (replaces the gold of Zahir Guest);
-//   - the BACKGROUND colour: the tint of the dark app background. The interface stays dark so that texts and
-//     charts remain readable; the colour gives the hue, the lightness steps are fixed.
+//   - the BACKGROUND colour: the tint of the light app background (« Maison » direction, 26 Nov 2026). The interface
+//     stays light so that texts and charts remain readable; the colour gives the hue, the lightness steps are fixed.
 
-export const DEFAULT_ACCENT = '#C8A45A'
-export const DEFAULT_THEME = '#0D1B2A'
+export const DEFAULT_ACCENT = '#8A5A18'
+export const DEFAULT_THEME = '#F7F4EE'
+/** Defaults of the former dark theme: a workspace that saved one of them gets today's default. */
+const LEGACY_DEFAULTS = ['#0D1B2A', '#C8A45A']
 export const HEX_RE = /^#[0-9a-fA-F]{6}$/
 
 type Rgb = [number, number, number]
@@ -49,32 +51,36 @@ export function luminance(hex: string): number {
 }
 
 /**
- * The main colour as it is applied on the dark background: a colour that would be unreadable (too dark) is lightened
- * until it reads, keeping its hue.
+ * The main colour as it is applied on the light background: it serves as text and as the ground of white text, so a
+ * colour that would be too light is darkened until it reads (contrast ≥ 4.5:1 on the ivory ground), keeping its hue.
  */
 export function readableAccent(hex: string): string {
-  const base = HEX_RE.test(hex) ? hex.toUpperCase() : DEFAULT_ACCENT
-  if (luminance(base) >= 0.2) return base
+  const base = HEX_RE.test(hex) && !LEGACY_DEFAULTS.includes(hex.toUpperCase()) ? hex.toUpperCase() : DEFAULT_ACCENT
+  const MAX = 0.16
+  if (luminance(base) <= MAX) return base
   const [h, s, l0] = rgbToHsl(hexToRgb(base))
   let l = l0
-  for (let i = 0; i < 40 && luminance(rgbToHex(hslToRgb([h, s, l]))) < 0.2; i++) l = Math.min(0.9, l + 0.02)
+  for (let i = 0; i < 50 && luminance(rgbToHex(hslToRgb([h, s, l]))) > MAX; i++) l = Math.max(0.08, l - 0.02)
   return rgbToHex(hslToRgb([h, s, l]))
 }
 
-/** CSS variables of the dark theme tinted with the chosen background colour. Null for the default navy. */
+/** CSS variables of the light theme tinted with the chosen background colour. Null for the default ivory. */
 export function themeVars(hex: string | null | undefined): Record<string, string> | null {
-  if (!hex || !HEX_RE.test(hex) || hex.toUpperCase() === DEFAULT_THEME) return null
+  if (!hex || !HEX_RE.test(hex)) return null
+  const up = hex.toUpperCase()
+  if (up === DEFAULT_THEME || LEGACY_DEFAULTS.includes(up)) return null
   const [h, sat] = rgbToHsl(hexToRgb(hex))
-  // grey / black / white choices become a neutral charcoal; colours keep their hue with a moderate saturation
-  const s = sat < 0.1 ? 0.05 : Math.min(0.42, Math.max(0.22, sat * 0.8))
+  // grey / black / white choices become a neutral stone; colours keep their hue with a gentle saturation
+  const s = sat < 0.1 ? 0.06 : Math.min(0.35, Math.max(0.18, sat * 0.6))
   const at = (l: number) => rgbToHex(hslToRgb([h, s, l]))
-  const border = at(0.225)
   return {
-    '--color-deep-ink': at(0.09),
-    '--color-midnight-navy': at(0.135),
-    '--color-slate-navy': at(0.18),
-    '--color-border': border,
-    '--color-border-subtle': border,
+    '--color-deep-ink': at(0.955),
+    '--color-midnight-navy': at(0.915),
+    '--color-slate-navy': at(0.98),
+    '--color-paper': at(0.99),
+    '--color-border': at(0.82),
+    '--color-border-subtle': at(0.87),
+    '--color-line-strong': at(0.76),
   }
 }
 
@@ -102,12 +108,12 @@ export function dominantColor(pixels: Uint8ClampedArray | number[]): string | nu
   return rgbToHex([sum[best][0] / weight[best], sum[best][1] / weight[best], sum[best][2] / weight[best]])
 }
 
-/** Ready-made backgrounds (dark, brand-neutral) offered next to the free colour picker. */
+/** Ready-made backgrounds (light, brand-neutral) offered next to the free colour picker. */
 export const THEME_PRESETS: { hex: string; en: string; fr: string }[] = [
-  { hex: '#0D1B2A', en: 'Navy', fr: 'Marine' },
-  { hex: '#1C1F24', en: 'Charcoal', fr: 'Anthracite' },
-  { hex: '#0F2A1F', en: 'Forest', fr: 'Forêt' },
-  { hex: '#2A0F18', en: 'Burgundy', fr: 'Bordeaux' },
-  { hex: '#1E1030', en: 'Plum', fr: 'Prune' },
-  { hex: '#0B2A33', en: 'Teal', fr: 'Pétrole' },
+  { hex: '#F7F4EE', en: 'Ivory', fr: 'Ivoire' },
+  { hex: '#8C8C8C', en: 'Stone', fr: 'Pierre' },
+  { hex: '#2F6B4F', en: 'Sage', fr: 'Sauge' },
+  { hex: '#8A2E3A', en: 'Rose', fr: 'Rosé' },
+  { hex: '#4B3A78', en: 'Lavender', fr: 'Lavande' },
+  { hex: '#2C6577', en: 'Mist', fr: 'Brume' },
 ]

@@ -1,57 +1,59 @@
-/* Pricing blocks (landing, light ivory section). Text colours chosen for contrast on ivory:
-   ink #0D1B2A for text, #5E5A52 for secondary text, #8A6A2E for gold text (gold #C8A45A is decorative only). */
+/* Pricing blocks (« Maison » direction, 26 Nov 2026): columns separated by hairlines, square controls, no
+   popularity badge (no sales data to back one). Literal colours: this block sits on the ivory landing page and on the
+   billing page, whatever the workspace theme. Ink #14161B, secondary #5E5A52, copper #8A5A18 for text accents. */
 
-.controls { display: flex; justify-content: center; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-10); }
+.controls { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-8); }
 
-.toggle { display: inline-flex; background: #E9E3D8; border-radius: var(--radius-full); padding: 4px; }
-.toggleBtn { border: none; background: transparent; color: #5E5A52; font: inherit; font-size: 0.9375rem; padding: 8px 18px; border-radius: var(--radius-full); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-.toggleActive { background: #FFFFFF; color: var(--color-deep-ink); box-shadow: 0 1px 3px rgba(13, 27, 42, 0.12); font-weight: 600; }
-.save { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; color: #2F5E4F; background: rgba(74, 124, 107, 0.16); border-radius: var(--radius-full); padding: 2px 8px; }
+.toggle { display: inline-flex; border: 1px solid #C9C0B0; }
+.toggleBtn { border: none; background: transparent; color: #14161B; font: inherit; font-size: 0.9375rem; padding: 10px 18px; min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.toggleActive { background: #14161B; color: #F7F4EE; }
+.save { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: inherit; opacity: 0.85; }
 
-.switch { display: inline-flex; border: 1px solid var(--color-border); border-radius: var(--radius-full); overflow: hidden; }
-.switchLight { border-color: #D9D1C2; background: #FFFFFF; }
-.switchBtn { border: none; background: transparent; color: var(--color-sand); font: inherit; font-size: 0.8125rem; padding: 7px 14px; cursor: pointer; }
-.switchLight .switchBtn { color: #5E5A52; }
-.switchBtnActive { background: var(--color-gold); color: var(--color-deep-ink) !important; font-weight: 600; }
+.switch { display: inline-flex; border: 1px solid #C9C0B0; overflow: hidden; }
+.switchLight { background: transparent; }
+.switchBtn { border: none; background: transparent; color: #14161B; font: inherit; font-size: 0.8125rem; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+.switchLight .switchBtn { color: #14161B; }
+.switchBtnActive { background: #14161B; color: #F7F4EE !important; font-weight: 500; }
 
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); align-items: stretch; }
-.plan { position: relative; background: #FFFFFF; color: var(--color-deep-ink); border: 1px solid #E4DDD0; border-radius: 14px; padding: var(--space-8) var(--space-6); display: flex; flex-direction: column; box-shadow: 0 12px 30px rgba(13, 27, 42, 0.06); }
-.planFeatured { border: 2px solid var(--color-gold); box-shadow: 0 18px 40px rgba(13, 27, 42, 0.12); }
-.badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--color-deep-ink); color: var(--color-ivory); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: var(--radius-full); white-space: nowrap; }
-.planName { font-family: var(--font-display); font-size: 1.75rem; font-weight: 500; color: var(--color-deep-ink); }
-.planFor { color: #5E5A52; font-size: 0.875rem; line-height: 1.5; margin-top: 4px; min-height: 2.6em; }
-.price { font-family: var(--font-display); font-size: 2.75rem; font-weight: 500; color: var(--color-deep-ink); line-height: 1.1; margin-top: var(--space-4); font-variant-numeric: tabular-nums; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #14161B; }
+.plan { position: relative; color: #14161B; padding: var(--space-8) var(--space-8) var(--space-8) 0; display: flex; flex-direction: column; }
+.plan + .plan { padding-left: var(--space-8); border-left: 1px solid #C9C0B0; }
+.planFeatured { }
+.planName { font-family: var(--font-display); font-size: 1.875rem; font-weight: 600; color: #14161B; margin: 0; }
+.planFor { color: #5E5A52; font-size: 0.9375rem; line-height: 1.55; margin-top: 4px; min-height: 2.8em; }
+.price { font-family: var(--font-display); font-size: 3rem; font-weight: 500; color: #14161B; line-height: 1.05; margin-top: var(--space-5); font-variant-numeric: tabular-nums; }
 .price small { font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; color: #5E5A52; }
 .priceNote { color: #5E5A52; font-size: 0.8125rem; min-height: 1.3em; margin: 4px 0 var(--space-4); }
 
-.stepper { display: flex; align-items: center; justify-content: space-between; background: #F6F2EA; border-radius: var(--radius-md); padding: 8px 12px; margin-bottom: var(--space-2); font-size: 0.875rem; font-weight: 500; }
+.stepper { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #D8D2C6; border-bottom: 1px solid #D8D2C6; padding: 8px 0; margin-bottom: var(--space-2); font-size: 0.9375rem; }
 .stepperCtl { display: inline-flex; align-items: center; gap: 10px; }
-.stepperCtl button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #D9D1C2; background: #FFFFFF; color: var(--color-deep-ink); font-size: 1.1rem; line-height: 1; cursor: pointer; }
-.stepperCtl button:hover { border-color: var(--color-gold); }
-.stepperCtl output { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
-.extraNote { color: #8A6A2E; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-4); }
+.stepperCtl button { width: 40px; height: 40px; border: 1px solid #14161B; background: transparent; color: #14161B; font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.stepperCtl button:hover { background: #14161B; color: #F7F4EE; }
+.stepperCtl output { min-width: 2ch; text-align: center; font-family: var(--font-mono); }
+.extraNote { color: #8A5A18; font-size: 0.8125rem; margin-bottom: var(--space-4); }
 
-.features { list-style: none; display: grid; gap: var(--space-3); align-content: start; margin: var(--space-2) 0 var(--space-6); padding: 0; flex: 1; }
-.features li { padding-left: var(--space-6); position: relative; font-size: 0.9375rem; line-height: 1.45; color: #2A3442; }
-.features li::before { content: ''; position: absolute; left: 0; top: 0.45em; width: 12px; height: 7px; border-left: 2px solid #8A6A2E; border-bottom: 2px solid #8A6A2E; transform: rotate(-45deg); }
+.features { list-style: none; display: grid; align-content: start; margin: var(--space-2) 0 var(--space-6); padding: 0; flex: 1; border-top: 1px solid #D8D2C6; }
+.features li { padding: 10px 0; border-bottom: 1px solid #D8D2C6; font-size: 0.9375rem; line-height: 1.45; color: #2A2C31; }
 
-.btnPrimary, .btnGhost { display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9375rem; padding: 13px 24px; text-align: center; transition: all var(--transition-fast); }
-.btnPrimary { background: var(--color-deep-ink); color: var(--color-ivory); }
-.btnPrimary:hover { background: #1E2F45; }
-.btnGhost { border: 1px solid #CFC6B5; color: var(--color-deep-ink); background: #FFFFFF; }
-.btnGhost:hover { border-color: var(--color-deep-ink); }
+.btnPrimary, .btnGhost { display: inline-flex; align-items: center; justify-content: center; font-weight: 500; font-size: 0.9375rem; padding: 14px 24px; min-height: 48px; text-align: center; transition: background var(--transition-fast), color var(--transition-fast); border: 1px solid #14161B; text-decoration: none; }
+.btnPrimary { background: #14161B; color: #F7F4EE; }
+.btnPrimary:hover { background: #8A5A18; border-color: #8A5A18; }
+.btnGhost { color: #14161B; background: transparent; }
+.btnGhost:hover { background: #14161B; color: #F7F4EE; }
 
-.fine { text-align: center; color: #5E5A52; font-size: 0.8125rem; margin-top: var(--space-6); line-height: 1.6; }
+.fine { color: #5E5A52; font-size: 0.875rem; margin-top: var(--space-6); line-height: 1.6; }
 
-.freeBand { margin-top: var(--space-6); background: #FFFFFF; border: 1px dashed #CDBF9F; border-radius: 14px; padding: var(--space-6); display: grid; grid-template-columns: 1.1fr 2fr auto; gap: var(--space-6); align-items: center; color: var(--color-deep-ink); }
+.freeBand { margin-top: var(--space-8); border-top: 1px solid #14161B; border-bottom: 1px solid #C9C0B0; padding: var(--space-6) 0; display: grid; grid-template-columns: 1.1fr 2fr auto; gap: var(--space-6); align-items: center; color: #14161B; }
 .freeHead .planFor { min-height: 0; }
-.freePrice { font-family: var(--font-display); font-size: 1.5rem; color: var(--color-deep-ink); margin-top: 2px; }
-.freeList { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.875rem; color: #3E3A33; }
-.freeList li::before { content: '✓'; color: var(--color-gold); font-weight: 700; margin-right: 6px; }
+.freePrice { font-family: var(--font-display); font-size: 1.5rem; color: #14161B; margin-top: 2px; }
+.freeList { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.9375rem; color: #2A2C31; }
+.freeList li::before { content: '·'; color: #8A5A18; font-weight: 700; margin-right: 8px; }
 .freeBand > a { white-space: nowrap; }
 
 @media (max-width: 900px) {
-  .freeBand { grid-template-columns: 1fr; max-width: 460px; margin-left: auto; margin-right: auto; margin-top: var(--space-8); }
-  .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; gap: var(--space-8); }
+  .freeBand { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  .plan, .plan + .plan { padding: var(--space-6) 0; border-left: 0; }
+  .plan + .plan { border-top: 1px solid #C9C0B0; }
   .planFor { min-height: 0; }
 }

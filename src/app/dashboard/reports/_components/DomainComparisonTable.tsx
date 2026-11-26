@@ -15,27 +15,27 @@ interface Props {
 }
 
 const SCORE_COLOR = (pct: number | null) => {
-  if (pct === null) return '#9B9488'
-  if (pct >= 85) return '#4A7C6B'
-  if (pct >= 70) return '#C8A45A'
-  if (pct >= 50) return '#D4882A'
-  return '#C0503A'
+  if (pct === null) return '#5E5A52'
+  if (pct >= 85) return '#2E5E4A'
+  if (pct >= 70) return '#8A5A18'
+  if (pct >= 50) return '#8F5410'
+  return '#8A2E22'
 }
 
 const SCORE_BG = (pct: number | null) => {
   if (pct === null) return 'transparent'
-  if (pct >= 85) return 'rgba(74,124,107,0.12)'
-  if (pct >= 70) return 'rgba(200,164,90,0.12)'
-  if (pct >= 50) return 'rgba(212,136,42,0.12)'
-  return 'rgba(192,80,58,0.12)'
+  if (pct >= 85) return 'rgba(46, 94, 74, 0.12)'
+  if (pct >= 70) return 'rgba(138, 90, 24, 0.12)'
+  if (pct >= 50) return 'rgba(143, 84, 16, 0.12)'
+  return 'rgba(138, 46, 34, 0.12)'
 }
 
 // Show delta between two scores
 const Delta = ({ current, previous }: { current: number | null; previous: number | null }) => {
   if (current === null || previous === null) return null
   const diff = Math.round((current - previous) * 10) / 10
-  if (diff === 0) return <span style={{ color: '#9B9488', fontSize: 11 }}>—</span>
-  const color = diff > 0 ? '#4A7C6B' : '#C0503A'
+  if (diff === 0) return <span style={{ color: '#5E5A52', fontSize: 11 }}>—</span>
+  const color = diff > 0 ? '#2E5E4A' : '#8A2E22'
   const arrow = diff > 0 ? '▲' : '▼'
   return (
     <span style={{ color, fontSize: 11, marginLeft: 4 }}>
@@ -70,8 +70,8 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
             <th style={{
               padding: '8px 12px', textAlign: 'left',
               fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase',
-              letterSpacing: '0.06em', color: '#9B9488',
-              background: '#162236', borderBottom: '1px solid #253549',
+              letterSpacing: '0.06em', color: '#5E5A52',
+              background: '#EFEADF', borderBottom: '1px solid #D8D2C6',
               whiteSpace: 'nowrap', minWidth: 140,
             }}>
               {t('Domain', 'Domaine')}
@@ -80,12 +80,12 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
               <th key={c.id} style={{
                 padding: '8px 12px', textAlign: 'center',
                 fontSize: '0.6875rem', fontWeight: 600,
-                color: '#9B9488', background: '#162236',
-                borderBottom: '1px solid #253549', whiteSpace: 'nowrap',
+                color: '#5E5A52', background: '#EFEADF',
+                borderBottom: '1px solid #D8D2C6', whiteSpace: 'nowrap',
               }}>
                 {formatShort(c.visitEnd ?? c.publishedAt)}
                 {i === sorted.length - 1 && (
-                  <span style={{ display: 'block', color: '#C8A45A', fontSize: 10, marginTop: 2 }}>
+                  <span style={{ display: 'block', color: '#8A5A18', fontSize: 10, marginTop: 2 }}>
                     {t('Latest', 'Dernier')}
                   </span>
                 )}
@@ -95,10 +95,10 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
         </thead>
         <tbody>
           {/* Overall row */}
-          <tr style={{ background: 'rgba(200,164,90,0.04)' }}>
+          <tr style={{ background: 'rgba(138, 90, 24, 0.04)' }}>
             <td style={{
-              padding: '10px 12px', color: '#C8A45A',
-              fontWeight: 600, borderBottom: '1px solid #253549',
+              padding: '10px 12px', color: '#8A5A18',
+              fontWeight: 600, borderBottom: '1px solid #D8D2C6',
               fontSize: '0.8125rem',
             }}>
               {t('Overall', 'Score global')}
@@ -106,7 +106,7 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
             {sorted.map((c, i) => (
               <td key={c.id} style={{
                 padding: '10px 12px', textAlign: 'center',
-                borderBottom: '1px solid #253549',
+                borderBottom: '1px solid #D8D2C6',
               }}>
                 <span style={{
                   display: 'inline-block',
@@ -127,10 +127,10 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
             const domainKey = domain.name_en
             const domainLabel = lang === 'en' ? domain.name_en : domain.name_fr
             return (
-              <tr key={domainKey} style={{ background: rowIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+              <tr key={domainKey} style={{ background: rowIdx % 2 === 0 ? 'transparent' : 'rgba(20, 22, 27, 0.01)' }}>
                 <td style={{
-                  padding: '8px 12px', color: '#F4F1EC',
-                  borderBottom: '1px solid #253549', fontSize: '0.8125rem',
+                  padding: '8px 12px', color: '#14161B',
+                  borderBottom: '1px solid #D8D2C6', fontSize: '0.8125rem',
                 }}>
                   {domainLabel}
                 </td>
@@ -142,7 +142,7 @@ export default function DomainComparisonTable({ campaigns, lang }: Props) {
                   return (
                     <td key={c.id} style={{
                       padding: '8px 12px', textAlign: 'center',
-                      borderBottom: '1px solid #253549',
+                      borderBottom: '1px solid #D8D2C6',
                       color: SCORE_COLOR(pct), fontWeight: 500,
                     }}>
                       {pct !== null ? `${pct}%` : '—'}

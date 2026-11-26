@@ -11,21 +11,11 @@
 .bgGrid {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
-  background-size: 48px 48px;
+  background-image: linear-gradient(var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 100% 32px;
   opacity: 0.4;
 }
-.bgGlow {
-  position: absolute;
-  top: -20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(ellipse, rgba(200, 164, 90, 0.08) 0%, transparent 70%);
-}
+.bgGlow { display: none; }
 
 .main {
   position: relative;
@@ -42,7 +32,7 @@
 .wordmark {
   font-family: var(--font-display);
   font-size: 1.875rem;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--color-ivory);
   margin: 0;
@@ -96,7 +86,7 @@
   color: var(--color-ivory);
   font-family: var(--font-body);
 }
-.planCardActive { border-color: var(--color-gold); background: rgba(200, 164, 90, 0.08); }
+.planCardActive { border-color: var(--color-gold); background: rgba(138, 90, 24, 0.08); }
 .planName { font-weight: 600; font-size: 0.9375rem; display: block; }
 .planPrice { color: var(--color-gold); font-size: 0.8125rem; display: block; margin-top: 2px; }
 .planNote { color: var(--color-sand); font-size: 0.6875rem; line-height: 1.4; display: block; margin-top: var(--space-1); }
@@ -104,8 +94,8 @@
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
 .errorBox {
-  background: rgba(196, 98, 45, 0.12);
-  border: 1px solid rgba(196, 98, 45, 0.4);
+  background: rgba(138, 46, 34, 0.12);
+  border: 1px solid rgba(138, 46, 34, 0.4);
   border-radius: var(--radius-md);
   color: var(--color-ivory);
   font-size: 0.875rem;
@@ -124,7 +114,7 @@
   .card { padding: var(--space-5); }
 }
 
-.freeBox { background: rgba(200, 164, 90, 0.07); border: 1px solid rgba(200, 164, 90, 0.3); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); }
+.freeBox { background: rgba(138, 90, 24, 0.07); border: 1px solid rgba(138, 90, 24, 0.3); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); }
 .freeList { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: 6px; }
 .freeList li { position: relative; padding-left: 22px; color: var(--color-ivory); font-size: 0.875rem; }
 .freeList li::before { content: ''; position: absolute; left: 2px; top: 0.45em; width: 10px; height: 6px; border-left: 2px solid var(--color-gold); border-bottom: 2px solid var(--color-gold); transform: rotate(-45deg); }

@@ -19,23 +19,12 @@
 .bgGrid {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
-  background-size: 48px 48px;
+  background-image: linear-gradient(var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 100% 32px;
   opacity: 0.4;
 }
 
-.bgGlow {
-  position: absolute;
-  top: -20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(ellipse, rgba(200, 164, 90, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
+.bgGlow { display: none; }
 
 /* Main content */
 .main {
@@ -63,13 +52,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 0 16px rgba(200, 164, 90, 0.3));
+  filter: drop-shadow(0 0 16px rgba(138, 90, 24, 0.3));
 }
 
 .wordmark {
   font-family: var(--font-display);
   font-size: 1.875rem;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--color-ivory);
   margin-bottom: var(--space-1);
@@ -135,8 +124,8 @@
 
 /* Error */
 .errorBox {
-  background: rgba(192, 80, 58, 0.1);
-  border: 1px solid rgba(192, 80, 58, 0.3);
+  background: rgba(138, 46, 34, 0.1);
+  border: 1px solid rgba(138, 46, 34, 0.3);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: 0.875rem;
@@ -165,8 +154,8 @@
 
 /* Signup notice + trial link */
 .noticeBox {
-  background: rgba(74, 124, 107, 0.12);
-  border: 1px solid rgba(74, 124, 107, 0.4);
+  background: rgba(46, 94, 74, 0.12);
+  border: 1px solid rgba(46, 94, 74, 0.4);
   border-radius: var(--radius-md);
   color: var(--color-ivory);
   font-size: 0.875rem;

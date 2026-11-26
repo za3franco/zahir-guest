@@ -315,7 +315,7 @@ export function BillingPlans({
         <div
           role="dialog" aria-modal="true" aria-labelledby="confirm-change-title"
           onClick={() => setConfirmChange(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(13, 27, 42, 0.82)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(20, 22, 27, 0.82)' }}
         >
           <div className={styles.planCard} onClick={e => e.stopPropagation()} style={{ maxWidth: 460, width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 id="confirm-change-title" className={styles.planName}>{t(T.confirmTitle)}</h3>

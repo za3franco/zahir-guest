@@ -180,7 +180,7 @@ function GroupRows({ group, youLabel, actions }: { group: Group; youLabel: strin
   return (
     <>
       <tr>
-        <td colSpan={5} style={{ background: 'rgba(200,164,90,0.06)', color: 'var(--color-gold)', fontFamily: 'var(--font-display)', fontSize: '1.0625rem' }}>
+        <td colSpan={5} style={{ background: 'rgba(138, 90, 24, 0.06)', color: 'var(--color-gold)', fontFamily: 'var(--font-display)', fontSize: '1.0625rem' }}>
           {group.title} <span style={{ color: 'var(--color-sand)', fontSize: '0.8125rem', fontFamily: 'var(--font-body)' }}>({group.users.length})</span>
         </td>
       </tr>

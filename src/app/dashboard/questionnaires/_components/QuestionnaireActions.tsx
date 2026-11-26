@@ -41,7 +41,7 @@ export default function QuestionnaireActions({ id, name, active, lang }: { id: s
       <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => patch({ is_active: !active })}>
         {active ? (en ? 'Archive' : 'Archiver') : (en ? 'Restore' : 'Restaurer')}
       </button>
-      <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={remove} style={{ color: '#E8897E' }}>
+      <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={remove} style={{ color: '#8A2E22' }}>
         {en ? 'Delete' : 'Supprimer'}
       </button>
     </div>

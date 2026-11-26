@@ -12,7 +12,7 @@
  * When offline, any other app page shows a small page listing the audits available offline.
  * Message 'clear' (logout, offline mode switched off) deletes everything.
  */
-const VERSION = 'zg-sw-2';
+const VERSION = 'zg-sw-3';
 const STATIC = 'zg-static';
 const PAGES = 'zg-pages';
 const PHOTOS = 'zg-photos';
@@ -149,10 +149,10 @@ async function offlinePage() {
     : '<p>Aucun audit n’est disponible hors ligne sur ce téléphone.<br><span lang="en">No audit is available offline on this phone.</span></p>';
   const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hors ligne — Zahir Guest</title><style>
-body{margin:0;font:16px/1.5 system-ui,sans-serif;background:#0D1B2A;color:#F4F1EC;padding:32px max(20px,env(safe-area-inset-left))}
-h1{font-weight:400;font-size:1.6rem;margin:0 0 8px;color:#C8A45A}p{color:#B8AE9C}ul{list-style:none;padding:0}
-li{margin:10px 0}a{display:block;padding:14px 16px;border:1px solid rgba(200,164,90,.4);border-radius:8px;color:#F4F1EC;text-decoration:none}
-button{margin-top:16px;background:none;border:1px solid #C8A45A;color:#C8A45A;border-radius:999px;padding:8px 16px;font:inherit}
+body{margin:0;font:16px/1.5 system-ui,sans-serif;background:#F7F4EE;color:#14161B;padding:32px max(20px,env(safe-area-inset-left))}
+h1{font-weight:500;font-size:1.6rem;margin:0 0 8px;color:#14161B;font-family:Georgia,serif}p{color:#5E5A52}ul{list-style:none;padding:0}
+li{margin:10px 0}a{display:block;padding:14px 16px;border:1px solid #C9C0B0;border-radius:0;color:#14161B;background:#FFFDF8;text-decoration:none}
+button{margin-top:16px;background:#14161B;border:0;color:#F7F4EE;border-radius:0;padding:12px 18px;font:inherit}
 </style></head><body><h1>Hors ligne</h1><p>Cette page demande du réseau. Les audits ci-dessous sont disponibles sur ce téléphone.<br><span lang="en">You are offline. These audits are available on this phone.</span></p>
 ${list}<button onclick="location.reload()">Réessayer</button></body></html>`;
   return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
