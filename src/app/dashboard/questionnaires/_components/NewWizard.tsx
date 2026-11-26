@@ -110,7 +110,7 @@ export default function NewWizard({ lang, library, templates }: { lang: Lang; li
   }
 
   const card = (active: boolean): React.CSSProperties => ({
-    textAlign: 'left', cursor: 'pointer', background: active ? 'rgba(200,164,90,0.08)' : 'var(--color-slate-navy)',
+    textAlign: 'left', cursor: 'pointer', background: active ? 'rgba(138, 90, 24, 0.08)' : 'var(--color-slate-navy)',
     border: `1px solid ${active ? 'var(--color-gold)' : 'var(--color-border-subtle)'}`, borderRadius: 12, padding: 16,
     color: 'inherit', font: 'inherit', display: 'flex', flexDirection: 'column', gap: 6, textDecoration: 'none',
   })

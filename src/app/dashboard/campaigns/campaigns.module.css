@@ -11,7 +11,7 @@
 .title {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--color-ivory);
 }
 
@@ -38,8 +38,8 @@
 .filterTab:hover { color: var(--color-ivory); border-color: var(--color-gold); }
 .filterTabActive {
   color: var(--color-gold) !important;
-  background: rgba(200,164,90,0.1) !important;
-  border-color: rgba(200,164,90,0.3) !important;
+  background: rgba(138, 90, 24, 0.1) !important;
+  border-color: rgba(138, 90, 24, 0.3) !important;
 }
 
 /* Search row */
@@ -67,7 +67,7 @@
 .searchInput:focus { outline: none; border-color: var(--color-gold); }
 
 .clearBtn {
-  background: rgba(155, 148, 136, 0.1);
+  background: rgba(94, 90, 82, 0.1);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   color: var(--color-sand);
@@ -111,7 +111,7 @@
 }
 
 .table tr:last-child td { border-bottom: none; }
-.table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.table tbody tr:hover td { background: rgba(20, 22, 27, 0.02); }
 
 .tableLink { color: var(--color-gold); text-decoration: none; font-weight: 500; }
 .tableLink:hover { text-decoration: underline; }

@@ -16,7 +16,7 @@ const CLASS_LABEL: Record<string, { en: string; fr: string }> = {
   SALES_OPPORTUNITY: { en: 'Sales opportunity', fr: 'Opportunité de vente' },
 }
 
-const color = (p: number | null) => (p == null ? 'var(--color-sand)' : p >= 85 ? '#4A9C7B' : p >= 70 ? '#C8A45A' : p >= 50 ? '#D4882A' : '#C0503A')
+const color = (p: number | null) => (p == null ? 'var(--color-sand)' : p >= 85 ? '#4A9C7B' : p >= 70 ? '#8A5A18' : p >= 50 ? '#8F5410' : '#8A2E22')
 const avg = (xs: (number | null)[]) => { const v = xs.filter((x): x is number => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null }
 const fmt = (p: number | null) => (p == null ? '—' : `${Math.round(p)}%`)
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
@@ -170,7 +170,7 @@ export default function Analytics({ rows, clients, lang, isAdmin }: { rows: Audi
             </div>
             <div className={styles.kpi}>
               <div className={styles.kpiLabel}>{t('Critical failures', 'Points critiques non conformes')}</div>
-              <div className={styles.kpiValue} style={{ color: inPeriod.some(r => r.criticalBelow) ? '#E8897E' : undefined }}>{inPeriod.reduce((n, r) => n + r.criticalBelow, 0)}</div>
+              <div className={styles.kpiValue} style={{ color: inPeriod.some(r => r.criticalBelow) ? '#8A2E22' : undefined }}>{inPeriod.reduce((n, r) => n + r.criticalBelow, 0)}</div>
               <div className={styles.kpiSub}>{t('across the period', 'sur la période')}</div>
             </div>
           </div>
@@ -182,12 +182,12 @@ export default function Analytics({ rows, clients, lang, isAdmin }: { rows: Audi
               <div style={{ width: '100%', height: 260 }}>
                 <ResponsiveContainer>
                   <LineChart data={trend} margin={{ top: 8, right: 16, bottom: 0, left: -16 }}>
-                    <CartesianGrid stroke="#253549" strokeDasharray="3 3" />
-                    <XAxis dataKey="month" stroke="#9B9488" fontSize={12} />
-                    <YAxis domain={[0, 100]} stroke="#9B9488" fontSize={12} />
-                    <Tooltip contentStyle={{ background: '#162236', border: '1px solid #253549', borderRadius: 8, color: '#F4F1EC' }}
+                    <CartesianGrid stroke="#D8D2C6" strokeDasharray="3 3" />
+                    <XAxis dataKey="month" stroke="#5E5A52" fontSize={12} />
+                    <YAxis domain={[0, 100]} stroke="#5E5A52" fontSize={12} />
+                    <Tooltip contentStyle={{ background: '#EFEADF', border: '1px solid #D8D2C6', borderRadius: 8, color: '#14161B' }}
                       formatter={(v: any, _n: any, p: any) => [`${v}% · ${p.payload.audits} audit${p.payload.audits > 1 ? 's' : ''}`, t('Score', 'Score')]} />
-                    <Line type="monotone" dataKey="score" stroke="#C8A45A" strokeWidth={2.5} dot={{ r: 4, fill: '#C8A45A' }} connectNulls />
+                    <Line type="monotone" dataKey="score" stroke="#8A5A18" strokeWidth={2.5} dot={{ r: 4, fill: '#8A5A18' }} connectNulls />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -215,7 +215,7 @@ export default function Analytics({ rows, clients, lang, isAdmin }: { rows: Audi
                       <td className={styles.num} style={{ color: color(p.average), fontWeight: 600 }}>{fmt(p.average)}</td>
                       <td className={styles.num}>{fmt(p.latest)} <span className={styles.muted}>{fmtDate(p.latestDate)}</span></td>
                       <td className={styles.num}>{p.change == null ? <span className={styles.muted}>—</span> : <span className={p.change >= 0 ? styles.up : styles.down}>{p.change >= 0 ? '+' : ''}{Math.round(p.change)} pts</span>}</td>
-                      <td className={styles.num} style={{ color: p.critical ? '#E8897E' : undefined }}>{p.critical}</td>
+                      <td className={styles.num} style={{ color: p.critical ? '#8A2E22' : undefined }}>{p.critical}</td>
                     </tr>
                   ))}
                   {ranking.length > 1 && (

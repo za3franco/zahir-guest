@@ -166,7 +166,7 @@ export default function AuditSubmit({
                     <div className={styles.sectionRowLeft}>
                       <div className={styles.sectionCheck}>
                         {complete ? (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A7C6B" strokeWidth="2.5">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E5E4A" strokeWidth="2.5">
                             <polyline points="20 6 9 17 4 12"/>
                           </svg>
                         ) : (

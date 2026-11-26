@@ -9,7 +9,7 @@
 .title {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--color-ivory);
   margin-bottom: var(--space-2);
 }
@@ -125,8 +125,8 @@
 }
 
 .successBanner {
-  background: rgba(74, 124, 107, 0.1);
-  border: 1px solid rgba(74, 124, 107, 0.3);
+  background: rgba(46, 94, 74, 0.1);
+  border: 1px solid rgba(46, 94, 74, 0.3);
   border-radius: var(--radius-md);
   color: var(--color-sage);
   font-size: 0.875rem;
@@ -134,8 +134,8 @@
 }
 
 .errorBanner {
-  background: rgba(192, 80, 58, 0.1);
-  border: 1px solid rgba(192, 80, 58, 0.3);
+  background: rgba(138, 46, 34, 0.1);
+  border: 1px solid rgba(138, 46, 34, 0.3);
   border-radius: var(--radius-md);
   color: var(--color-terracotta);
   font-size: 0.875rem;

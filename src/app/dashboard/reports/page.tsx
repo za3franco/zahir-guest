@@ -34,7 +34,7 @@ export default async function ReportsDashboardPage() {
   if (!properties || properties.length === 0) {
     return (
       <div style={{ maxWidth: 720, padding: '3rem 0' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 300, color: 'var(--color-ivory)', marginBottom: '1rem' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 500, color: 'var(--color-ivory)', marginBottom: '1rem' }}>
           {lang === 'en' ? 'Dashboard' : 'Tableau de bord'}
         </h1>
         <div style={{

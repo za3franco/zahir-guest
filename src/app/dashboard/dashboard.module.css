@@ -9,17 +9,17 @@
 
 .greetingWord {
   display: block;
-  font-size: 0.875rem;
-  color: var(--color-sand);
+  font-size: 0.75rem;
+  color: var(--color-gold);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   margin-bottom: 4px;
 }
 
 .greetingName {
   font-family: var(--font-display);
   font-size: 2.5rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--color-ivory);
   line-height: 1.1;
 }
@@ -33,18 +33,20 @@
 }
 
 .stat {
-  background: var(--color-slate-navy);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5) var(--space-5);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-ivory);
+  border-radius: 0;
+  padding: var(--space-4) 0 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .statValue {
-  font-size: 2rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 500;
   color: var(--color-ivory);
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -120,7 +122,7 @@
 
 .table tr:last-child td { border-bottom: none; }
 
-.table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.table tbody tr:hover td { background: rgba(20, 22, 27, 0.02); }
 
 .tableLink {
   color: var(--color-gold);
@@ -296,8 +298,8 @@
   justify-content: space-between;
   gap: var(--space-4);
   flex-wrap: wrap;
-  background: rgba(212, 136, 42, 0.12);
-  border: 1px solid rgba(212, 136, 42, 0.5);
+  background: rgba(143, 84, 16, 0.12);
+  border: 1px solid rgba(143, 84, 16, 0.5);
   border-radius: var(--radius-md);
   color: var(--color-ivory);
   font-size: 0.875rem;

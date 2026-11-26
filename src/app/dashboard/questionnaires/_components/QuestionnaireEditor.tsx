@@ -180,7 +180,7 @@ export default function QuestionnaireEditor({ tree, lang, inUse, library }: { tr
                   const filled = s.standards.filter(q => q.question_en || q.question_fr).length
                   if (!ls || !ls.questions.length || filled) return null
                   return (
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', background: 'rgba(200,164,90,0.08)', borderRadius: 8, padding: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', background: 'rgba(138, 90, 24, 0.08)', borderRadius: 8, padding: 10 }}>
                       <span className={styles.muted}>{t(T.suggest)}</span>
                       <button type="button" className="btn btn-primary btn-sm" onClick={() => addQuestions(di, si, essentials(ls.questions))}>{T.addEssentials(essentials(ls.questions).length, lang)}</button>
                       <button type="button" className="btn btn-ghost btn-sm" onClick={() => addQuestions(di, si, ls.questions)}>{T.addAll(ls.questions.length, lang)}</button>

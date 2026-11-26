@@ -143,7 +143,7 @@ export default function EditUserForm({ currentUser, targetUser }: Props) {
 
         {error && <div className={styles.errorBanner}>{error}</div>}
         {saved && !error && (
-          <div style={{ color: '#7fc4a8', fontSize: '0.875rem' }}>
+          <div style={{ color: '#2E5E4A', fontSize: '0.875rem' }}>
             {lang === 'en' ? 'Saved. Set what this person can see below.' : 'Enregistré. Choisissez ci-dessous ce que cette personne peut voir.'}
           </div>
         )}

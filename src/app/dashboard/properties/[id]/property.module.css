@@ -62,8 +62,8 @@
 }
 
 .archivedNotice {
-  background: rgba(212, 136, 42, 0.1);
-  border: 1px solid rgba(212, 136, 42, 0.3);
+  background: rgba(143, 84, 16, 0.1);
+  border: 1px solid rgba(143, 84, 16, 0.3);
   border-radius: var(--radius-md);
   color: var(--color-amber);
   font-size: 0.875rem;

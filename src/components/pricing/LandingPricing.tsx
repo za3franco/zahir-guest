@@ -16,7 +16,6 @@ const T = {
   perMonth: { en: '/month', fr: '/mois' },
   billedYear: { en: 'billed yearly', fr: 'facturés par an' },
   from: { en: 'From', fr: 'À partir de' },
-  popular: { en: 'Most popular', fr: 'Le plus choisi' },
   cta: { en: 'Create my workspace', fr: 'Créer mon espace' },
   freeCta: { en: 'Start for free', fr: 'Commencer gratuitement' },
   freeFor: { en: 'To try Zahir Guest on your property, for as long as you like', fr: 'Pour essayer Zahir Guest sur votre établissement, sans limite de durée' },
@@ -64,7 +63,6 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
     const enterprise = tier === 'enterprise'
     return (
       <div key={tier} className={`${styles.plan} ${featured ? styles.planFeatured : ''}`}>
-        {featured && <span className={styles.badge}>{t(T.popular)}</span>}
         <h3 className={styles.planName}>{PLAN_NAMES[tier][lang]}</h3>
         <p className={styles.planFor}>{t(tier === 'starter' ? T.hotelFor : featured ? T.proFor : T.entFor)}</p>
         <p className={styles.price}>

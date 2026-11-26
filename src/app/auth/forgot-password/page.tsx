@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import styles from './forgot-password.module.css'
+import { ZahirMark } from '@/components/icons/ZahirIcons'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -45,19 +46,7 @@ export default function ForgotPasswordPage() {
       <main className={styles.main}>
         <div className={styles.brand}>
           <div className={styles.logoMark} aria-hidden="true">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="3" fill="#C8A45A"/>
-              <circle cx="20" cy="20" r="7" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.5" fill="none"/>
-              <circle cx="20" cy="20" r="13" stroke="#C8A45A" strokeWidth="0.5" strokeOpacity="0.25" fill="none"/>
-              <line x1="20" y1="4" x2="20" y2="10" stroke="#C8A45A" strokeWidth="1.5" strokeOpacity="0.6" strokeLinecap="round"/>
-              <line x1="20" y1="30" x2="20" y2="36" stroke="#C8A45A" strokeWidth="1.5" strokeOpacity="0.6" strokeLinecap="round"/>
-              <line x1="4" y1="20" x2="10" y2="20" stroke="#C8A45A" strokeWidth="1.5" strokeOpacity="0.6" strokeLinecap="round"/>
-              <line x1="30" y1="20" x2="36" y2="20" stroke="#C8A45A" strokeWidth="1.5" strokeOpacity="0.6" strokeLinecap="round"/>
-              <line x1="8.69" y1="8.69" x2="13.13" y2="13.13" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.35" strokeLinecap="round"/>
-              <line x1="26.87" y1="26.87" x2="31.31" y2="31.31" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.35" strokeLinecap="round"/>
-              <line x1="31.31" y1="8.69" x2="26.87" y2="13.13" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.35" strokeLinecap="round"/>
-              <line x1="13.13" y1="26.87" x2="8.69" y2="31.31" stroke="#C8A45A" strokeWidth="1" strokeOpacity="0.35" strokeLinecap="round"/>
-            </svg>
+            <ZahirMark size={40} />
           </div>
           <div>
             <h1 className={styles.wordmark}>Zahir Guest</h1>

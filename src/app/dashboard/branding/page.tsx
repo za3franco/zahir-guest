@@ -29,8 +29,8 @@ export default async function BrandingPage() {
         allowed={b.whiteLabel}
         initial={{
           brandName: tenant?.branding_config?.brand_name ?? tenant?.name ?? '',
-          color: tenant?.branding_config?.primary_color ?? '#C8A45A',
-          theme: tenant?.branding_config?.theme_color ?? '#0D1B2A',
+          color: tenant?.branding_config?.primary_color ?? '#8A5A18',
+          theme: tenant?.branding_config?.theme_color ?? '#F7F4EE',
           logoUrl: tenant?.branding_config?.logo_url ?? null,
         }}
       />

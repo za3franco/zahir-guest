@@ -78,11 +78,11 @@ export default function AuditOverview({
       <div className={styles.progressSection}>
         <div className={styles.progressRingWrapper}>
           <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#253549" strokeWidth="8"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#D8D2C6" strokeWidth="8"/>
             <circle
               cx="60" cy="60" r="50"
               fill="none"
-              stroke="#C8A45A"
+              stroke="#8A5A18"
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 50}`}
@@ -90,10 +90,10 @@ export default function AuditOverview({
               transform="rotate(-90 60 60)"
               style={{ transition: 'stroke-dashoffset 0.5s ease' }}
             />
-            <text x="60" y="56" textAnchor="middle" fill="#F4F1EC" fontSize="22" fontWeight="600">
+            <text x="60" y="56" textAnchor="middle" fill="#14161B" fontSize="22" fontWeight="600">
               {overallPercent}%
             </text>
-            <text x="60" y="72" textAnchor="middle" fill="#9B9488" fontSize="10">
+            <text x="60" y="72" textAnchor="middle" fill="#5E5A52" fontSize="10">
               {t(T.progress)}
             </text>
           </svg>
@@ -126,7 +126,7 @@ export default function AuditOverview({
                       <div className={styles.sectionLeft}>
                         <div className={styles.sectionIndicator}>
                           {complete ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A7C6B" strokeWidth="2.5">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E5E4A" strokeWidth="2.5">
                               <polyline points="20 6 9 17 4 12"/>
                             </svg>
                           ) : started ? (

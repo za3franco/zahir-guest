@@ -11,12 +11,12 @@
 .title {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--color-ivory);
 }
 
 .notice {
-  background: rgba(155, 148, 136, 0.08);
+  background: rgba(94, 90, 82, 0.08);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   color: var(--color-ivory);
@@ -27,8 +27,8 @@
 }
 
 .noticeSuccess {
-  background: rgba(74, 124, 107, 0.12);
-  border-color: rgba(74, 124, 107, 0.4);
+  background: rgba(46, 94, 74, 0.12);
+  border-color: rgba(46, 94, 74, 0.4);
 }
 
 .card {
@@ -222,11 +222,11 @@
 }
 
 .noticeDanger {
-  background: rgba(176, 58, 46, 0.16);
-  border-color: rgba(176, 58, 46, 0.6);
+  background: rgba(138, 46, 34, 0.16);
+  border-color: rgba(138, 46, 34, 0.6);
   color: var(--color-ivory);
 }
-.noticeDanger strong { display: block; color: #E8897E; margin-bottom: var(--space-2); }
+.noticeDanger strong { display: block; color: #8A2E22; margin-bottom: var(--space-2); }
 .noticeDanger p { margin: 0 0 var(--space-3); color: var(--color-ivory); opacity: 0.9; }
 
 /* Grid v2: controls row, property stepper, add-properties box */
@@ -242,7 +242,7 @@
 
 .addBox { margin-top: var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; background: var(--color-midnight-navy); border: 1px dashed var(--color-gold); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); }
 .addTitle { font-family: var(--font-display); font-size: 1.125rem; font-weight: 400; color: var(--color-ivory); margin: 0; }
-.success { color: #8FC2AF; font-size: 0.8125rem; margin: var(--space-3) 0 0; }
-.noticeWarn { background: rgba(212, 136, 42, 0.12); border-color: rgba(212, 136, 42, 0.5); }
+.success { color: #2E5E4A; font-size: 0.8125rem; margin: var(--space-3) 0 0; }
+.noticeWarn { background: rgba(143, 84, 16, 0.12); border-color: rgba(143, 84, 16, 0.5); }
 .noticeWarn strong { display: block; color: var(--color-warm-brass); margin-bottom: var(--space-2); }
 .noticeWarn p { margin: 0 0 var(--space-3); }

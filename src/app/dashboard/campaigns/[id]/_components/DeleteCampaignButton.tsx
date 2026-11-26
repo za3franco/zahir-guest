@@ -26,7 +26,7 @@ export default function DeleteCampaignButton({ campaignId, status, lang }: Props
       <button
         type="submit"
         className="btn btn-ghost btn-sm"
-        style={{ color: 'var(--color-terracotta)', borderColor: 'rgba(192,80,58,0.3)' }}
+        style={{ color: 'var(--color-terracotta)', borderColor: 'rgba(138, 46, 34, 0.3)' }}
       >
         {label}
       </button>

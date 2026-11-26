@@ -45,10 +45,10 @@ const VISIT_FILTERS = [
 
 const SCORE_COLOR = (pct: number | null) => {
   if (pct === null) return 'var(--color-sand)'
-  if (pct >= 85) return '#4A7C6B'
-  if (pct >= 70) return '#C8A45A'
-  if (pct >= 50) return '#D4882A'
-  return '#C0503A'
+  if (pct >= 85) return '#2E5E4A'
+  if (pct >= 70) return '#8A5A18'
+  if (pct >= 50) return '#8F5410'
+  return '#8A2E22'
 }
 
 export default function ReportsPortal({ properties, campaigns, userRole, lang }: Props) {

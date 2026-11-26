@@ -1,16 +1,18 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { COPY, FAQS, type Lang } from '@/lib/landingContent'
+import { COPY, FAQS, MAISON, type Lang } from '@/lib/landingContent'
 import { madPaymentsEnabled } from '@/lib/currency'
 import { PLAN_NAMES, PRICE_GRID, type PlanTier } from '@/lib/plans'
 import { CONTACT_HREF, SITE_URL, SUPPORT_EMAIL } from '@/lib/site'
 import LandingPricing from '@/components/pricing/LandingPricing'
 import LandingNav from './LandingNav'
+import { PhoneAudit, PortfolioBrowser, ReportCover, ReportSheet } from './AppVignettes'
+import { ZIcon, ZahirMark, type IconName } from '@/components/icons/ZahirIcons'
 import styles from './landing.module.css'
 
-// Layout rhythm (requested: never dark app screens on a dark page):
-//   hero dark (light report page + phone stand out) → light sections for the product tour, audience,
-//   pricing and FAQ → dark for features, steps, final call to action and footer.
+// « Maison » direction (26 Nov 2026), same family as Za3fran.io: ivory ground, ink text, copper used sparingly,
+// hairlines instead of cards, real photography. Journey: hero → two doors (hotels / audit firms) → one visit in
+// three moments → the product screen by screen → sample report → features → founders → pricing → FAQ → final call.
 
 function jsonLd(lang: Lang) {
   const url = lang === 'en' ? `${SITE_URL}/en` : SITE_URL
@@ -49,30 +51,14 @@ function jsonLd(lang: Lang) {
   ]
 }
 
-function Phone({ src, alt, priority }: { src: string; alt: string; priority?: boolean }) {
-  return (
-    <div className={styles.phone}>
-      <Image src={src} alt={alt} width={640} height={1385} sizes="(max-width: 700px) 60vw, 300px" priority={priority} />
-    </div>
-  )
-}
-
-function Browser({ src, alt, width, height, address }: { src: string; alt: string; width: number; height: number; address: string }) {
-  return (
-    <div className={styles.browser}>
-      <div className={styles.browserBar} aria-hidden="true">
-        <span /><span /><span />
-        <em>{address}</em>
-      </div>
-      <Image src={src} alt={alt} width={width} height={height} sizes="(max-width: 900px) 92vw, 640px" />
-    </div>
-  )
-}
+const FEATURE_ICONS: IconName[] = ['keyhole', 'notebook', 'curve', 'seal', 'facade', 'badge']
 
 export default function LandingPage({ lang }: { lang: Lang }) {
   const c = COPY[lang]
+  const m = MAISON[lang]
   const base = lang === 'en' ? '/en' : ''
   const tour = c.tour
+  const visuals = [<PhoneAudit key="p" lang={lang} />, <ReportCover key="r" lang={lang} />, <PortfolioBrowser key="b" lang={lang} />]
 
   return (
     <div className={styles.page} lang={lang}>
@@ -83,97 +69,89 @@ export default function LandingPage({ lang }: { lang: Lang }) {
       <LandingNav lang={lang} labels={c.nav} />
 
       <main>
-        {/* HERO — dark; the light report page and the phone give the contrast */}
+        {/* HERO */}
         <section className={styles.hero}>
-          <div className={styles.heroInner}>
-            <div className={styles.heroText}>
-              <p className={styles.eyebrow}>{c.hero.eyebrow}</p>
-              <h1 className={styles.h1}>{c.hero.title}</h1>
+          <div className={styles.wrap}>
+            <p className={styles.kicker}>{c.hero.eyebrow}</p>
+            <h1 className={styles.h1}>{c.hero.title}</h1>
+            <div className={styles.heroRow}>
               <p className={styles.lead}>{c.hero.sub}</p>
-              <div className={styles.ctaRow}>
-                <Link href="/signup" className={styles.btnPrimary}>{c.hero.cta}</Link>
-                <a href={CONTACT_HREF(lang)} className={styles.btnGhost}>{c.hero.cta2}</a>
+              <div className={styles.heroActions}>
+                <div className={styles.ctas}>
+                  <a href="#exemple" className={styles.btn}>{m.heroCta}</a>
+                  <Link href="/signup" className={`${styles.btn} ${styles.ghost}`}>{m.heroCta2}</Link>
+                </div>
+                <p className={styles.note}>{c.hero.note}</p>
               </div>
-              <p className={styles.note}>{c.hero.note}</p>
             </div>
-
-            <div className={styles.heroVisual}>
-              <div className={styles.heroPaper}>
-                <Image
-                  src="/landing/report-domains.webp"
-                  alt={lang === 'en' ? 'Audit report: scores by domain and by type of standard' : "Rapport d'audit : scores par domaine et par type de standard"}
-                  width={1200}
-                  height={1235}
-                  sizes="(max-width: 900px) 80vw, 460px"
-                  priority
-                />
-              </div>
-              <div className={styles.heroPhone}>
-                <Phone src={`/landing/audit-${lang}.webp`} alt={lang === 'en' ? 'Mobile audit screen' : "Écran d'audit sur mobile"} priority />
-              </div>
-              <span className={styles.demoTag}>{tour.caption}</span>
-            </div>
+            <figure className={styles.heroImg}>
+              <Image src="/landing/visite.webp" alt={m.heroAlt} width={1448} height={1086} sizes="(max-width: 1280px) 100vw, 1200px" priority />
+              <figcaption className={styles.fiche}>
+                <span className={styles.ficheLabel}>{m.note.label}</span>
+                {m.note.text}
+                <span className={styles.ficheTag}>{m.note.tag}</span>
+              </figcaption>
+            </figure>
           </div>
         </section>
 
-        {/* AUDIENCE — light */}
-        <section className={`${styles.section} ${styles.light}`}>
-          <div className={styles.container}>
-            <h2 className={styles.h2}>{c.audience.title}</h2>
-            <div className={styles.grid4}>
-              {c.audience.items.map(i => (
-                <div key={i.t} className={styles.lightCard}>
-                  <h3 className={styles.h3}>{i.t}</h3>
-                  <p>{i.d}</p>
+        {/* TWO DOORS */}
+        <section className={styles.doorsSec}>
+          <div className={`${styles.wrap} ${styles.doors}`}>
+            {m.doors.map(d => (
+              <div key={d.id} id={d.id} className={styles.door}>
+                <p className={styles.kicker}>{d.kicker}</p>
+                <h2 className={styles.doorTitle}>{d.title}</h2>
+                <p className={styles.body}>{d.d}</p>
+                <ul className={styles.list}>{d.points.map(p => <li key={p}>{p}</li>)}</ul>
+                {d.href === 'signup'
+                  ? <Link href="/signup" className={styles.go}>{d.cta} →</Link>
+                  : <a href={CONTACT_HREF(lang, 'landing-firms')} className={styles.go}>{d.cta} →</a>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ONE VISIT, THREE MOMENTS */}
+        <section id="how" className={styles.sec}>
+          <div className={styles.wrap}>
+            <div className={styles.headRow}>
+              <p className={styles.kicker}>{m.times.kicker}</p>
+              <h2 className={styles.h2}>{m.times.title}</h2>
+            </div>
+            <div className={styles.times}>
+              {m.times.items.map((t, i) => (
+                <div key={t.t} className={styles.time}>
+                  <ZIcon name={(['calendar', 'keyhole', 'seal'] as IconName[])[i]} size={40} />
+                  <p className={styles.when}>{t.when}</p>
+                  <h3 className={styles.h3}>{t.t}</h3>
+                  <p className={styles.body}>{t.d}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* PRODUCT TOUR — white, real screens */}
-        <section id="product" className={`${styles.section} ${styles.white}`}>
-          <div className={styles.container}>
-            <p className={`${styles.eyebrow} ${styles.eyebrowDark} ${styles.centerText}`}>{tour.eyebrow}</p>
-            <h2 className={styles.h2}>{tour.title}</h2>
-            <p className={styles.sectionSub}>{tour.sub}</p>
-
+        {/* PRODUCT, SCREEN BY SCREEN */}
+        <section id="product" className={`${styles.sec} ${styles.tint}`}>
+          <div className={styles.wrap}>
+            <div className={styles.headRow}>
+              <p className={styles.kicker}>{tour.eyebrow}</p>
+              <div>
+                <h2 className={styles.h2}>{tour.title}</h2>
+                <p className={styles.sub}>{tour.sub}</p>
+              </div>
+            </div>
             {tour.items.map((item, i) => (
-              <div key={item.t} className={`${styles.tourRow} ${i % 2 === 1 ? styles.tourRowReverse : ''}`}>
+              <div key={item.t} className={`${styles.tourRow} ${i % 2 === 1 ? styles.tourRev : ''}`}>
                 <div className={styles.tourText}>
-                  <span className={styles.tourNum}>{String(i + 1).padStart(2, '0')}</span>
+                  <p className={styles.when}>{String(i + 1).padStart(2, '0')}</p>
                   <h3 className={styles.tourTitle}>{item.t}</h3>
-                  <p>{item.d}</p>
-                  <ul className={styles.tick}>
-                    {item.points.map(pt => <li key={pt}>{pt}</li>)}
-                  </ul>
+                  <p className={styles.body}>{item.d}</p>
+                  <ul className={styles.list}>{item.points.map(pt => <li key={pt}>{pt}</li>)}</ul>
                 </div>
                 <div className={styles.tourVisual}>
-                  {i === 0 && (
-                    <div className={styles.phonePair}>
-                      <Phone src={`/landing/audit-overview-${lang}.webp`} alt={lang === 'en' ? 'Audit progress overview' : "Vue d'ensemble de l'audit"} />
-                      <Phone src={`/landing/audit-${lang}.webp`} alt={lang === 'en' ? 'Answering standards' : 'Réponse aux standards'} />
-                    </div>
-                  )}
-                  {i === 1 && (
-                    <div className={styles.paperStack}>
-                      <div className={styles.paperBack}>
-                        <Image src="/landing/report-cover.webp" alt={lang === 'en' ? 'Report cover' : 'Couverture du rapport'} width={900} height={1272} sizes="260px" />
-                      </div>
-                      <div className={styles.paperFront}>
-                        <Image src="/landing/report-domains.webp" alt={lang === 'en' ? 'Score dashboard of the report' : 'Tableau de bord du rapport'} width={1200} height={1235} sizes="(max-width: 900px) 80vw, 460px" />
-                      </div>
-                    </div>
-                  )}
-                  {i === 2 && (
-                    <Browser
-                      src={`/landing/analytics-${lang}.webp`}
-                      alt={lang === 'en' ? 'Portfolio analytics' : 'Analyses du portefeuille'}
-                      width={1600}
-                      height={1075}
-                      address="zahirguest.com/dashboard/analytics"
-                    />
-                  )}
+                  {visuals[i]}
                   <p className={styles.caption}>{tour.caption}</p>
                 </div>
               </div>
@@ -181,52 +159,93 @@ export default function LandingPage({ lang }: { lang: Lang }) {
           </div>
         </section>
 
-        {/* FEATURES — dark */}
-        <section id="features" className={`${styles.section} ${styles.alt}`}>
-          <div className={styles.container}>
-            <h2 className={styles.h2}>{c.features.title}</h2>
-            <p className={styles.sectionSub}>{c.features.sub}</p>
-            <div className={styles.grid3}>
+        {/* SAMPLE REPORT */}
+        <section id="exemple" className={styles.sec}>
+          <div className={`${styles.wrap} ${styles.split}`}>
+            <div>
+              <p className={styles.kicker}>{m.example.kicker}</p>
+              <h2 className={styles.h2}>{m.example.title}</h2>
+              <p className={styles.body}>{m.example.d}</p>
+              <Link href="/signup" className={styles.go}>{m.example.cta} →</Link>
+            </div>
+            <ReportSheet lang={lang} />
+          </div>
+        </section>
+
+        {/* FEATURES */}
+        <section id="features" className={`${styles.sec} ${styles.tint}`}>
+          <div className={styles.wrap}>
+            <div className={styles.headRow}>
+              <p className={styles.kicker}>{m.featuresKicker}</p>
+              <div>
+                <h2 className={styles.h2}>{c.features.title}</h2>
+                <p className={styles.sub}>{c.features.sub}</p>
+              </div>
+            </div>
+            <div className={styles.features}>
               {c.features.items.map((f, i) => (
                 <article key={f.t} className={styles.feature}>
-                  <span className={styles.featureNum}>{String(i + 1).padStart(2, '0')}</span>
-                  <h3 className={styles.h3}>{f.t}</h3>
-                  <p>{f.d}</p>
+                  <ZIcon name={FEATURE_ICONS[i] ?? 'ledger'} size={32} />
+                  <div>
+                    <h3 className={styles.featureTitle}>{f.t}</h3>
+                    <p className={styles.body}>{f.d}</p>
+                  </div>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* HOW — dark */}
-        <section id="how" className={styles.section}>
-          <div className={styles.container}>
-            <h2 className={styles.h2}>{c.how.title}</h2>
-            <ol className={styles.steps}>
-              {c.how.steps.map((s, i) => (
-                <li key={s.t}>
-                  <span className={styles.stepNum}>{i + 1}</span>
-                  <h3 className={styles.h3}>{s.t}</h3>
-                  <p>{s.d}</p>
-                </li>
+        {/* FOUNDERS */}
+        <section className={styles.sec}>
+          <div className={styles.wrap}>
+            <div className={styles.split}>
+              <figure className={styles.photo}>
+                <Image src="/landing/fondateurs.webp" alt="" width={1400} height={788} sizes="(max-width: 900px) 100vw, 600px" />
+              </figure>
+              <div>
+                <p className={styles.kicker}>{m.founders.kicker}</p>
+                <h2 className={styles.h2}>{m.founders.title}</h2>
+                <p className={styles.body}>{m.founders.d}</p>
+                <a href="https://www.za3fran.io" className={styles.go}>{m.founders.link} →</a>
+              </div>
+            </div>
+            <div className={styles.people}>
+              {m.founders.people.map(p => (
+                <div key={p.name} className={styles.person}>
+                  <Image src={p.photo} alt={p.name} width={160} height={160} className={styles.personImg} />
+                  <div>
+                    <h3 className={styles.personName}>{p.name}</h3>
+                    <p className={styles.personRole}>{p.role}</p>
+                    <p className={styles.body}>{p.d}</p>
+                  </div>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
-        {/* PRICING — light */}
-        <section id="pricing" className={`${styles.section} ${styles.light}`}>
-          <div className={styles.container}>
-            <h2 className={styles.h2}>{c.pricing.title}</h2>
-            <p className={styles.sectionSub}>{c.pricing.sub}</p>
+        {/* PRICING */}
+        <section id="pricing" className={`${styles.sec} ${styles.tint}`}>
+          <div className={styles.wrap}>
+            <div className={styles.headRow}>
+              <p className={styles.kicker}>{c.nav.pricing}</p>
+              <div>
+                <h2 className={styles.h2}>{c.pricing.title}</h2>
+                <p className={styles.sub}>{c.pricing.sub}</p>
+              </div>
+            </div>
             <LandingPricing lang={lang} madEnabled={madPaymentsEnabled()} demoHref={CONTACT_HREF(lang, 'pricing')} />
           </div>
         </section>
 
-        {/* FAQ — white */}
-        <section id="faq" className={`${styles.section} ${styles.white}`}>
-          <div className={`${styles.container} ${styles.narrow}`}>
-            <h2 className={styles.h2}>{c.faqTitle}</h2>
+        {/* FAQ */}
+        <section id="faq" className={styles.sec}>
+          <div className={styles.wrap}>
+            <div className={styles.headRow}>
+              <p className={styles.kicker}>FAQ</p>
+              <h2 className={styles.h2}>{c.faqTitle}</h2>
+            </div>
             <div className={styles.faq}>
               {FAQS[lang].map(f => (
                 <details key={f.q}>
@@ -238,29 +257,31 @@ export default function LandingPage({ lang }: { lang: Lang }) {
           </div>
         </section>
 
-        {/* FINAL CTA — dark */}
-        <section className={styles.finalCta}>
-          <div className={styles.container}>
-            <h2 className={styles.h2}>{c.finalCta.title}</h2>
-            <p className={styles.sectionSub}>{c.finalCta.sub}</p>
-            <div className={`${styles.ctaRow} ${styles.center}`}>
-              <Link href="/signup" className={styles.btnPrimary}>{c.finalCta.cta}</Link>
-              <a href={CONTACT_HREF(lang)} className={styles.btnGhost}>{c.finalCta.cta2}</a>
+        {/* FINAL CALL */}
+        <section className={styles.final}>
+          <div className={`${styles.wrap} ${styles.finalInner}`}>
+            <div>
+              <h2 className={styles.finalTitle}>{c.finalCta.title}</h2>
+              <p className={styles.finalSub}>{c.finalCta.sub}</p>
+            </div>
+            <div className={styles.ctas}>
+              <Link href="/signup" className={`${styles.btn} ${styles.btnLight}`}>{c.finalCta.cta}</Link>
+              <a href={CONTACT_HREF(lang)} className={`${styles.btn} ${styles.ghostLight}`}>{c.finalCta.cta2}</a>
             </div>
           </div>
         </section>
       </main>
 
       <footer className={styles.footer}>
-        <div className={`${styles.container} ${styles.footerInner}`}>
+        <div className={`${styles.wrap} ${styles.footGrid}`}>
           <div>
-            <p className={styles.footBrand}>Zahir Guest</p>
+            <p className={styles.footBrand}><ZahirMark size={26} /> Zahir Guest</p>
             <p className={styles.footTag}>{c.footer.tagline}</p>
           </div>
           <div>
             <p className={styles.footHead}>{c.footer.product}</p>
             <a href={`${base}#product`}>{tour.eyebrow}</a>
-            <a href={`${base}#features`}>{c.nav.features}</a>
+            <a href={`${base}#exemple`}>{c.nav.example}</a>
             <a href={`${base}#pricing`}>{c.nav.pricing}</a>
             <a href={`${base}#faq`}>{c.nav.faq}</a>
             <Link href="/login">{c.nav.login}</Link>
@@ -269,11 +290,15 @@ export default function LandingPage({ lang }: { lang: Lang }) {
             <p className={styles.footHead}>{c.footer.contact}</p>
             <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
             <a href={CONTACT_HREF(lang)}>{c.hero.cta2}</a>
+            <a href="https://www.za3fran.io">Za3fran.io</a>
+          </div>
+          <div>
+            <p className={styles.footHead}>{lang === 'en' ? 'Legal' : 'Légal'}</p>
             <Link href={lang === 'en' ? '/en/privacy' : '/privacy'}>{lang === 'en' ? 'Privacy policy' : 'Confidentialité'}</Link>
             <Link href={lang === 'en' ? '/en/terms' : '/terms'}>{lang === 'en' ? 'Terms' : 'Conditions générales'}</Link>
           </div>
         </div>
-        <p className={styles.copy}>© {new Date().getFullYear()} Zahir Guest · {c.footer.by}. {c.footer.rights}</p>
+        <p className={`${styles.wrap} ${styles.copy}`}>© {new Date().getFullYear()} Zahir Guest · {c.footer.by}. {c.footer.rights}</p>
       </footer>
     </div>
   )

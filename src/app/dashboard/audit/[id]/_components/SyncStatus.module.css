@@ -22,14 +22,14 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--color-border-subtle);
-  background: rgba(22, 34, 54, 0.95);
+  background: rgba(239, 234, 223, 0.97);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   pointer-events: none;
 }
-.ok { color: #7fc4a8; border-color: rgba(74, 124, 107, 0.5); }
+.ok { color: #2E5E4A; border-color: rgba(46, 94, 74, 0.5); }
 .saving { color: var(--color-sand); }
-.error { color: #E8897E; border-color: rgba(176, 58, 46, 0.6); background: rgba(40, 20, 20, 0.95); pointer-events: auto; }
+.error { color: #8A2E22; border-color: rgba(138, 46, 34, 0.6); background: rgba(40, 20, 20, 0.95); pointer-events: auto; }
 .retry {
   background: transparent;
   border: 1px solid currentColor;
@@ -40,7 +40,7 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.offline { color: var(--color-amber, #D4882A); border-color: rgba(212, 136, 42, 0.5); background: rgba(40, 30, 14, 0.95); pointer-events: auto; }
+.offline { color: var(--color-amber, #8F5410); border-color: rgba(143, 84, 16, 0.5); background: rgba(40, 30, 14, 0.95); pointer-events: auto; }
 .pill a { color: inherit; text-decoration: underline; }
 
 /* Notices shown above the overview / submit screens */
@@ -50,13 +50,13 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  background: rgba(212, 136, 42, 0.1);
-  border: 1px solid rgba(212, 136, 42, 0.3);
+  background: rgba(143, 84, 16, 0.1);
+  border: 1px solid rgba(143, 84, 16, 0.3);
   border-radius: var(--radius-md, 8px);
-  color: var(--color-amber, #D4882A);
+  color: var(--color-amber, #8F5410);
   font-size: 0.85rem;
   line-height: 1.5;
   padding: 10px 14px;
 }
-.noticeInfo { background: rgba(74, 124, 107, 0.12); border-color: rgba(74, 124, 107, 0.4); color: #7fc4a8; }
+.noticeInfo { background: rgba(46, 94, 74, 0.12); border-color: rgba(46, 94, 74, 0.4); color: #2E5E4A; }
 .notice .retry { font-size: 0.75rem; }
