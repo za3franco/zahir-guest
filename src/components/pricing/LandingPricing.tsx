@@ -26,6 +26,7 @@ const T = {
   entFor: { en: 'For chains and national programmes, from 20 properties', fr: 'Pour les chaînes et les programmes nationaux, dès 20 établissements' },
   perProperty: (price: string, lang: Lang) => (lang === 'en' ? `i.e. ${price} per property a month` : `soit ${price} par établissement et par mois`),
   compare: { en: 'Compare the plans', fr: 'Comparer les offres' },
+  includes: { en: 'Included:', fr: 'Inclus :' },
   properties: { en: 'Properties', fr: 'Établissements' },
   included: (n: number, lang: Lang) => (lang === 'en' ? `${n} included` : `${n} inclus`),
   extra: (price: string, lang: Lang) => (lang === 'en' ? `+${price} per extra property` : `+${price} par établissement supplémentaire`),
@@ -63,6 +64,10 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
     const unitExtra = PRICE_GRID[currency][tier].extra
     const featured = tier === 'professional'
     const enterprise = tier === 'enterprise'
+    const [propsLine, ...rest] = PLAN_FEATURES[tier][lang]
+    const features = rest[0]?.endsWith(':') ? rest : [t(T.includes), ...rest]
+    // Every card has the same 8 children, laid on a shared row grid (CSS subgrid), so name, price, properties,
+    // feature list and button line up across the three plans.
     return (
       <div key={tier} className={`${styles.plan} ${featured ? styles.planFeatured : ''}`}>
         <h3 className={styles.planName}>{PLAN_NAMES[tier][lang]}</h3>
@@ -72,35 +77,33 @@ export default function LandingPricing({ lang, madEnabled, demoHref }: { lang: L
           <small>{t(T.perMonth)}</small>
         </p>
         <p className={styles.priceNote}>
-          {annual && !enterprise ? `${money(q.total)} ${t(T.billedYear)}` : ' '}
+          {annual && !enterprise ? `${money(q.total)} ${t(T.billedYear)}` : '\u00a0'}
         </p>
         <p className={styles.perProp}>{T.perProperty(money(Math.round(q.perMonth / q.properties)), lang)}</p>
-
-        {featured && (
-          <div className={styles.stepper}>
-            <span>{t(T.properties)}</span>
-            <div className={styles.stepperCtl}>
-              <button type="button" aria-label="−" onClick={() => setProProps(n => Math.max(TIER_RULES.professional.includedProperties, n - 1))}>−</button>
-              <output aria-live="polite">{proProps}</output>
-              <button type="button" aria-label="+" onClick={() => setProProps(n => Math.min(TIER_RULES.professional.includedProperties + TIER_RULES.professional.maxExtraProperties, n + 1))}>+</button>
+        <div className={styles.slot}>
+          <p className={styles.slotLine}>{propsLine}</p>
+          {featured && (
+            <div className={styles.stepper}>
+              <span>{t(T.properties)}</span>
+              <div className={styles.stepperCtl}>
+                <button type="button" aria-label={lang === 'en' ? 'One property less' : 'Un établissement de moins'} onClick={() => setProProps(n => Math.max(TIER_RULES.professional.includedProperties, n - 1))}>−</button>
+                <output aria-live="polite">{proProps}</output>
+                <button type="button" aria-label={lang === 'en' ? 'One property more' : 'Un établissement de plus'} onClick={() => setProProps(n => Math.min(TIER_RULES.professional.includedProperties + TIER_RULES.professional.maxExtraProperties, n + 1))}>+</button>
+              </div>
             </div>
-          </div>
-        )}
-        {unitExtra !== null && !enterprise && (
-          <p className={styles.extraNote}>
-            {TIER_RULES[tier].includedProperties > 1 ? `${T.included(TIER_RULES[tier].includedProperties, lang)} · ` : ''}
-            {T.extra(money(unitExtra), lang)}
-          </p>
-        )}
-
+          )}
+          {unitExtra !== null && !enterprise && <p className={styles.extraNote}>{T.extra(money(unitExtra), lang)}</p>}
+        </div>
         <ul className={styles.features}>
-          {PLAN_FEATURES[tier][lang].map(f => <li key={f} className={f.endsWith(':') ? styles.featPlus : undefined}>{f}</li>)}
+          {features.map(f => <li key={f} className={f.endsWith(':') ? styles.featPlus : undefined}>{f}</li>)}
         </ul>
-        {enterprise ? (
-          <a href={demoHref} className={styles.btnGhost}>{t(T.talk)}</a>
-        ) : (
-          <Link href="/signup" className={featured ? styles.btnPrimary : styles.btnGhost}>{t(T.cta)}</Link>
-        )}
+        <div className={styles.ctaRow}>
+          {enterprise ? (
+            <a href={demoHref} className={styles.btnGhost}>{t(T.talk)}</a>
+          ) : (
+            <Link href="/signup" className={featured ? styles.btnPrimary : styles.btnGhost}>{t(T.cta)}</Link>
+          )}
+        </div>
       </div>
     )
   }

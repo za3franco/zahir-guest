@@ -104,11 +104,11 @@ export const PLAN_FEATURES: Record<PlanTier, { en: string[]; fr: string[] }> = {
   },
   professional: {
     en: ['3 properties included, up to 15', 'Everything in Hotel, plus:', 'Unlimited users and audits', '10 AI summaries a month, +1 per extra property', 'White label: your name, logo and colours on the app, reports and emails', 'Your properties compared in the analytics', '14-day pilot after a demo'],
-    fr: ['3 établissements inclus, jusqu’à 15', 'Tout ce que comprend l’offre Hôtel, plus :', 'Utilisateurs et audits illimités', '10 synthèses IA par mois, +1 par établissement supplémentaire', 'Marque blanche : votre nom, votre logo et vos couleurs sur l’app, les rapports et les emails', 'Vos établissements comparés dans les analyses', 'Pilote de 14 jours après une démo'],
+    fr: ['3 établissements inclus, jusqu’à 15', 'Toute l’offre Hôtel, plus :', 'Utilisateurs et audits illimités', '10 synthèses IA par mois, +1 par établissement supplémentaire', 'Marque blanche : votre nom, votre logo et vos couleurs sur l’app, les rapports et les emails', 'Vos établissements comparés dans les analyses', 'Pilote de 14 jours après une démo'],
   },
   enterprise: {
     en: ['20 properties included, more on quote', 'Everything in Professional, plus:', 'Unlimited AI summaries', 'Guided set-up: your questionnaires loaded, your users created, your teams trained (one-off fee)', 'A dedicated contact at Za3fran', 'Annual contract, local invoicing'],
-    fr: ['20 établissements inclus, au-delà sur devis', 'Tout ce que comprend l’offre Professionnel, plus :', 'Synthèses IA illimitées', 'Mise en place accompagnée : vos questionnaires chargés, vos utilisateurs créés, vos équipes formées (frais unique)', 'Un interlocuteur dédié chez Za3fran', 'Contrat annuel, facturation locale'],
+    fr: ['20 établissements inclus, au-delà sur devis', 'Toute l’offre Professionnel, plus :', 'Synthèses IA illimitées', 'Mise en place accompagnée : vos questionnaires chargés, vos utilisateurs créés, vos équipes formées (frais unique)', 'Un interlocuteur dédié chez Za3fran', 'Contrat annuel, facturation locale'],
   },
 }
 
