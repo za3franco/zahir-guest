@@ -42,7 +42,7 @@ export interface EmailBrand {
   displayName: string
   /** Absolute https URL of a logo that is safe to load, or null. */
   logoUrl: string | null
-  /** Main colour, readable on the dark background. */
+  /** Main colour, readable on the ivory background. */
   accent: string
   /** Show the "Powered by Zahir Guest" line. */
   poweredBy: boolean
@@ -94,12 +94,12 @@ export async function emailBrandFor(tenantId?: string | null): Promise<EmailBran
   }
 }
 
-/** Text colour for a button of this colour: whichever of navy or white contrasts more. */
+/** Text colour for a button of this colour: whichever of ink or white contrasts more. */
 export function buttonTextColor(accent: string): string {
   const L = luminance(accent)
-  const onNavy = (L + 0.05) / (luminance('#0D1B2A') + 0.05)
+  const onInk = (L + 0.05) / (luminance('#14161B') + 0.05)
   const onWhite = 1.05 / (L + 0.05)
-  return onNavy >= onWhite ? '#0D1B2A' : '#FFFFFF'
+  return onInk >= onWhite ? '#14161B' : '#FFFFFF'
 }
 
 /** "rgba(r,g,b,a)" for a #RRGGBB colour (used for tinted boxes). */
@@ -109,43 +109,35 @@ export function accentRgba(accent: string, alpha: number): string {
 }
 
 export function h1(text: string): string {
-  return `<h1 style="font-size:22px;font-weight:300;color:#F4F1EC;margin:0 0 16px;line-height:1.3;">${text}</h1>`
+  return `<h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:500;color:#14161B;margin:0 0 16px;line-height:1.2;">${text}</h1>`
 }
 
 export function p(html: string, opts: { size?: number; mb?: number } = {}): string {
-  return `<p style="color:#9B9488;font-size:${opts.size ?? 14}px;line-height:1.7;margin:0 0 ${opts.mb ?? 16}px;">${html}</p>`
+  return `<p style="color:#5E5A52;font-size:${opts.size ?? 14}px;line-height:1.7;margin:0 0 ${opts.mb ?? 16}px;">${html}</p>`
 }
 
 export function strong(text: string): string {
-  return `<strong style="color:#F4F1EC;">${text}</strong>`
+  return `<strong style="color:#14161B;">${text}</strong>`
 }
 
 /** Call-to-action button. `href` is escaped here; `label` must already be safe HTML (translated text). */
 export function ctaButton(brand: EmailBrand, href: string, label: string): string {
   return `<table cellpadding="0" cellspacing="0" style="margin:24px 0;">
     <tr>
-      <td style="background:${brand.accent};border-radius:8px;">
+      <td style="background:${brand.accent};border-radius:2px;">
         <a href="${esc(href)}" style="display:inline-block;padding:13px 28px;color:${buttonTextColor(brand.accent)};font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${label}</a>
       </td>
     </tr>
   </table>`
 }
 
-const MARK_SVG = `<svg width="24" height="24" viewBox="0 0 40 40" fill="none">
-  <circle cx="20" cy="20" r="3" fill="#C8A45A"/>
-  <circle cx="20" cy="20" r="7" stroke="#C8A45A" stroke-width="1" stroke-opacity="0.5" fill="none"/>
-  <circle cx="20" cy="20" r="13" stroke="#C8A45A" stroke-width="0.5" stroke-opacity="0.25" fill="none"/>
-  <line x1="20" y1="4" x2="20" y2="10" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-  <line x1="20" y1="30" x2="20" y2="36" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-  <line x1="4" y1="20" x2="10" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-  <line x1="30" y1="20" x2="36" y2="20" stroke="#C8A45A" stroke-width="1.5" stroke-opacity="0.6" stroke-linecap="round"/>
-</svg>`
+const MARK_SVG = `<svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="#14161B" stroke-width="1.4"><path d="M6 29V14a10 10 0 0 1 20 0v15"/><path d="M10 29V15a6 6 0 0 1 12 0v14"/><path d="M16 21v3"/><path d="M3 29h26"/><circle cx="16" cy="19" r="1.8" fill="#8A5A18" stroke="none"/></svg>`
 
 function headerHtml(brand: EmailBrand): string {
   // Standard look: the Zahir Guest mark and name
   if (!brand.logoUrl && !brand.name) {
     return `<td style="padding-right:12px;">${MARK_SVG}</td>
-      <td><div style="font-size:16px;font-weight:400;color:#F4F1EC;letter-spacing:0.05em;">Zahir Guest</div></td>`
+      <td><div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;color:#14161B;">Zahir Guest</div></td>`
   }
   // White label: the logo (if any) and always the name in text, so that a logo that is dark or blocked by the mail
   // client still leaves the name readable
@@ -153,7 +145,7 @@ function headerHtml(brand: EmailBrand): string {
     ? `<td style="padding-right:12px;"><img src="${esc(brand.logoUrl)}" alt="${esc(brand.name ?? '')}" height="36" style="display:block;border:0;outline:none;height:36px;width:auto;max-width:160px;"></td>`
     : ''
   const name = brand.name
-    ? `<td><div style="font-size:16px;font-weight:400;color:#F4F1EC;letter-spacing:0.05em;">${esc(brand.name)}</div></td>`
+    ? `<td><div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;color:#14161B;">${esc(brand.name)}</div></td>`
     : ''
   return logo + name
 }
@@ -165,7 +157,7 @@ function footerHtml(brand: EmailBrand, lang: EmailLang): string {
   }
   const line = lang === 'en' ? 'Powered by' : 'Propulsé par'
   const who = brand.name ? `${esc(brand.name)}<br>` : ''
-  return `${who}<span style="font-size:11px;">${line} <a href="${esc(SITE_URL)}" style="color:#9B9488;text-decoration:underline;">Zahir Guest</a></span>`
+  return `${who}<span style="font-size:11px;">${line} <a href="${esc(SITE_URL)}" style="color:#5E5A52;text-decoration:underline;">Zahir Guest</a></span>`
 }
 
 /** The full HTML of an email: header (logo / name), content, footer. `content` must already be safe HTML. */
@@ -174,19 +166,19 @@ export function renderEmail(brand: EmailBrand, lang: EmailLang, content: string)
 <html lang="${lang}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <style>@media only screen and (max-width:480px){.zg-pad{padding-left:20px!important;padding-right:20px!important;}.zg-outer{padding:24px 12px!important;}}</style></head>
-<body style="margin:0;padding:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" class="zg-outer" style="background:#0D1B2A;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#F7F4EE;font-family:'DM Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" class="zg-outer" style="background:#F7F4EE;padding:40px 20px;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#162236;border-radius:12px;overflow:hidden;border:1px solid #253549;max-width:600px;width:100%;">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFDF8;border-radius:2px;overflow:hidden;border:1px solid #D8D2C6;max-width:600px;width:100%;">
         <tr>
-          <td class="zg-pad" style="padding:28px 40px 22px;border-bottom:1px solid #253549;">
+          <td class="zg-pad" style="padding:28px 40px 22px;border-bottom:1px solid #D8D2C6;">
             <table cellpadding="0" cellspacing="0"><tr>${headerHtml(brand)}</tr></table>
           </td>
         </tr>
         <tr><td class="zg-pad" style="padding:32px 40px;">${content}</td></tr>
         <tr>
-          <td class="zg-pad" style="padding:20px 40px;border-top:1px solid #253549;">
-            <p style="margin:0;font-size:11px;color:#9B9488;line-height:1.6;">${footerHtml(brand, lang)}</p>
+          <td class="zg-pad" style="padding:20px 40px;border-top:1px solid #D8D2C6;">
+            <p style="margin:0;font-size:11px;color:#5E5A52;line-height:1.6;">${footerHtml(brand, lang)}</p>
           </td>
         </tr>
       </table>

@@ -22,15 +22,15 @@ export async function sendWelcomeEmail(opts: {
   const title = en ? 'Welcome aboard' : 'Bienvenue à bord'
   const intro = freePlan
     ? en
-      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready on the free <strong style="color:#C8A45A;">Discovery</strong> plan: one property, one audit per quarter with our Essential questionnaire, free for as long as you like. Upgrade whenever you need more.`
-      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt avec l'offre gratuite <strong style="color:#C8A45A;">Découverte</strong> : un établissement, un audit par trimestre avec notre questionnaire Essentiel, gratuit aussi longtemps que vous le souhaitez. Passez à une offre supérieure quand vous en avez besoin.`
+      ? `Your <strong style="color:#14161B;">${esc(companyName)}</strong> workspace is ready on the free <strong style="color:#8A5A18;">Discovery</strong> plan: one property, one audit per quarter with our Essential questionnaire, free for as long as you like. Upgrade whenever you need more.`
+      : `Votre espace <strong style="color:#14161B;">${esc(companyName)}</strong> est prêt avec l'offre gratuite <strong style="color:#8A5A18;">Découverte</strong> : un établissement, un audit par trimestre avec notre questionnaire Essentiel, gratuit aussi longtemps que vous le souhaitez. Passez à une offre supérieure quand vous en avez besoin.`
     : trialDays
     ? en
-      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready. You have <strong style="color:#C8A45A;">${trialDays} days</strong> to try Zahir Guest for free, with no card required.`
-      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt. Vous disposez de <strong style="color:#C8A45A;">${trialDays} jours</strong> pour essayer Zahir Guest gratuitement, sans carte bancaire.`
+      ? `Your <strong style="color:#14161B;">${esc(companyName)}</strong> workspace is ready. You have <strong style="color:#8A5A18;">${trialDays} days</strong> to try Zahir Guest for free, with no card required.`
+      : `Votre espace <strong style="color:#14161B;">${esc(companyName)}</strong> est prêt. Vous disposez de <strong style="color:#8A5A18;">${trialDays} jours</strong> pour essayer Zahir Guest gratuitement, sans carte bancaire.`
     : en
-      ? `Your <strong style="color:#F4F1EC;">${esc(companyName)}</strong> workspace is ready on the <strong style="color:#C8A45A;">${esc(planName)}</strong> plan.`
-      : `Votre espace <strong style="color:#F4F1EC;">${esc(companyName)}</strong> est prêt avec le forfait <strong style="color:#C8A45A;">${esc(planName)}</strong>.`
+      ? `Your <strong style="color:#14161B;">${esc(companyName)}</strong> workspace is ready on the <strong style="color:#8A5A18;">${esc(planName)}</strong> plan.`
+      : `Votre espace <strong style="color:#14161B;">${esc(companyName)}</strong> est prêt avec le forfait <strong style="color:#8A5A18;">${esc(planName)}</strong>.`
   const next = en
     ? 'Set your password to sign in, then add your first property, invite an auditor and create your first campaign.'
     : 'Définissez votre mot de passe pour vous connecter, puis ajoutez votre premier établissement, invitez un auditeur et créez votre première campagne.'
@@ -41,36 +41,36 @@ export async function sendWelcomeEmail(opts: {
   const htmlContent = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D1B2A;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#F7F4EE;font-family:'DM Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EE;padding:40px 20px;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#162236;border-radius:12px;overflow:hidden;border:1px solid #253549;">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFDF8;border-radius:2px;overflow:hidden;border:1px solid #D8D2C6;">
         <tr>
-          <td style="padding:40px 48px 32px;border-bottom:1px solid #253549;">
-            <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9B9488;">ZAHIR GUEST</p>
-            <h1 style="margin:8px 0 0;font-size:28px;font-weight:300;color:#F4F1EC;line-height:1.3;">${title}</h1>
+          <td style="padding:40px 48px 32px;border-bottom:1px solid #D8D2C6;">
+            <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5E5A52;">ZAHIR GUEST</p>
+            <h1 style="margin:8px 0 0;font-size:28px;font-weight:500;color:#14161B;line-height:1.3;">${title}</h1>
           </td>
         </tr>
         <tr>
           <td style="padding:32px 48px;">
-            <p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 20px;">${hello}</p>
-            <p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 20px;">${intro}</p>
-            <p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 32px;">${next}</p>
+            <p style="color:#5E5A52;font-size:15px;line-height:1.7;margin:0 0 20px;">${hello}</p>
+            <p style="color:#5E5A52;font-size:15px;line-height:1.7;margin:0 0 20px;">${intro}</p>
+            <p style="color:#5E5A52;font-size:15px;line-height:1.7;margin:0 0 32px;">${next}</p>
             <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
               <tr>
-                <td style="background:#C8A45A;border-radius:8px;">
-                  <a href="${setPasswordLink}" style="display:inline-block;padding:14px 32px;color:#0D1B2A;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${cta}</a>
+                <td style="background:#8A5A18;border-radius:2px;">
+                  <a href="${setPasswordLink}" style="display:inline-block;padding:14px 32px;color:#F7F4EE;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${cta}</a>
                 </td>
               </tr>
             </table>
-            <p style="color:#9B9488;font-size:13px;line-height:1.6;margin:0;">${expiry}</p>
+            <p style="color:#5E5A52;font-size:13px;line-height:1.6;margin:0;">${expiry}</p>
           </td>
         </tr>
         <tr>
-          <td style="padding:24px 48px;border-top:1px solid #253549;">
-            <p style="margin:0;font-size:12px;color:#9B9488;line-height:1.6;">
+          <td style="padding:24px 48px;border-top:1px solid #D8D2C6;">
+            <p style="margin:0;font-size:12px;color:#5E5A52;line-height:1.6;">
               Zahir Guest — ${en ? 'Mystery Guest Audit Platform' : "Plateforme d'audit mystère"}<br>
-              <a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a>
+              <a href="https://www.zahirguest.com" style="color:#8A5A18;text-decoration:none;">zahirguest.com</a>
             </p>
           </td>
         </tr>
@@ -121,26 +121,26 @@ export async function sendBillingNotice(opts: {
 }): Promise<boolean> {
   const { to, subject, title, paragraphs, cta, lang, unsubscribeUrl } = opts
   const en = lang === 'en'
-  const body = paragraphs.map(p => `<p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 20px;">${p}</p>`).join('')
+  const body = paragraphs.map(p => `<p style="color:#5E5A52;font-size:15px;line-height:1.7;margin:0 0 20px;">${p}</p>`).join('')
   const button = cta
-    ? `<table cellpadding="0" cellspacing="0" style="margin:8px 0 8px;"><tr><td style="background:#C8A45A;border-radius:8px;"><a href="${cta.href}" style="display:inline-block;padding:14px 32px;color:#0D1B2A;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${esc(cta.label)}</a></td></tr></table>`
+    ? `<table cellpadding="0" cellspacing="0" style="margin:8px 0 8px;"><tr><td style="background:#8A5A18;border-radius:2px;"><a href="${cta.href}" style="display:inline-block;padding:14px 32px;color:#F7F4EE;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.04em;">${esc(cta.label)}</a></td></tr></table>`
     : ''
   const htmlContent = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D1B2A;padding:40px 20px;"><tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="background:#162236;border-radius:12px;overflow:hidden;border:1px solid #253549;">
-      <tr><td style="padding:40px 48px 32px;border-bottom:1px solid #253549;">
-        <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9B9488;">ZAHIR GUEST</p>
-        <h1 style="margin:8px 0 0;font-size:26px;font-weight:300;color:#F4F1EC;line-height:1.3;">${esc(title)}</h1>
+<body style="margin:0;padding:0;background:#F7F4EE;font-family:'DM Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EE;padding:40px 20px;"><tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFDF8;border-radius:2px;overflow:hidden;border:1px solid #D8D2C6;">
+      <tr><td style="padding:40px 48px 32px;border-bottom:1px solid #D8D2C6;">
+        <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5E5A52;">ZAHIR GUEST</p>
+        <h1 style="margin:8px 0 0;font-size:26px;font-weight:500;color:#14161B;line-height:1.3;">${esc(title)}</h1>
       </td></tr>
       <tr><td style="padding:32px 48px;">
-        <p style="color:#9B9488;font-size:15px;line-height:1.7;margin:0 0 20px;">${en ? 'Hello' : 'Bonjour'} ${esc(to.name)},</p>
+        <p style="color:#5E5A52;font-size:15px;line-height:1.7;margin:0 0 20px;">${en ? 'Hello' : 'Bonjour'} ${esc(to.name)},</p>
         ${body}${button}
       </td></tr>
-      <tr><td style="padding:24px 48px;border-top:1px solid #253549;">
-        <p style="margin:0;font-size:12px;color:#9B9488;line-height:1.6;">Zahir Guest — ${en ? 'Mystery Guest Audit Platform' : "Plateforme d'audit mystère"}<br>
-        <a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a>${unsubscribeUrl ? `<br><a href="${unsubscribeUrl}" style="color:#9B9488;text-decoration:underline;">${en ? 'Stop these tips' : 'Ne plus recevoir ces conseils'}</a>` : ''}</p>
+      <tr><td style="padding:24px 48px;border-top:1px solid #D8D2C6;">
+        <p style="margin:0;font-size:12px;color:#5E5A52;line-height:1.6;">Zahir Guest — ${en ? 'Mystery Guest Audit Platform' : "Plateforme d'audit mystère"}<br>
+        <a href="https://www.zahirguest.com" style="color:#8A5A18;text-decoration:none;">zahirguest.com</a>${unsubscribeUrl ? `<br><a href="${unsubscribeUrl}" style="color:#5E5A52;text-decoration:underline;">${en ? 'Stop these tips' : 'Ne plus recevoir ces conseils'}</a>` : ''}</p>
       </td></tr>
     </table>
   </td></tr></table>

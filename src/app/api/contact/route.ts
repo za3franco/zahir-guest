@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   // Email to us (French: the team reads it). Reply-to = the prospect. A failure is logged but the request is kept.
   const row = (label: string, value: unknown) =>
     value === null || value === undefined || value === '' ? '' :
-    `<tr><td style="padding:4px 12px 4px 0;color:#9B9488;font-size:13px;vertical-align:top;white-space:nowrap;">${esc(label)}</td><td style="padding:4px 0;color:#F4F1EC;font-size:14px;">${esc(value).replace(/\n/g, '<br>')}</td></tr>`
+    `<tr><td style="padding:4px 12px 4px 0;color:#5E5A52;font-size:13px;vertical-align:top;white-space:nowrap;">${esc(label)}</td><td style="padding:4px 0;color:#14161B;font-size:14px;">${esc(value).replace(/\n/g, '<br>')}</td></tr>`
   const lead = renderEmail(ZAHIR_BRAND, 'fr',
     h1('Nouvelle demande « Parlons-en »') +
     `<table cellpadding="0" cellspacing="0" style="margin:0 0 8px;">` +
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       ? `Hello ${esc(d.contact_name)}, thank you for your interest in Zahir Guest. We have your request for ${strong(String(d.properties_wanted))} ${d.properties_wanted > 1 ? 'properties' : 'property'} (${esc(d.company)}) and will get back to you within one working day, with a proposal that fits your needs.`
       : `Bonjour ${esc(d.contact_name)}, merci de votre intérêt pour Zahir Guest. Nous avons bien reçu votre demande pour ${strong(String(d.properties_wanted))} ${d.properties_wanted > 1 ? 'établissements' : 'établissement'} (${esc(d.company)}) et reviendrons vers vous sous un jour ouvré, avec une proposition adaptée à votre besoin.`) +
     p(en ? 'In the meantime, you can create a free workspace and try an audit:' : "En attendant, vous pouvez créer un espace gratuit et essayer un audit :") +
-    p(`<a href="${esc(SITE_URL)}/signup" style="color:#C8A45A;">${esc(SITE_URL.replace(/^https?:\/\//, ''))}/signup</a>`))
+    p(`<a href="${esc(SITE_URL)}/signup" style="color:#8A5A18;">${esc(SITE_URL.replace(/^https?:\/\//, ''))}/signup</a>`))
   await sendViaBrevo({
     to: { name: d.contact_name, email: d.email },
     subject: en ? 'Zahir Guest: we received your request' : 'Zahir Guest : nous avons bien reçu votre demande',

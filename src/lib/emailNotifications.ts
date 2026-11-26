@@ -22,7 +22,7 @@ import {
 
 const appBase = () => (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.zahirguest.com').replace(/\/$/, '')
 
-const LABEL = 'font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;'
+const LABEL = 'font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#5E5A52;'
 
 interface Actor { email?: string | null; role?: string | null; name?: string | null }
 
@@ -80,8 +80,8 @@ export async function sendAuditorAssignedEmail(params: {
     subject: () => lang === 'en' ? `New audit assignment — ${propertyName}` : `Nouvelle mission d'audit — ${propertyName}`,
     content: ({ accent, brand }) => {
       const where = `${esc(propertyName)}${propertyCity ? ` — ${esc(propertyCity)}` : ''}`
-      const row = (label: string, value: string, last = false, color = '#F4F1EC', weight = 400) =>
-        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #253549;'}">
+      const row = (label: string, value: string, last = false, color = '#14161B', weight = 400) =>
+        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #D8D2C6;'}">
           <span style="${LABEL}">${label}</span><br>
           <span style="font-size:14px;color:${color};font-weight:${weight};">${value}</span>
         </td></tr>`
@@ -91,7 +91,7 @@ export async function sendAuditorAssignedEmail(params: {
            ${p(`Hello ${esc(auditorName)},`)}
            ${p(`${strong(esc(assignedByName))} has assigned you to conduct a mystery guest audit.`, { mb: 24 })}
            ${table(
-             row('Property', where, false, '#F4F1EC', 500) +
+             row('Property', where, false, '#14161B', 500) +
              row('Campaign', esc(campaignName), !windowStr) +
              (windowStr ? row('Visit window', esc(windowStr), true, accent, 500) : '')
            )}
@@ -102,7 +102,7 @@ export async function sendAuditorAssignedEmail(params: {
            ${p(`Bonjour ${esc(auditorName)},`)}
            ${p(`${strong(esc(assignedByName))} vous a assigné une mission d'audit mystère.`, { mb: 24 })}
            ${table(
-             row('Établissement', where, false, '#F4F1EC', 500) +
+             row('Établissement', where, false, '#14161B', 500) +
              row('Campagne', esc(campaignName), !windowStr) +
              (windowStr ? row('Fenêtre de visite', esc(windowStr), true, accent, 500) : '')
            )}
@@ -135,9 +135,9 @@ export async function sendAuditSubmittedEmail(params: {
     content: ({ brand }) => {
       const where = `${esc(propertyName)}${propertyCity ? ` (${esc(propertyCity)})` : ''}`
       const row = (label: string, value: string, last = false) =>
-        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #253549;'}">
+        `<tr><td style="padding:8px 0;${last ? '' : 'border-bottom:1px solid #D8D2C6;'}">
           <span style="${LABEL}">${label}</span><br>
-          <span style="font-size:14px;color:#F4F1EC;">${value}</span>
+          <span style="font-size:14px;color:#14161B;">${value}</span>
         </td></tr>`
       const table = (rows: string) => `<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">${rows}</table>`
       const url = `${appBase()}/dashboard/campaigns/${encodeURIComponent(campaignId)}`
@@ -178,7 +178,7 @@ export async function sendReportPublishedEmail(params: {
     content: ({ accent, brand }) => {
       const where = `${esc(propertyName)}${propertyCity ? ` — ${esc(propertyCity)}` : ''}`
       const score = typeof overallScore === 'number' && Number.isFinite(overallScore)
-        ? `<div style="background:${accentRgba(accent, 0.08)};border:1px solid ${accentRgba(accent, 0.2)};border-radius:8px;padding:20px 24px;text-align:center;margin-bottom:24px;">
+        ? `<div style="background:${accentRgba(accent, 0.08)};border:1px solid ${accentRgba(accent, 0.2)};border-radius:2px;padding:20px 24px;text-align:center;margin-bottom:24px;">
              <div style="font-size:36px;font-weight:700;color:${accent};line-height:1;margin:16px 0 4px;">${esc(overallScore)}%</div>
              <div style="${LABEL}">${lang === 'en' ? 'Overall score' : 'Score global'}</div>
            </div>`
@@ -186,7 +186,7 @@ export async function sendReportPublishedEmail(params: {
       const campaign = (label: string) => `<table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px;">
         <tr><td style="padding:8px 0;">
           <span style="${LABEL}">${label}</span><br>
-          <span style="font-size:14px;color:#F4F1EC;">${esc(campaignName)}</span>
+          <span style="font-size:14px;color:#14161B;">${esc(campaignName)}</span>
         </td></tr>
       </table>`
       const url = `${appBase()}/dashboard/reports/${encodeURIComponent(reportId)}/view`

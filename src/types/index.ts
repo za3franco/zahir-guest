@@ -87,10 +87,10 @@ export const CLASSIFICATION_LABELS: Record<PerformanceClassification, { en: stri
 }
 
 export const STATUS_LABELS: Record<CampaignStatus, { en: string; fr: string; color: string }> = {
-  assigned: { en: 'Assigned', fr: 'Assignée', color: '#9B9488' },
-  in_progress: { en: 'In Progress', fr: 'En cours', color: '#C8A45A' },
-  submitted: { en: 'Submitted', fr: 'Soumise', color: '#E8C87A' },
-  under_review: { en: 'Under Review', fr: 'En révision', color: '#D4882A' },
-  finalized: { en: 'Finalized', fr: 'Finalisée', color: '#4A7C6B' },
-  published: { en: 'Published', fr: 'Publiée', color: '#4A7C6B' },
+  assigned: { en: 'Assigned', fr: 'Assignée', color: '#5E5A52' },
+  in_progress: { en: 'In Progress', fr: 'En cours', color: '#8A5A18' },
+  submitted: { en: 'Submitted', fr: 'Soumise', color: '#6E4510' },
+  under_review: { en: 'Under Review', fr: 'En révision', color: '#8F5410' },
+  finalized: { en: 'Finalized', fr: 'Finalisée', color: '#2E5E4A' },
+  published: { en: 'Published', fr: 'Publiée', color: '#2E5E4A' },
 }

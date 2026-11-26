@@ -7,6 +7,7 @@ Zahir Guest est une plateforme SaaS d'audit « client mystère » pour l'hôtell
 2. `docs/FEUILLE_DE_ROUTE.md` : les prochaines étapes, avec pour chacune le modèle conseillé et ce qu'Arnaud doit faire.
 3. `docs/TESTS.md` et `docs/PRATIQUES_TECHNIQUES.md` (s'ils existent) : comment tester et les règles de travail.
 4. `docs/LANCEMENT_SESSIONS.md` : quand et comment changer de conversation.
+5. `docs/CHARTE_GRAPHIQUE.md` : la charte « Maison » (couleurs, polices, pictogrammes, emails, rapport) à respecter pour tout nouvel écran.
 
 ## Méthode « avancer d'un trait » (validée par Arnaud le 14 nov. 2026)
 Arnaud veut aller vite : Claude enchaîne les phases de la feuille de route sans demander, jusqu'au bout, et ne s'arrête que pour une décision, un blocage ou une conversation devenue lourde. Détail et garde-fous : `docs/PRATIQUES_TECHNIQUES.md`, section « Méthode ».

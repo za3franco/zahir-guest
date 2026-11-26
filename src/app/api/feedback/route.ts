@@ -28,26 +28,26 @@ export async function POST(request: Request) {
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D1B2A;padding:40px 20px;">
+<body style="margin:0;padding:0;background:#F7F4EE;font-family:'DM Sans',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F4EE;padding:40px 20px;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#162236;border-radius:12px;overflow:hidden;border:1px solid #253549;">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFDF8;border-radius:2px;overflow:hidden;border:1px solid #D8D2C6;">
         <tr>
-          <td style="padding:32px 40px 24px;border-bottom:1px solid #253549;">
-            <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#9B9488;">ZAHIR GUEST</p>
-            <h1 style="margin:8px 0 0;font-size:22px;font-weight:300;color:#F4F1EC;">New feedback / feature suggestion</h1>
+          <td style="padding:32px 40px 24px;border-bottom:1px solid #D8D2C6;">
+            <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5E5A52;">ZAHIR GUEST</p>
+            <h1 style="margin:8px 0 0;font-size:22px;font-weight:500;color:#14161B;">New feedback / feature suggestion</h1>
           </td>
         </tr>
         <tr>
           <td style="padding:32px 40px;">
             <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:20px;">
               <tr><td style="padding:6px 0;">
-                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#9B9488;">From</span><br>
-                <span style="font-size:14px;color:#F4F1EC;">${user.name} (${user.email}) — ${user.role}</span>
+                <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#5E5A52;">From</span><br>
+                <span style="font-size:14px;color:#14161B;">${user.name} (${user.email}) — ${user.role}</span>
               </td></tr>
             </table>
-            <div style="background:rgba(200,164,90,0.06);border:1px solid rgba(200,164,90,0.2);border-radius:8px;padding:20px;">
-              <p style="margin:0;font-size:14px;color:#F4F1EC;line-height:1.7;">${escaped}</p>
+            <div style="background:rgba(138,90,24,0.06);border:1px solid rgba(138,90,24,0.2);border-radius:2px;padding:20px;">
+              <p style="margin:0;font-size:14px;color:#14161B;line-height:1.7;">${escaped}</p>
             </div>
           </td>
         </tr>

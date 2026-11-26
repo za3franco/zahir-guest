@@ -28,12 +28,12 @@ const TEXT = {
 function page(lang: 'en' | 'fr', body: string, status = 200) {
   const t = TEXT[lang]
   const html = `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${t.title}</title></head>
-<body style="margin:0;background:#0D1B2A;font-family:'DM Sans',Arial,sans-serif;color:#9B9488;">
-<div style="max-width:520px;margin:64px auto;padding:40px 32px;background:#162236;border:1px solid #253549;border-radius:12px;">
+<body style="margin:0;background:#F7F4EE;font-family:'DM Sans',Arial,sans-serif;color:#5E5A52;">
+<div style="max-width:520px;margin:64px auto;padding:40px 32px;background:#FFFDF8;border:1px solid #D8D2C6;border-radius:2px;">
 <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;">ZAHIR GUEST</p>
-<h1 style="margin:8px 0 24px;font-size:24px;font-weight:300;color:#F4F1EC;">${t.title}</h1>
+<h1 style="margin:8px 0 24px;font-size:24px;font-weight:500;color:#14161B;">${t.title}</h1>
 ${body}
-<p style="margin:32px 0 0;font-size:12px;"><a href="https://www.zahirguest.com" style="color:#C8A45A;text-decoration:none;">zahirguest.com</a></p>
+<p style="margin:32px 0 0;font-size:12px;"><a href="https://www.zahirguest.com" style="color:#8A5A18;text-decoration:none;">zahirguest.com</a></p>
 </div></body></html>`
   return new Response(html, { status, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 }
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   return page(
     lang,
     para(t.ask) +
-      `<form method="post" action="${action}"><button type="submit" style="background:#C8A45A;color:#0D1B2A;border:0;border-radius:8px;padding:14px 32px;font-size:14px;font-weight:600;letter-spacing:0.04em;cursor:pointer;">${t.button}</button></form>`
+      `<form method="post" action="${action}"><button type="submit" style="background:#8A5A18;color:#F7F4EE;border:0;border-radius:2px;padding:14px 32px;font-size:14px;font-weight:600;letter-spacing:0.04em;cursor:pointer;">${t.button}</button></form>`
   )
 }
 

@@ -72,7 +72,7 @@ export function unsubscribeUrl(tenantId: string): string | undefined {
 
 // ── Content ─────────────────────────────────────────────────────────────────────────────────
 
-const GOLD = (s: string) => `<strong style="color:#F4F1EC;">${s}</strong>`
+const GOLD = (s: string) => `<strong style="color:#14161B;">${s}</strong>`
 
 function nextQuarterStart(lang: 'en' | 'fr', d = new Date()): string {
   const q = Math.floor(d.getUTCMonth() / 3)
